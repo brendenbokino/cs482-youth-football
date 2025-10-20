@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/brendenbokino/cs482-youth-football/issues"
   },
-  "homepage": "https://github.com/brendenbokino/cs482-youth-football#readme"
+  "homepage": "https://github.com/brendenbokino/cs482-youth-football#readme",
+  "devDependencies": {
+    "jest": "^30.2.0"
+  }
 }

@@ -5,10 +5,30 @@
 
 const readline = require('readline');
 
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
-console.log("Testing output");
+class BasicTest {
+    constructor() {
+        this.rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
+        this.userInput = {};
+    }
 
-let userInput = {};
+    sampleQuestions() {
+        console.log("Sample input/output");
+
+        this.rl.question('Enter your name: ', (name) => {
+            this.userInput.name = name;
+
+            this.rl.question('Enter your age: ', (age) => {
+                this.userInput.age = age;
+
+                console.log("\nTesting input:", name, age);
+                this.rl.close();
+            });
+        });
+    }
+}
+
+const test = new BasicTest();
+test.sampleQuestions();
