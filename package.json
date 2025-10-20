@@ -1,0 +1,21 @@
+{
+  "name": "cs482-youth-football",
+  "version": "1.0.0",
+  "description": "link to user stories: https://docs.google.com/spreadsheets/d/1hdS78vH5uyccUSW122xn503pXgKP0MDr7zG4zhHyTow/edit?usp=sharing",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brendenbokino/cs482-youth-football.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/brendenbokino/cs482-youth-football/issues"
+  },
+  "homepage": "https://github.com/brendenbokino/cs482-youth-football#readme"
+}
