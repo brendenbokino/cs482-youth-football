@@ -15,6 +15,7 @@
 
 const { randomInt } = require('crypto');
 const readline = require('readline');
+const mongoose = require('mongoose');
 
 class Coach {
     constructor() {
@@ -23,62 +24,50 @@ class Coach {
             output: process.stdout
         });
         this.userInput = {};
-
-        let name = this.name;
-        let email = this.email;
-        let phone = this.phone;
     }
 
-    createAccount(){
-        this.name();
-        this.email();
-        this.phone();
-
-        //save to MongoDB
+    async name(){
+        const name = await this.ask("Enter your name: ");
+        this.userInput.name = name;
     }
-
-    name(){
-        this.rl.question('Enter your name: ', (name) => {
-            this.userInput.name = name;
-            this.rl.close();
-        });
-        // error check for name not already in DB (error check function)
-        return this.userInput.name;
+    async email(){
+        const email = await this.ask("Enter your email: ");
+        this.userInput.email = email;
     }
-    email(){
-        this.rl.question('Enter your date of email: ', (email) => {
-            this.userInput.email = email;
-            this.rl.close();
-        });
-        // error check for name not already in DB (error check function)
-        return this.userInput.email;
+    async phone(){
+        const phone = await this.ask("Enter your phone: ");
+        this.userInput.phone = phone;
     }
-    phone(){
-        this.rl.question('Enter your date of phone: ', (phone) => {
-            this.userInput.phone = phone;
-            this.rl.close();
-        });
-        // error check for name not already in DB (error check function)
-        return this.userInput.phone;
+    async password(){
+        const password = await this.ask("Enter your password: ");
+        this.userInput.password = password;
+        // error check that password is 6+ char?
     }
-    password(){
-        this.rl.question('Enter your date of password: ', (password) => {
-            this.userInput.password = password;
-            this.rl.close();
-        });
-        // password constraint? 6+ char?
-        return this.userInput.password;
-    }
-    idCoach(){ // need to think about how to generate ID (read in DB and ++)?
+    async idCoach(){ // need to think about how to generate ID (read in DB and ++)?
         let idCoach = randomInt(10000, 99999);
         return idCoach;
     }
 
+    async createAccount() {
+        await this.name();
+        await this.email();
+        await this.phone();
+        await this.password();
+        await this.idCoach()
+    
+        await UserDao.create(this.userInput);
+    
+        console.log("Account created:", this.userInput);
+        console.log("Confirming account info:", this.userInput);
+        this.rl.close();
+    }
 
 
 
 
-    changeEmail(){
+
+
+    async changeEmail(){
         this.rl.question('Enter your old email: ', (email) => {
             this.userInput.email = email;
             this.rl.close();
