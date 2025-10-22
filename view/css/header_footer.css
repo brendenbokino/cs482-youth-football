@@ -1,0 +1,30 @@
+
+    
+
+.site{
+    min-height: 100dvh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.header img{
+    float: left;
+    width: 100px;
+    height: 100px;
+}
+
+.header h1{
+    position: relative;
+    top: 18px;
+    left: 10px;
+}
+
+.header p{
+    position: relative;
+    left: 10px;
+}
+
+.footer{
+    background-color: mediumpurple;
+}
