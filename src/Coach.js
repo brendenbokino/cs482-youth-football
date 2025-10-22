@@ -26,22 +26,43 @@ class Coach {
         this.userInput = {};
     }
 
+    // async prompt for user input
+    ask(question) {
+        return new Promise((resolve) => {
+            this.rl.question(question, (answer) => {
+                resolve(answer);
+            });
+        });
+    }
+
+    
+    // functions to get user input for coach account creation
     async name(){
         const name = await this.ask("Enter your name: ");
         this.userInput.name = name;
     }
+
     async email(){
         const email = await this.ask("Enter your email: ");
         this.userInput.email = email;
     }
+
     async phone(){
-        const phone = await this.ask("Enter your phone: ");
+        const phone = await this.ask("Enter your phone (only numbers): ");
         this.userInput.phone = phone;
+        if phone.length < 10 || isNaN(phone) {
+            console.log("Phone number must be at least 10 digits and only numbers.");
+            await this.phone();
+        }
     }
+
     async password(){
-        const password = await this.ask("Enter your password: ");
+        const password = await this.ask("Enter your password (4+ characters): ");
         this.userInput.password = password;
-        // error check that password is 6+ char?
+        if password.length < 4 {
+            console.log("Password must be at least 4 characters long.");
+            await this.password();
+        }
     }
     async idCoach(){ // need to think about how to generate ID (read in DB and ++)?
         let idCoach = randomInt(10000, 99999);
@@ -62,20 +83,54 @@ class Coach {
         this.rl.close();
     }
 
-
-
-
-
-
+    // update user account info
     async changeEmail(){
+        const oldEmail = await this.ask("Enter your old email: ");
+        const newEmail = await this.ask("Enter your new email: ");
+
         this.rl.question('Enter your old email: ', (email) => {
             this.userInput.email = email;
             this.rl.close();
         });
     }
+
+    menu(){
+        console.log("Coach Menu:");
+        console.log("1. Create Account");
+        console.log("2. Update Email");
+        console.log("3. Delete Account");
+        console.log("4. View Account Info");
+        console.log("5. Exit");
+        const name = this.ask("Enter your choice: ");
+        this.userInput.choice = choice;
+    }
+
+    choice(){
+        const choice = menu();
+        switch(choice){
+            case '1':
+                this.createAccount();
+                break;
+            case '2':
+                this.changeEmail();
+                break;
+            case '3':
+                this.deleteAccount();
+                break;
+            case '4':
+                this.viewAccountInfo();
+                break;
+            case '5':
+                this.rl.close();
+                break;
+            default:
+                console.log("Invalid choice");
+                this.menu();
+                break; 
+    }
 }
 
 
 
-const test = new BasicTest();
-test.sampleQuestions();
+//const test = new BasicTest();
+//test.sampleQuestions();
