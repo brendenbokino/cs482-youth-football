@@ -50,7 +50,7 @@ class Coach {
     async phone(){
         const phone = await this.ask("Enter your phone (only numbers): ");
         this.userInput.phone = phone;
-        if phone.length < 10 || isNaN(phone) {
+        if (phone.length < 10 || isNaN(phone)) {
             console.log("Phone number must be at least 10 digits and only numbers.");
             await this.phone();
         }
@@ -59,7 +59,7 @@ class Coach {
     async password(){
         const password = await this.ask("Enter your password (4+ characters): ");
         this.userInput.password = password;
-        if password.length < 4 {
+        if (password.length < 4) {
             console.log("Password must be at least 4 characters long.");
             await this.password();
         }
@@ -88,25 +88,28 @@ class Coach {
         const oldEmail = await this.ask("Enter your old email: ");
         const newEmail = await this.ask("Enter your new email: ");
 
-        this.rl.question('Enter your old email: ', (email) => {
-            this.userInput.email = email;
-            this.rl.close();
-        });
+        const updated = await UserDao.updateEmail(oldEmail, newEmail);
+        if (updated) {
+            console.log("Email updated successfully.");
+        } else {
+            console.log("No account found with that email.");
+        }
     }
 
-    menu(){
+    async menu(){
         console.log("Coach Menu:");
         console.log("1. Create Account");
         console.log("2. Update Email");
         console.log("3. Delete Account");
         console.log("4. View Account Info");
         console.log("5. Exit");
-        const name = this.ask("Enter your choice: ");
-        this.userInput.choice = choice;
+
+        const choice = this.ask("Enter your choice: ");
+        return choice;
     }
 
-    choice(){
-        const choice = menu();
+    async choice(){
+        const choice = await this.menu();
         switch(choice){
             case '1':
                 this.createAccount();
@@ -127,10 +130,6 @@ class Coach {
                 console.log("Invalid choice");
                 this.menu();
                 break; 
+        }
     }
 }
-
-
-
-//const test = new BasicTest();
-//test.sampleQuestions();

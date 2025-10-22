@@ -23,7 +23,7 @@ exports.create = async function(newuser){
 }
 
 exports.update = function(user){
-
+    // TODO: update email
 }
 
 exports.del = async function(id){
