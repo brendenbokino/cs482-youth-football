@@ -80,7 +80,6 @@ class Coach {
         await UserDao.create(this.userInput);
     
         console.log("Account created:", this.userInput);
-        console.log("Confirming account info:", this.userInput);
         this.rl.close();
     }
 
