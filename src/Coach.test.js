@@ -4,7 +4,7 @@ jest.mock('/model/UserDao');
 
 
 describe("Coach Account Tests", function() {
-  test("create a new coach account + test name", async() =>{
+  test("create a new coach account + test name", async()  =>{
     const coach = new Coach();
     UserDao.create.mockResolvedValue(true);
 

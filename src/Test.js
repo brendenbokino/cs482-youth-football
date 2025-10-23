@@ -7,13 +7,13 @@ async function main() {
       useNewUrlParser: true,
       useUnifiedTopology: true
     });
-    console.log('✅ Connected to MongoDB');
+    console.log('Connected to MongoDB');
   
     const coach = new Coach();
-    await coach.createAccount(); // This will prompt for user input
+    await coach.createAccount(); 
   
     await mongoose.disconnect();
-    console.log('🔒 Disconnected from MongoDB');
+    console.log('Disconnected from MongoDB');
   }
   
   main().catch(console.error);

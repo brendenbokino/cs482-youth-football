@@ -1,7 +1,28 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-
+    idCoach: {
+        type: Number,
+        required: true
+    },
+    name: {
+        type: String,
+        required: true
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    phone: {
+        type: String,
+        required: true
+    },
+    password: {
+        type: String,
+        required: true
+    }
+    
 });
 
 const userModel = mongoose.model('user', userSchema);
@@ -36,3 +57,4 @@ exports.deleteAll = async function(){
 }
 
 
+module.exports = userModel;
