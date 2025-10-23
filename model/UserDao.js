@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-    idAdult: {
-        type: Number,
+    email: {
+        type: String,
         required: true
     },
     name: {
@@ -37,8 +37,9 @@ exports.create = async function(newuser){
     return user;
 }
 
-exports.update = function(user){
-    // TODO: update email
+exports.update = async function(id, updates){
+    let user = await userModel.findByIdAndUpdate(id, updates, { new: true });
+    return user;
 }
 
 exports.del = async function(id){
