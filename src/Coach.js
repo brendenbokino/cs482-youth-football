@@ -7,13 +7,13 @@
 
 
 // we need:
-    // coach info
-    // save coach account to MongoDB
+    // coach info (done)
+    // save coach account to MongoDB (done)
     // update coach info (email, phone number)
     // delete coach account
     // view coach account info
 
-const { randomInt } = require('crypto');
+
 const readline = require('readline');
 const UserDao = require('../model/UserDao');
 
@@ -49,52 +49,96 @@ class Coach {
 
     async phone(){
         const phone = await this.ask("Enter your phone (only numbers): ");
-        this.userInput.phone = phone;
         if (phone.length < 10 || isNaN(phone)) {
             console.log("Phone number must be at least 10 digits and only numbers.");
-            await this.phone();
+            return this.phone();
         }
+        this.userInput.phone = phone;
     }
 
     async password(){
         const password = await this.ask("Enter your password (4+ characters): ");
-        this.userInput.password = password;
         if (password.length < 4) {
             console.log("Password must be at least 4 characters long.");
-            await this.password();
+            return this.password();
         }
+        this.userInput.password = password;
     }
-    async idCoach(){ // need to think about how to generate ID (read in DB and ++)?
-        let idCoach = randomInt(10000, 99999);
-        return idCoach;
-    }
+    
 
     async createAccount() {
         await this.name();
         await this.email();
         await this.phone();
         await this.password();
-        const idCoach = await this.idCoach(); 
-        this.userInput.idCoach = idCoach; 
     
         await UserDao.create(this.userInput);
     
         console.log("Account created:", this.userInput);
-        this.rl.close();
+        console.log("-------------------------");
+    }
+
+    async viewAccountInfo(){
+        const email = await this.ask("Enter your email to view account info: ");
+        const users = await UserDao.readAll();
+        const user = users.find(u => u.email === email);
+        if (user) {
+            console.log("Account Info:", user);
+        } else {
+            console.log("No account found with that email.");
+        }
+    }
+
+    async deleteAccount(){
+        const email = await this.ask("Enter your email to delete account: ");
+        const users = await UserDao.readAll();
+        const user = users.find(u => u.email === email);
+        if (user) {
+            await UserDao.del(user._id);
+            console.log("Account deleted successfully.");
+        } else {
+            console.log("No account found with that email.");
+        }
     }
 
     // update user account info
-    //async changeEmail(){
-    //    const oldEmail = await this.ask("Enter your old email: ");
-    //    const newEmail = await this.ask("Enter your new email: ");
+    async updateAccount(){
+        const email = await this.ask("Enter your email to update account: ");
+        const users = await UserDao.readAll();
+        const user = users.find(u => u.email === email);
+        if (!user) {
+            console.log("No account found with that email.");
+            return;
+        }
+        console.log("To update your account, please enter a corresponding number:");
+        console.log("1. Update Name");
+        console.log("2. Update Email");
+        console.log("3. Update Phone Number");
+        console.log("4. Update Password");
 
-    //    const updated = await UserDao.updateEmail(oldEmail, newEmail);
-    //    if (updated) {
-    //        console.log("Email updated successfully.");
-    //    } else {
-    //        console.log("No account found with that email.");
-    //    }
-    //}
+        const choice = await this.ask("Enter the number of the field you want to update: ");
+        let updates = {};
+        switch(choice){
+            case '1':
+                updates.name = await this.ask("Enter new name: ");
+                break;
+            case '2':
+                updates.email = await this.ask("Enter new email: ");
+                break;
+            case '3':
+                updates.phone = await this.ask("Enter new phone: ");
+                break;
+            case '4':
+                updates.password = await this.ask("Enter new password: ");
+                break;
+            default:
+                console.log("Invalid choice");
+                break; 
+        }
+
+        const updatedUser = await UserDao.update(user._id, updates);
+        console.log("Account updated to:", updatedUser);
+    }
 
     async menu(){
         console.log("Coach Menu:");
@@ -103,35 +147,36 @@ class Coach {
         console.log("3. Delete Account");
         console.log("4. View Account Info");
         console.log("5. Exit");
-
-        const choice = this.ask("Enter your choice: ");
-        return choice;
     }
 
     async choice(){
-        const choice = await this.menu();
-        switch(choice){
-            case '1':
-                this.createAccount();
-                break;
-            case '2':
-                this.changeEmail();
-                break;
-            case '3':
-                this.deleteAccount();
-                break;
-            case '4':
-                this.viewAccountInfo();
-                break;
-            case '5':
-                this.rl.close();
-                break;
-            default:
-                console.log("Invalid choice");
-                this.menu();
-                break; 
+        const choice = await this.ask("Enter your choice: "); 
+        let exit = false;
+        while (!exit) {
+            switch(choice){
+                case '1':
+                    await this.createAccount();
+                    break;
+                case '2':
+                    await this.updateAccount(); 
+                    break;
+                case '3':
+                    await this.deleteAccount();
+                    break;
+                case '4':
+                    await this.viewAccountInfo();
+                    break;
+                case '5':
+                    console.log("Goodbye!");
+                    exit = true;
+                    break;
+                default:
+                    console.log("Invalid choice");
+            }
         }
+        this.rl.close();
     }
+    
 }
 
 module.exports = Coach;
