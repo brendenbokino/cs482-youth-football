@@ -25,9 +25,7 @@ jest.mock('readline', () => ({
 const Coach = require('./Coach.js');
 const UserDao = require('../model/UserDao.js'); 
 jest.mock('../model/UserDao');
-jest.mock('crypto', () => ({
-    randomInt: jest.fn(() => 54321)
-}));
+
 
 
 describe("Coach Account Tests", function() {
@@ -44,14 +42,12 @@ describe("Coach Account Tests", function() {
             email: "loren@example.com",
             phone: "1234567890",
             password: "password123",
-            idCoach: 12345
         };
 
         coach.name = jest.fn();
         coach.email = jest.fn();
         coach.phone = jest.fn();
         coach.password = jest.fn();
-        coach.idCoach = jest.fn().mockResolvedValue(12345);
 
         await coach.createAccount();
     
@@ -60,13 +56,7 @@ describe("Coach Account Tests", function() {
         expect(coach.userInput.email).toBe("loren@example.com");
         expect(coach.userInput.phone).toBe("1234567890");
         expect(coach.userInput.password).toBe("password123");
-        expect(coach.userInput.idCoach).toBe(12345);
     
-    });
-    test("idCoach should return mocked randomInt value", async () => {
-        const coach = new Coach();
-        const id = await coach.idCoach();
-        expect(id).toBe(54321);
     });
 
 });

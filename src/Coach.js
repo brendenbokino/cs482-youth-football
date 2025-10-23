@@ -7,8 +7,8 @@
 
 
 // we need:
-    // coach info
-    // save coach account to MongoDB
+    // coach info (done)
+    // save coach account to MongoDB (done)
     // update coach info (email, phone number)
     // delete coach account
     // view coach account info
@@ -83,18 +83,64 @@ class Coach {
         this.rl.close();
     }
 
-    // update user account info
-    //async changeEmail(){
-    //    const oldEmail = await this.ask("Enter your old email: ");
-    //    const newEmail = await this.ask("Enter your new email: ");
+    async viewAccountInfo(){
+        const email = await this.ask("Enter your email to view account info: ");
+        const users = await UserDao.readAll();
+        const user = users.find(u => u.email === email);
+        if (user) {
+            console.log("Account Info:", user);
+        } else {
+            console.log("No account found with that email.");
+        }
+    }
 
-    //    const updated = await UserDao.updateEmail(oldEmail, newEmail);
-    //    if (updated) {
-    //        console.log("Email updated successfully.");
-    //    } else {
-    //        console.log("No account found with that email.");
-    //    }
-    //}
+    async deleteAccount(){
+        const email = await this.ask("Enter your email to delete account: ");
+        const users = await UserDao.readAll();
+        const user = users.find(u => u.email === email);
+        if (user) {
+            await UserDao.del(user._id);
+            console.log("Account deleted successfully.");
+        } else {
+            console.log("No account found with that email.");
+        }
+    }
+
+    // update user account info
+    async updateAccount(){
+        console.log("To update your account, please provide the following:");
+        console.log("1. Update Name");
+        console.log("2. Update Email");
+        console.log("3. Update Phone Number");
+        console.log("4. Update Password");
+
+        const choice = await this.ask("Enter the number of the field you want to update: ");
+        switch(choice){
+            case '1':
+                await this.name();
+                break;
+            case '2':
+                await this.email();
+                break;
+            case '3':
+                await this.phone();
+                break;
+            case '4':
+                await this.password();
+                break;
+            default:
+                console.log("Invalid choice");
+                await this.updateAccount();
+                break; 
+        }
+
+        const updated = await UserDao.update(user);
+        if (updated) {
+            console.log("Email updated successfully.");
+        } else {
+            console.log("No account found with that email.");
+        }
+    }
 
     async menu(){
         console.log("Coach Menu:");
