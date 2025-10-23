@@ -90,17 +90,17 @@ class Coach {
     }
 
     // update user account info
-    async changeEmail(){
-        const oldEmail = await this.ask("Enter your old email: ");
-        const newEmail = await this.ask("Enter your new email: ");
+    //async changeEmail(){
+    //    const oldEmail = await this.ask("Enter your old email: ");
+    //    const newEmail = await this.ask("Enter your new email: ");
 
-        const updated = await UserDao.updateEmail(oldEmail, newEmail);
-        if (updated) {
-            console.log("Email updated successfully.");
-        } else {
-            console.log("No account found with that email.");
-        }
-    }
+    //    const updated = await UserDao.updateEmail(oldEmail, newEmail);
+    //    if (updated) {
+    //        console.log("Email updated successfully.");
+    //    } else {
+    //        console.log("No account found with that email.");
+    //    }
+    //}
 
     async menu(){
         console.log("Coach Menu:");
