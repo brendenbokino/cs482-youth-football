@@ -1,7 +1,11 @@
 const mongoose = require('mongoose');
 
+// a game should have 2 teams, a date for when it will occur, a location for where it will occur & then some meta data 
 const gameSchema = new mongoose.Schema({
-
+    team1: String,
+    team2: String,
+    date: String,
+    location: String,
 });
 
 const gameModel = mongoose.model('game', gameSchema);
@@ -17,7 +21,8 @@ exports.read = async function(id){
 }
 
 exports.create = async function(newgame){
-    const game = new gameModel(newgame);
+    let game = new gameModel(newgame);
+    
     await game.save();
     return game;
 }

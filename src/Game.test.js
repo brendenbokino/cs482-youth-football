@@ -1,99 +1,208 @@
-const Game = require('./Game.js');
 
-test("create a game", function() {
-    const game = new Game("hi","hi2","2024-08-12","mi casa");
+const gameController = require('./GameController.js');
+const gameDao = require('../model/GameDao.js');
+const mongoose = require('mongoose');
+const { default: expect } = require('expect');
+
+
+// Mock mongoose for testing
+jest.mock('../model/GameDao.js');
+
+
+// ===== GAME CONTROLLER TESTS =====
+
+describe('Game Controller Tests', () => {
     
-    // Test initial state
-    expect(game.team1).toBe("hi");
-    expect(game.team2).toBe("hi2");
-    expect(game.date).toBe("2024-08-12");
-    expect(game.location).toBe("mi casa");
+
+    test("createNewGame with valid data", async function() {
+        // Mock successful database creation
+        const mockSavedGame = {
+            
+            team1: 'Bears',
+            team2: 'Goats',
+            date: 'Oct-20-2025',
+            location: 'Metlife'
+        };
+
+        
+        let res = {
+
+            status: "",
+            redirect: "",
+
+            error: "",
+
+        };
+
+        await gameController.createNewGame(mockSavedGame, res);
+
+        expect(res.error).toBe("");
+        expect(res.status).toBe(200);
+        expect(res.redirect).toBe("index.html")
+
+        await gameDao.deleteAll();
+
+
+        
+    });
+
+    test("createNewGame with missing team1", async function() {
+        const mockGame = {
+            
+            team1: null,
+            team2: 'Goats',
+            date: 'Oct-20-2025',
+            location: 'Metlife'
+        };
+
+        let res = {
+
+            status: "",
+            redirect: "",
+
+            error: "",
+
+        };
+        
+
+        await gameController.createNewGame(mockGame, res);
+
+        expect(res.error).toBe("There must be atleast 2 teams in order to create a game");
+
+        await gameDao.deleteAll();
+    });
+
+    test("createNewGame with missing team2", async function() {
+        const mockGame = {
+            
+            team1: "Bears",
+            team2: null,
+            date: 'Oct-20-2025',
+            location: 'Metlife'
+        };
+
+        let res = {
+
+            status: "",
+            redirect: "",
+
+            error: "",
+
+        };
+
+        await gameController.createNewGame(mockGame, res);
+
+        expect(res.error).toBe("There must be atleast 2 teams in order to create a game");
+
+        await gameDao.deleteAll();
+    });
+
+
+    test("createNewGame with null request", async function() {
+
+        
+        let res = {
+
+            status: "",
+            redirect: "",
+
+            error: "",
+
+        };
+
+        await gameController.createNewGame(null, res);
+
+
+
+
+        expect(res.error).toBe("req is empty");
+    });
+
+    // test("getAllGames", async function() {
+    //     const mockGames = [
+    //         {  team1: 'Bears', team2: 'Goats', date: 'Oct-20-2025', location: 'Metlife' },
+    //         { team1: 'Eagles', team2: 'Hawks', date: 'Oct-21-2025', location: 'Central Field' }
+    //     ];
+
+    //     const res1 = { };
+    //     const res2 = { };
+
+
+
+    //     await gameController.createNewGame(mockGames[0], res1);
+    //     await gameController.createNewGame(mockGames[0], res2);
+
+        
+        
+    //     const res = {};
+    //     res.status = 0;
+    //     res.send = [];
+    //     res.end = "";
+
+    //     await gameController.getAllGames(res);
+
+        
+    //     expect(res.status).toBe(200);
+    //     expect(res.send).toEqual(mockGames);
+    //     // expect(res.end).toBe();
+
+    //     // delete all work 
+    //     await gameDao.deleteAll();
+    // });
+
+    test("deleteAllGames", async function() {
+        // Mock gameDao.deleteAll
+
+        const mockGames = [
+            { team1: 'Bears', team2: 'Goats', date: 'Oct-20-2025', location: 'Metlife' },
+            { team1: 'Eagles', team2: 'Hawks', date: 'Oct-21-2025', location: 'Central Field' }
+        ];
+
+        
+        let res1 = {
+
+            status: "",
+            redirect: "",
+
+            error: "",
+
+        };
+        
+        let res2 = {
+
+            status: "",
+            redirect: "",
+
+            error: "",
+
+        };
+
+
+
+        await gameController.createNewGame(mockGames[0], res1);
+        await gameController.createNewGame(mockGames[0], res2);
+
+        let res = {
+
+
+            send : [],
+            status: 0
+        };
+
+        // doesn't take any params
+        await gameController.deleteAllGames( );
+
+
+        // should expect the returned list form a read to be null/ empty
+        await gameController.getAllGames(res);
+
+        expect(res.send).toBe(null);
+
+        await gameDao.deleteAll();
+        
+    });
 });
 
-test("create a game function", function() {
-    const game = new Game("","","","");
-    
-    // Test initial state make sure it's all empty 
-    expect(game.team1).toBe("");
-    expect(game.team2).toBe("");
-    expect(game.date).toBe("");
-    expect(game.location).toBe("");
 
-
-    // now use the create game function
-    ret  = game.createGame(["Bears","Goats"], "Oct-20-2025", "Metlife");
-
-    expect(game.team1).toBe("Bears");
-    expect(game.team2).toBe("Goats");
-    expect(game.date).toBe("Oct-20-2025");
-    expect(game.location).toBe("Metlife");
-    
-    expect(ret).toBe(0); // successful return value 
-});
-
-
-test("create a game function 1 team", function() {
-    const game = new Game("","","","");
-    
-    // Test initial state make sure it's all empty 
-    expect(game.team1).toBe("");
-    expect(game.team2).toBe("");
-    expect(game.date).toBe("");
-    expect(game.location).toBe("");
-
-
-    // now use the create game function
-    ret  = game.createGame(["Bears"], "Oct-20-2025", "Metlife");
-
-    
-    
-    expect(ret).toBe(-1); // unsuccessful return value 
-});
-
-
-test("Change date one day ahead", function() {
-    const game = new Game("","","","");
-    
-    // Test initial state make sure it's all empty 
-    expect(game.team1).toBe("");
-    expect(game.team2).toBe("");
-    expect(game.date).toBe("");
-    expect(game.location).toBe("");
-
-
-    // now use the create game function
-    ret  = game.createGame(["Bears","Goats"], "Oct-20-2025", "Metlife");
-
-    expect(game.date).toBe("Oct-20-2025");
-
-
-    game.changeDate("Oct-21,2025")
-
-
-    expect(game.date).toBe("Oct-21,2025");
-    
-});
-
-test("Change location", function() {
-    const game = new Game("","","","");
-    
-    // Test initial state make sure it's all empty 
-    expect(game.team1).toBe("");
-    expect(game.team2).toBe("");
-    expect(game.date).toBe("");
-    expect(game.location).toBe("");
-
-
-    // now use the create game function
-    ret  = game.createGame(["Bears","Goats"], "Oct-20-2025", "Metlife");
-
-    expect(game.location).toBe("Metlife");
-
-
-    game.changeLocation("The KAC")
-
-
-    expect(game.location).toBe("The KAC");
-});
 
 
