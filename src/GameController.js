@@ -14,6 +14,9 @@ class GameController {
         // create a payload to match our intended schema 
         // here we can also ensure logic 
 
+
+        /// later we can add a clause to only add team names that match a team name in the DB *****************
+
         if (req != null) {
             // check request quality 
             // neither should be null a game doesn't have 1 team thats not a game

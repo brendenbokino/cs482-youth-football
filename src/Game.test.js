@@ -15,7 +15,6 @@ const GameController = require('./GameController.js');
 const gameDao = require('../model/GameDao.js');
 
 
-//  ===== GAME CONTROLLER TESTS =====  //
 
 describe('Game Controller Tests', () => {
     beforeEach(() => {
