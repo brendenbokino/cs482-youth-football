@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('../dotenv').config();
 const mongoose = require('mongoose');
 
 exports.connect = function(where){
@@ -10,4 +10,6 @@ exports.connect = function(where){
 
 exports.disconnect = async function(){
     await mongoose.connection.close();
+
 }
+
