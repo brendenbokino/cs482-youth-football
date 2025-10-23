@@ -1,7 +1,10 @@
 const mongoose = require('mongoose');
 
 const teamSchema = new mongoose.Schema({
-
+    // team should have a list of players, coach & stats 
+    players: Array,
+    coach: String,
+    stats: Array
 });
 
 const teamModel = mongoose.model('team', teamSchema);

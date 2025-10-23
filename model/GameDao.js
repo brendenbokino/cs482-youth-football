@@ -21,15 +21,12 @@ exports.read = async function(id){
 }
 
 exports.create = async function(newgame){
-    let game = new gameModel(newgame);
-    
+    let game = new gameModel(newgame); 
     await game.save();
     return game;
 }
 
-exports.update = function(game){
-
-}
+exports.update = function(game){}
 
 exports.del = async function(id){
     let game = await gameModel.findByIdAndDelete(id);

@@ -1,54 +1,65 @@
+// Reece Watkins game test 
 
-const gameController = require('./GameController.js');
+
+
+// Mock GameDao before requiring GameController
+jest.mock('../model/GameDao.js', () => ({
+    create: jest.fn(),
+    readAll: jest.fn(),
+    read: jest.fn(),
+    del: jest.fn(),
+    deleteAll: jest.fn()
+}));
+
+const GameController = require('./GameController.js');
 const gameDao = require('../model/GameDao.js');
-const mongoose = require('mongoose');
-const { default: expect } = require('expect');
 
 
-// Mock mongoose for testing
-jest.mock('../model/GameDao.js');
-
-
-// ===== GAME CONTROLLER TESTS =====
+//  ===== GAME CONTROLLER TESTS =====  //
 
 describe('Game Controller Tests', () => {
-    
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
 
     test("createNewGame with valid data", async function() {
+        const game = new GameController();
+
         // Mock successful database creation
         const mockSavedGame = {
-            
+            _id: '507f1f77bcf86cd799439011',
             team1: 'Bears',
             team2: 'Goats',
             date: 'Oct-20-2025',
             location: 'Metlife'
         };
 
-        
-        let res = {
-
-            status: "",
-            redirect: "",
-
-            error: "",
-
+        const req = {
+            team1: 'Bears',
+            team2: 'Goats',
+            date: 'Oct-20-2025',
+            location: 'Metlife'
         };
 
-        await gameController.createNewGame(mockSavedGame, res);
+        let res = {
+            status: 0,
+            send: {},
+            error: ""
+        };
+
+        gameDao.create.mockResolvedValue(mockSavedGame);
+
+        await game.createNewGame(req, res);
 
         expect(res.error).toBe("");
         expect(res.status).toBe(200);
-        expect(res.redirect).toBe("index.html")
-
-        await gameDao.deleteAll();
-
-
-        
+        expect(game.gameData.team1).toBe("Bears");
     });
 
     test("createNewGame with missing team1", async function() {
-        const mockGame = {
-            
+        const game = new GameController();
+        
+        const req = {
             team1: null,
             team2: 'Goats',
             date: 'Oct-20-2025',
@@ -56,25 +67,21 @@ describe('Game Controller Tests', () => {
         };
 
         let res = {
-
-            status: "",
-            redirect: "",
-
-            error: "",
-
+            status: 0,
+            send: {},
+            error: ""
         };
-        
 
-        await gameController.createNewGame(mockGame, res);
+        await game.createNewGame(req, res);
 
-        expect(res.error).toBe("There must be atleast 2 teams in order to create a game");
-
-        await gameDao.deleteAll();
+        expect(res.send.error).toBe("There must be at least 2 teams in order to create a game");
+        expect(res.status).toBe(400);
     });
 
     test("createNewGame with missing team2", async function() {
-        const mockGame = {
-            
+        const game = new GameController();
+        
+        const req = {
             team1: "Bears",
             team2: null,
             date: 'Oct-20-2025',
@@ -82,125 +89,69 @@ describe('Game Controller Tests', () => {
         };
 
         let res = {
-
-            status: "",
-            redirect: "",
-
-            error: "",
-
+            status: 0,
+            send: {}
         };
 
-        await gameController.createNewGame(mockGame, res);
+        await game.createNewGame(req, res);
 
-        expect(res.error).toBe("There must be atleast 2 teams in order to create a game");
-
-        await gameDao.deleteAll();
+        expect(res.send.error).toBe("There must be at least 2 teams in order to create a game");
+        expect(res.status).toBe(400);
     });
-
 
     test("createNewGame with null request", async function() {
-
+        const game = new GameController();
         
         let res = {
-
-            status: "",
-            redirect: "",
-
-            error: "",
-
+            status: 0,
+            send: {},
+            
         };
 
-        await gameController.createNewGame(null, res);
+        await game.createNewGame(null, res);
 
-
-
-
-        expect(res.error).toBe("req is empty");
+        expect(res.send.error).toBe("Request is empty");
+        expect(res.status).toBe(400);
     });
 
-    // test("getAllGames", async function() {
-    //     const mockGames = [
-    //         {  team1: 'Bears', team2: 'Goats', date: 'Oct-20-2025', location: 'Metlife' },
-    //         { team1: 'Eagles', team2: 'Hawks', date: 'Oct-21-2025', location: 'Central Field' }
-    //     ];
-
-    //     const res1 = { };
-    //     const res2 = { };
-
-
-
-    //     await gameController.createNewGame(mockGames[0], res1);
-    //     await gameController.createNewGame(mockGames[0], res2);
-
+    test("getAllGames", async function() {
+        const game = new GameController();
         
-        
-    //     const res = {};
-    //     res.status = 0;
-    //     res.send = [];
-    //     res.end = "";
-
-    //     await gameController.getAllGames(res);
-
-        
-    //     expect(res.status).toBe(200);
-    //     expect(res.send).toEqual(mockGames);
-    //     // expect(res.end).toBe();
-
-    //     // delete all work 
-    //     await gameDao.deleteAll();
-    // });
-
-    test("deleteAllGames", async function() {
-        // Mock gameDao.deleteAll
-
         const mockGames = [
-            { team1: 'Bears', team2: 'Goats', date: 'Oct-20-2025', location: 'Metlife' },
-            { team1: 'Eagles', team2: 'Hawks', date: 'Oct-21-2025', location: 'Central Field' }
+            { _id: '1', team1: 'Bears', team2: 'Goats', date: 'Oct-20-2025', location: 'Metlife' },
+            { _id: '2', team1: 'Eagles', team2: 'Hawks', date: 'Oct-21-2025', location: 'Central Field' }
         ];
 
-        
-        let res1 = {
-
-            status: "",
-            redirect: "",
-
-            error: "",
-
-        };
-        
-        let res2 = {
-
-            status: "",
-            redirect: "",
-
-            error: "",
-
-        };
-
-
-
-        await gameController.createNewGame(mockGames[0], res1);
-        await gameController.createNewGame(mockGames[0], res2);
-
         let res = {
-
-
-            send : [],
-            status: 0
+            status: 0,
+            send: {}
         };
 
-        // doesn't take any params
-        await gameController.deleteAllGames( );
+        gameDao.readAll.mockResolvedValue(mockGames);
 
+        await game.getAllGames({}, res);
 
-        // should expect the returned list form a read to be null/ empty
-        await gameController.getAllGames(res);
-
-        expect(res.send).toBe(null);
-
-        await gameDao.deleteAll();
-        
+        expect(res.status).toBe(200);
+        expect(res.send).toEqual(mockGames);
     });
+
+    test("deleteAllGames", async function() {
+        const game = new GameController();
+        
+        let res = {
+            status: 0,
+            send: {}
+        };
+
+        gameDao.deleteAll.mockResolvedValue();
+
+        await game.deleteAllGames({}, res);
+
+        expect(res.status).toBe(200);
+        expect(res.send.success).toBe(true);
+    });
+
+    
 });
 
 
