@@ -1,7 +1,22 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-
+    idAdult: {
+        type: Number,
+        required: true
+    },
+    name: {
+        type: String,
+        required: true
+    },
+    phone: {
+        type: String,
+        required: true
+    },
+    password: {
+        type: String,
+        required: true
+    }
 });
 
 const userModel = mongoose.model('user', userSchema);
@@ -13,7 +28,7 @@ exports.readAll = async function(){
 
 exports.read = async function(id){
     let user = await userModel.findById(id);
-    return user;
+    return user;   
 }
 
 exports.create = async function(newuser){
