@@ -11,9 +11,13 @@ async function main() {
         console.log('Connected to MongoDB');
     
         const coach = new Coach();
-        await coach.choice();
+        
+        const userChoice = await coach.menu(); 
+        await coach.choice(userChoice);
+
     } catch (error) {
         console.error('Error connecting to MongoDB:', error);
+
     } finally {
         await mongoose.disconnect();
         console.log('Disconnected from MongoDB');

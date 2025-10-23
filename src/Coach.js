@@ -71,12 +71,11 @@ class Coach {
         await this.email();
         await this.phone();
         await this.password();
-        const idCoach = await this.idCoach(); 
-        this.userInput.idCoach = idCoach; 
     
         await UserDao.create(this.userInput);
     
         console.log("Account created:", this.userInput);
+        console.log("-------------------------");
     }
 
     async viewAccountInfo(){
@@ -104,7 +103,13 @@ class Coach {
 
     // update user account info
     async updateAccount(){
-        this.viewAccountInfo();
+        const email = await this.ask("Enter your email to update account: ");
+        const users = await UserDao.readAll();
+        const user = users.find(u => u.email === email);
+        if (!user) {
+            console.log("No account found with that email.");
+            return;
+        }
         console.log("To update your account, please enter a corresponding number:");
         console.log("1. Update Name");
         console.log("2. Update Email");
@@ -143,33 +148,33 @@ class Coach {
         console.log("4. View Account Info");
         console.log("5. Exit");
 
-        const choice = this.ask("Enter your choice: ");
-        return choice;
+        const choice = await this.ask("Enter your choice: "); 
+        return choice; // need to put this in choice
     }
 
-    async choice(){
-        const choice = await this.menu();
-        switch(choice){
-            case '1':
-                this.createAccount();
-                break;
-            case '2':
-                this.changeEmail();
-                break;
-            case '3':
-                this.deleteAccount();
-                break;
-            case '4':
-                this.viewAccountInfo();
-                break;
-            case '5':
-                console.log("Goodbye!");
-                this.rl.close();
-                break;
-            default:
-                console.log("Invalid choice");
-                this.menu();
-                break; 
+    async choice(userChoice){
+        let exit = false;
+        while (!exit) {
+            switch(userChoice){
+                case '1':
+                    await this.createAccount();
+                    break;
+                case '2':
+                    await this.updateAccount(); 
+                    break;
+                case '3':
+                    await this.deleteAccount();
+                    break;
+                case '4':
+                    await this.viewAccountInfo();
+                    break;
+                case '5':
+                    console.log("Goodbye!");
+                    exit = true;
+                    break;
+                default:
+                    console.log("Invalid choice");
+            }
         }
         this.rl.close();
     }
