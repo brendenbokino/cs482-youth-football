@@ -15,12 +15,7 @@
 
 const { randomInt } = require('crypto');
 const readline = require('readline');
-const mongoose = require('mongoose');
 const UserDao = require('../model/UserDao');
-
-mongoose.connect('mongodb+srv://db_admin:K9v5ypo51rXX81Lv@lorb-loyola-se.lh1asxt.mongodb.net/?retryWrites=true&w=majority&appName=lorb-loyola-se', { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log("Connected to MongoDB"))
-    .catch(err => console.log("MongoDB connection error: ", err));
 
 class Coach {
     constructor() {
@@ -85,7 +80,6 @@ class Coach {
         await UserDao.create(this.userInput);
     
         console.log("Account created:", this.userInput);
-        console.log("Confirming account info:", this.userInput);
         this.rl.close();
     }
 
