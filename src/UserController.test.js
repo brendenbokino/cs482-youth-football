@@ -1,9 +1,56 @@
-const controller = require('../src/UserController');
+jest.mock('mongoose', () => ({
+    connect: jest.fn().mockResolvedValue(),
+    model: jest.fn().mockReturnValue({
+      find: jest.fn(),
+      create: jest.fn(),
+      updateOne: jest.fn(),
+      deleteOne: jest.fn(),
+    }),
+    Schema: jest.fn(),
+}));
+
+// I was having errors with stdin so I mocked it with Node's readline
+jest.mock('readline', () => ({
+    createInterface: jest.fn(() => ({
+      question: jest.fn((q, cb) => cb('mock answer')),
+      close: jest.fn(),
+    })),
+}));
+
+
+const User = require('../src/UserController');
 const dao = require('../model/UserDao');
 
 jest.mock('../model/UserDao');
 
-describe('User Controller Tests', function(){
+describe('User Controller Tests', function() {
+    beforeEach(() => {
+        jest.clearAllMocks(); // read to clear mocks before each test
+    });
+
+    test("Create a New User Account", async()  =>{
+        const user = new User();
+        dao.create.mockResolvedValue(true);
+
+        coach.userInput = {
+            name: "Oscar Roat",           
+            phone: "1234567890",
+            password: "12345",
+        };
+
+        user.name = jest.fn();
+        user.phone = jest.fn();
+        user.password = jest.fn();
+
+        await user.createAccount();
+    
+        expect(dao.create).toHaveBeenCalledWith(user.userInput);
+        expect(user.userInput.name).toBe("Oscar Roat");
+        expect(user.userInput.phone).toBe("1234567890");
+        expect(user.userInput.password).toBe("12345");
+    
+    });
+
     test('Successful Login', async function (){
         let req = { body: {txt_login: 'oscarr@ex.com', txt_pass: '12345'},
                     session: {user: null}};
