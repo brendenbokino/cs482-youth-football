@@ -147,15 +147,13 @@ class Coach {
         console.log("3. Delete Account");
         console.log("4. View Account Info");
         console.log("5. Exit");
-
-        const choice = await this.ask("Enter your choice: "); 
-        return choice; // need to put this in choice
     }
 
-    async choice(userChoice){
+    async choice(){
+        const choice = await this.ask("Enter your choice: "); 
         let exit = false;
         while (!exit) {
-            switch(userChoice){
+            switch(choice){
                 case '1':
                     await this.createAccount();
                     break;

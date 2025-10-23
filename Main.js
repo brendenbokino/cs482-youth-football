@@ -12,8 +12,8 @@ async function main() {
     
         const coach = new Coach();
         
-        const userChoice = await coach.menu(); 
-        await coach.choice(userChoice);
+        await coach.menu(); 
+        await coach.choice();
 
     } catch (error) {
         console.error('Error connecting to MongoDB:', error);
