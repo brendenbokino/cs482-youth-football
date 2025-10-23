@@ -1,6 +1,6 @@
 const Coach = require('./Coach');
 const mongoose = require('mongoose');
-const UserDao = require('./UserDao');
+//const UserDao = require('../model/UserDao');
 
 async function main() {
     await mongoose.connect('mongodb+srv://db_admin:K9v5ypo51rXX81Lv@lorb-loyola-se.lh1asxt.mongodb.net/?retryWrites=true&w=majority&appName=lorb-loyola-se', {
