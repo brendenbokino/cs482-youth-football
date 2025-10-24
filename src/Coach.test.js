@@ -140,7 +140,7 @@ describe("Coach Menu and Choice Tests", function () {
 
         expect(console.log).toHaveBeenCalledWith("Coach Menu:");
         expect(console.log).toHaveBeenCalledWith("1. Create Account");
-        expect(console.log).toHaveBeenCalledWith("2. Update Email");
+        expect(console.log).toHaveBeenCalledWith("2. Update Account");
         expect(console.log).toHaveBeenCalledWith("3. Delete Account");
         expect(console.log).toHaveBeenCalledWith("4. View Account Info");
         expect(console.log).toHaveBeenCalledWith("5. Exit");
@@ -153,11 +153,11 @@ describe("Coach Menu and Choice Tests", function () {
         expect(coach.createAccount).toHaveBeenCalled();
     });
 
-    test("choice() should call changeEmail() when input is '2'", async () => {
+    test("choice() should call updateAccount() when input is '2'", async () => {
         const coach = new Coach();
-        coach.changeEmail = jest.fn();
+        coach.updateAccount = jest.fn();
         await coach.choice('2');
-        expect(coach.changeEmail).toHaveBeenCalled();
+        expect(coach.updateAccount).toHaveBeenCalled();
     });
 
     test("choice() should call deleteAccount() when input is '3'", async () => {
@@ -191,5 +191,39 @@ describe("Coach Menu and Choice Tests", function () {
         await coach.choice();
         expect(console.log).toHaveBeenCalledWith("Invalid choice");
     });
+});
+
+describe("Coach updateAccount Tests", function() {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test("viewAccountInfo() logs user info when email exists", async () => {
+        coach = new Coach();
+        const mockUser = { email: "test@example.com", name: "Jane" };
+        UserDao.readAll.mockResolvedValue([mockUser]);
+        coach.ask = jest.fn().mockResolvedValue("test@example.com");
+
+        await coach.viewAccountInfo();
+
+        expect(UserDao.readAll).toHaveBeenCalled();
+        expect(console.log).toHaveBeenCalledWith("Account Info:", mockUser);
+    });
+
+    test("viewAccountInfo() but email doesn't exists", async () => {
+        coach = new Coach();
+        const mockUser = { email: "test@example.com", name: "Jane" };
+        UserDao.readAll.mockResolvedValue([mockUser]);
+        coach.ask = jest.fn().mockResolvedValue("test2@example.com");
+        //UserDao.readAll.mockResolvedValue([{ email: "other@example.com" }]);
+        //coach.ask = jest.fn().mockResolvedValue("notfound@example.com");
+
+        await coach.viewAccountInfo();
+
+        expect(console.log).toHaveBeenCalledWith("No account found with that email.");
+    });
+
+
+
 });
     

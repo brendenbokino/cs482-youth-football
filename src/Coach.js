@@ -143,7 +143,7 @@ class Coach {
     async menu(){
         console.log("Coach Menu:");
         console.log("1. Create Account");
-        console.log("2. Update Email");
+        console.log("2. Update Account");
         console.log("3. Delete Account");
         console.log("4. View Account Info");
         console.log("5. Exit");
@@ -151,12 +151,24 @@ class Coach {
 
     async choice(userChoice) {
         switch (userChoice) {
-            case '1': await this.createAccount(); break;
-            case '2': await this.updateAccount(); break;
-            case '3': await this.deleteAccount(); break;
-            case '4': await this.viewAccountInfo(); break;
-            case '5': console.log("Goodbye!"); this.rl.close(); return true;
-            default: console.log("Invalid choice");
+            case '1': 
+                await this.createAccount(); 
+                break;
+            case '2': 
+                await this.updateAccount(); 
+                break;
+            case '3': 
+                await this.deleteAccount(); 
+                break;
+            case '4': 
+                await this.viewAccountInfo(); 
+                break;
+            case '5': 
+                console.log("Goodbye!"); 
+                this.rl.close(); 
+                return true;
+            default: 
+                console.log("Invalid choice");
         }
         return false;
     }
