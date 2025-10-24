@@ -215,11 +215,31 @@ describe("Coach updateAccount Tests", function() {
         const mockUser = { email: "test@example.com", name: "Jane" };
         UserDao.readAll.mockResolvedValue([mockUser]);
         coach.ask = jest.fn().mockResolvedValue("test2@example.com");
-        //UserDao.readAll.mockResolvedValue([{ email: "other@example.com" }]);
-        //coach.ask = jest.fn().mockResolvedValue("notfound@example.com");
 
         await coach.viewAccountInfo();
 
+        expect(console.log).toHaveBeenCalledWith("No account found with that email.");
+    });
+
+    test("deleteAccount() and email exists", async () => {
+        coach = new Coach();
+        const mockUser = { email: "test@example.com", name: "Jane" };
+        UserDao.readAll.mockResolvedValue([mockUser]);
+        UserDao.del.mockResolvedValue({});
+        coach.ask = jest.fn().mockResolvedValue("test@example.com");
+
+        await coach.deleteAccount();
+        expect(console.log).toHaveBeenCalledWith("Account deleted successfully.");
+    });
+
+    test("deleteAccount() and email doesn't exists", async () => {
+        coach = new Coach();
+        const mockUser = { email: "test@example.com", name: "Jane" };
+        UserDao.readAll.mockResolvedValue([mockUser]);
+        UserDao.del.mockResolvedValue({});
+        coach.ask = jest.fn().mockResolvedValue("test2@example.com");
+
+        await coach.deleteAccount();
         expect(console.log).toHaveBeenCalledWith("No account found with that email.");
     });
 
