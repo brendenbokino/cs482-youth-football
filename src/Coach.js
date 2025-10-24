@@ -147,34 +147,26 @@ class Coach {
         console.log("3. Delete Account");
         console.log("4. View Account Info");
         console.log("5. Exit");
-
-        const choice = await this.ask("Enter your choice: "); 
-        return choice; // need to put this in choice
     }
 
-    async choice(userChoice){
+    async choice(userChoice) {
+        switch (userChoice) {
+            case '1': await this.createAccount(); break;
+            case '2': await this.updateAccount(); break;
+            case '3': await this.deleteAccount(); break;
+            case '4': await this.viewAccountInfo(); break;
+            case '5': console.log("Goodbye!"); this.rl.close(); return true;
+            default: console.log("Invalid choice");
+        }
+        return false;
+    }
+
+    async run() {
         let exit = false;
         while (!exit) {
-            switch(userChoice){
-                case '1':
-                    await this.createAccount();
-                    break;
-                case '2':
-                    await this.updateAccount(); 
-                    break;
-                case '3':
-                    await this.deleteAccount();
-                    break;
-                case '4':
-                    await this.viewAccountInfo();
-                    break;
-                case '5':
-                    console.log("Goodbye!");
-                    exit = true;
-                    break;
-                default:
-                    console.log("Invalid choice");
-            }
+            await this.menu();
+            const userChoice = await this.ask("Enter your choice: ");
+            exit = await this.choice(userChoice);
         }
         this.rl.close();
     }

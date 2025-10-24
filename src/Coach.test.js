@@ -135,11 +135,8 @@ describe("Coach Menu and Choice Tests", function () {
 
     test("menu() should display the menu options", async () => {
         const coach = new Coach();
-        coach.ask = jest.fn().mockResolvedValue("5");  // looked up how to mock user input
-        jest.spyOn(console, 'log').mockImplementation(() => {}); // same here
-
-        const choice = await coach.menu();
-        expect(choice).toBe("5");
+        jest.spyOn(console, 'log').mockImplementation(() => {}); /// looked up how to mock user input
+        await coach.menu(); 
 
         expect(console.log).toHaveBeenCalledWith("Coach Menu:");
         expect(console.log).toHaveBeenCalledWith("1. Create Account");
@@ -151,47 +148,36 @@ describe("Coach Menu and Choice Tests", function () {
 
     test("choice() should call createAccount() when input is '1'", async () => {
         const coach = new Coach();
-        coach.ask = jest.fn().mockResolvedValue("1");  
-
         coach.createAccount = jest.fn();
-
-        await coach.choice();
+        await coach.choice('1');
         expect(coach.createAccount).toHaveBeenCalled();
     });
 
     test("choice() should call changeEmail() when input is '2'", async () => {
         const coach = new Coach();
-        coach.ask = jest.fn().mockResolvedValue("2");
         coach.changeEmail = jest.fn();
-    
-        await coach.choice();
+        await coach.choice('2');
         expect(coach.changeEmail).toHaveBeenCalled();
     });
 
     test("choice() should call deleteAccount() when input is '3'", async () => {
         const coach = new Coach();
-        coach.ask = jest.fn().mockResolvedValue("3");
         coach.deleteAccount = jest.fn();
-    
-        await coach.choice();
+        await coach.choice('3');
         expect(coach.deleteAccount).toHaveBeenCalled();
      });
 
     test("choice() should call viewAccountInfo() when input is '4'", async () => {
         const coach = new Coach();
-        coach.ask = jest.fn().mockResolvedValue("4");
         coach.viewAccountInfo = jest.fn();
-    
-        await coach.choice();
+        await coach.choice('4');
         expect(coach.viewAccountInfo).toHaveBeenCalled();
     });
 
     test("choice() should close readline when input is '5'", async () => {
         const coach = new Coach();
-        coach.ask = jest.fn().mockResolvedValue("5");
         coach.rl.close = jest.fn();
-    
-        await coach.choice();
+        await coach.choice('5');
         expect(coach.rl.close).toHaveBeenCalled();
     });
 
