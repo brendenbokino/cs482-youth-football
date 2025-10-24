@@ -11,16 +11,18 @@
             <div class="header">
                 <img src="../view/images/profile.png" style="float:left; width: 100px; height: 100px">
                 <h1 style="position:relative; top: 18px; left: 10px">Loyal Order of Youth League Athletes</h1>
-                <p style = "position:relative; left: 10px">index</p>
+                <p style = "position:relative; left: 10px">photos</p>
             </div>
             <main>
                 <body>
-                    Hey!
-                    <a href="calendar.html">Calendar</a>
-                    <a href="team.html">Team</a>
-                    <a href="profile.html">Profile</a>
-                    <a href="login.html">Login</a>
-                    <a href="photos.html">Photos</a>
+                    <h1>Mongo File Uploads</h1>
+                    <form action="/upload" method="POST" enctype="multipart/form-data">
+                        <div class="custom-file mb-3">
+                            <input type="file" name="file" id="file">
+                            <label for="file">Choose File</label>
+                        </div>
+                        <input type="submit" value="submit" class="btn btn-primary btn-block">
+                    </form>
                 </body>
             </main>
             <div class="footer" style="background:mediumpurple">
