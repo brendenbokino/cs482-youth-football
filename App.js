@@ -11,8 +11,8 @@ const methodOverride = require('method-override');
 
 app = express()
 
-
-app.use(bodyParser.json());
+app.use(express.json());
+//app.use(bodyParser.json());
 app.use(methodOverride('_method'));
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -26,7 +26,7 @@ mongoose.connection.once('open', () => {
 })
 
 //create storage option
-const storage = new GridFsStorage({
+/**const storage = new GridFsStorage({
     url: process.env.FILESDB_URI,
     file: (req, file) => {
       return new Promise((resolve, reject) => {
@@ -43,7 +43,8 @@ const storage = new GridFsStorage({
         });
       });
     }
-});
+});**/
+const storage = new GridFsStorage({url: process.env.FILESDB_URI});
 const upload = multer({ storage });
 
 
