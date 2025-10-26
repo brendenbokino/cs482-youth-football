@@ -1,0 +1,34 @@
+header {
+    height: 70px;
+
+    border-bottom: 4px solid #442E7A;
+
+}
+
+header img{
+    float: left;
+    width: 70px;
+    height: 70px;
+}
+
+header h1{
+    max-width: 50%;
+    float: left;
+    padding-top: 10px;
+    font-size: 1.5em;
+}
+
+.topnav {
+    max-width: 50%;
+    float: right;
+    padding-top: 25px;
+}
+
+footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color:#442E7A;
+  color: white;
+}
