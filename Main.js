@@ -11,9 +11,13 @@ async function main() {
         console.log('Connected to MongoDB');
     
         const coach = new Coach();
+
         
-        await coach.menu(); 
-        await coach.choice();
+        //await coach.menu(); 
+        //await coach.choice();
+
+        await coach.run();
+
 
     } catch (error) {
         console.error('Error connecting to MongoDB:', error);
