@@ -29,14 +29,14 @@ describe('Game Controller Tests', () => {
             _id: '507f1f77bcf86cd799439011',
             team1: 'Bears',
             team2: 'Goats',
-            date: 'Oct-20-2025',
+            date: Date('Oct-20-2025'),
             location: 'Metlife'
         };
 
         const req = {
             team1: 'Bears',
             team2: 'Goats',
-            date: 'Oct-20-2025',
+            date: Date('Oct-20-2025'),
             location: 'Metlife'
         };
 
@@ -53,6 +53,7 @@ describe('Game Controller Tests', () => {
         expect(res.error).toBe("");
         expect(res.status).toBe(200);
         expect(game.gameData.team1).toBe("Bears");
+        expect(game.gameData.team2).toBe("Goats");
     });
 
     test("createNewGame with missing team1", async function() {
@@ -61,7 +62,7 @@ describe('Game Controller Tests', () => {
         const req = {
             team1: null,
             team2: 'Goats',
-            date: 'Oct-20-2025',
+            date: new Date('Oct-20-2025'),
             location: 'Metlife'
         };
 
@@ -127,6 +128,7 @@ describe('Game Controller Tests', () => {
         };
 
         gameDao.readAll.mockResolvedValue(mockGames);
+        
 
         await game.getAllGames({}, res);
 

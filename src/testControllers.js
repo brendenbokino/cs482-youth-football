@@ -3,24 +3,33 @@ const TeamDao = require('../model/TeamDao');
 
 
 
-team = new TeamController();
 
-
-let req = {
-
-    players : new Array("jim","ray","Brad"),
-    coach: "BOB",
-    games: new Array("metlife","theGarden")
-
-
-
-}
 
 async function test() {
-    await team.createNewTeam(req);
 
-    print(team.team);
-    print("he;")
+    teams = new TeamController();
+
+
+    let req = {
+
+        players : new Array("jim","ray","Brad"),
+        coach: "BOB",
+        games: new Array("metlife","theGarden")
+
+
+
+    }
+
+    TeamDao.create.mockResolvedValue(req);
+
+    await teams.createNewTeam(req);
+
+    const teamss = await TeamDao.readAll();
+
+    
+
+    console.log(teamss);
+    console.log("he;");
     
 }
 

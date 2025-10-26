@@ -7,7 +7,7 @@ const teamSchema = new mongoose.Schema({
     games: Array
 });
 
-const teamModel = mongoose.model('team', teamSchema);
+const teamModel = mongoose.model('teams', teamSchema);
 
 exports.readAll = async function(){
     let teams = await teamModel.find();
@@ -25,8 +25,9 @@ exports.create = async function(newteam){
     return team;
 }
 
-exports.update = function(team){
-
+exports.update = async function(id, updateData){
+    let team = await teamModel.findByIdAndUpdate(id, updateData, { new: true });
+    return team;
 }
 
 exports.del = async function(id){

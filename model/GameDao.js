@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const gameSchema = new mongoose.Schema({
     team1: String,
     team2: String,
-    date: String,
+    date: Date, /// date type to make sorting easier 
     location: String,
 });
 
