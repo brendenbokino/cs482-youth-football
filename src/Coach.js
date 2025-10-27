@@ -101,7 +101,7 @@ class Coach {
         }
     }
 
-    // update user account info
+    // update user account info & need to refactor in next iteration
     async updateAccount(){
         const email = await this.ask("Enter your email to update account: ");
         const users = await UserDao.readAll();

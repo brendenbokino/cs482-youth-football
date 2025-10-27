@@ -24,6 +24,7 @@ jest.mock('readline', () => ({
 
 const Coach = require('./Coach.js');
 const UserDao = require('../model/UserDao.js'); 
+//const { test } = require('picomatch');
 jest.mock('../model/UserDao');
 
 
@@ -241,6 +242,25 @@ describe("Coach updateAccount Tests", function() {
 
         await coach.deleteAccount();
         expect(console.log).toHaveBeenCalledWith("No account found with that email.");
+    });
+
+    test("updateAccount() updates name successfully", async () => {
+        coach = new Coach();
+        const mockUser = { _id: "123", email: "test@example.com"};
+        const updates = { _id: "123", email: "test@example.com", name: "Loren" };
+
+        UserDao.readAll.mockResolvedValue([mockUser]);
+        UserDao.update.mockResolvedValue(updates);
+
+        coach.ask = jest.fn().mockResolvedValueOnce("test@example.com")
+            .mockResolvedValueOnce("1") // 1 for updating name
+            .mockResolvedValueOnce("Loren");
+
+        await coach.updateAccount();
+        
+        expect(UserDao.readAll).toHaveBeenCalled();
+        expect(UserDao.update).toHaveBeenCalledWith("123", { name: "Loren" });
+        expect(console.log).toHaveBeenCalledWith("Account updated to:", updates);
     });
 
 
