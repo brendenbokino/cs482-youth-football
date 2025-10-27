@@ -52,24 +52,24 @@ class User {
         console.log("Account created:", this.userInput);
         console.log("-------------------------");
     }
+}
 
-    async login(req, res){
-        let plogin = req.body.login_id;
-        let user = await dao.findLogin(plogin); //need to implement
+exports.login = async function(req, res){
+    let plogin = req.body.login_id;
+    let user = await dao.findLogin(plogin); 
 
-        if (user == null){ //login not found
-            res.redirect('/login'); //redirect back to login, NtE error message
-        } else {
-            if (req.body.login_pass.localeCompare(user.password)==0){
-                //passwords match
-                console.log('successful login');
+    if (user == null){ //login not found
+        res.redirect('/login.html'); //redirect back to login, NtE error message
+    } else {
+        if (req.body.login_pass.localeCompare(user.password)==0){
+            //passwords match
+            console.log('successful login');
 
-                req.session.user = user;
-                res.redirect('/') //redirect to home page, could change 
-            } else{ //passwords do not match
-                res.redirect('/login') //redirect back to login, NtE error message
+            req.session.user = user;
+            res.redirect('/') //redirect to home page, could change 
+        } else{ //passwords do not match
+            res.redirect('/login.html') //redirect back to login, NtE error message
 
-            }
-        } 
-    }
+        }
+    } 
 }

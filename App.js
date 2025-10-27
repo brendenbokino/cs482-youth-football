@@ -50,8 +50,14 @@ const storage = new GridFsStorage({
 //const storage = new GridFsStorage({url: process.env.FILESDB_URI});
 const upload = multer({ storage });
 
+//User Controller Functions
+const UserController = require('./src/UserController')
+// POST /login
+app.post('/loginuser', UserController.login);
 
 app.use(express.static('view/html'));
+
+//File Storage Functions
 
 // POST /upload
 app.post('/upload', upload.single('file'), (req, res) => {
