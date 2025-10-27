@@ -54,20 +54,20 @@ class User {
     }
 
     async login(req, res){
-        let plogin = req.body.txt_login;
-        let user = await dao.findLogin; //need to implement
+        let plogin = req.body.login_id;
+        let user = await dao.findLogin(plogin); //need to implement
 
         if (user == null){ //login not found
-            res.redirect(); //redirect to login page w/ error, NtE
+            res.redirect('/login'); //redirect back to login, NtE error message
         } else {
-            if (req.body.txt_pass.localeCompare(user.password)==0){
+            if (req.body.login_pass.localeCompare(user.password)==0){
                 //passwords match
                 console.log('successful login');
 
                 req.session.user = user;
-                res.redirect() //redirect to account page?, NtE
+                res.redirect('/') //redirect to home page, could change 
             } else{ //passwords do not match
-                res.redirect() //redirect to login page w/ error, NtE
+                res.redirect('/login') //redirect back to login, NtE error message
 
             }
         } 

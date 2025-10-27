@@ -51,4 +51,9 @@ exports.deleteAll = async function(){
     await userModel.deleteMany();
 }
 
+exports.findLogin = async function(plogin){
+    let user = await userModel.findOne({login: plogin});
+    return user;
+}
+
 
