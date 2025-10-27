@@ -325,18 +325,23 @@ describe("Coach updateAccount Tests", function() {
         const mockUser = { _id: "123", email: "test@example.com"};
         const updates = { _id: "123", email: "test@example.com", password: "Loren" };
 
-        //UserDao.readAll.mockResolvedValue([mockUser]);
-        //UserDao.update.mockResolvedValue(updates);
+        await coach.updateAccount();
+        
+        expect(console.log).toHaveBeenCalledWith("No account found with that email.");
+    });
 
-        //coach.ask = jest.fn().mockResolvedValueOnce("test@example.com")
-         //   .mockResolvedValueOnce("4") // 4 for updating password
-        //    .mockResolvedValueOnce("Loren");
+    test("updateAccount() invalid option", async () => {
+        coach = new Coach();
+        const mockUser = { _id: "123", email: "test@example.com"};
+        const updates = { _id: "123", email: "test@example.com", password: "Loren" };
+
+        coach.ask = jest.fn().mockResolvedValueOnce("test@example.com")
+            .mockResolvedValueOnce("5") // 5 doesn't exist
+            //.mockResolvedValueOnce("Loren");
 
         await coach.updateAccount();
         
-        //expect(UserDao.readAll).toHaveBeenCalled();
-        //expect(UserDao.update).toHaveBeenCalledWith("123", { password: "Loren" });
-        expect(console.log).toHaveBeenCalledWith("No account found with that email.");
+        expect(console.log).toHaveBeenCalledWith("Invalid choice");
     });
 
 
