@@ -320,6 +320,25 @@ describe("Coach updateAccount Tests", function() {
         expect(console.log).toHaveBeenCalledWith("Account updated to:", updates);
     });
 
+    test("updateAccount() updates unsuccessfully", async () => {
+        coach = new Coach();
+        const mockUser = { _id: "123", email: "test@example.com"};
+        const updates = { _id: "123", email: "test@example.com", password: "Loren" };
+
+        //UserDao.readAll.mockResolvedValue([mockUser]);
+        //UserDao.update.mockResolvedValue(updates);
+
+        //coach.ask = jest.fn().mockResolvedValueOnce("test@example.com")
+         //   .mockResolvedValueOnce("4") // 4 for updating password
+        //    .mockResolvedValueOnce("Loren");
+
+        await coach.updateAccount();
+        
+        //expect(UserDao.readAll).toHaveBeenCalled();
+        //expect(UserDao.update).toHaveBeenCalledWith("123", { password: "Loren" });
+        expect(console.log).toHaveBeenCalledWith("No account found with that email.");
+    });
+
 
 
 });
