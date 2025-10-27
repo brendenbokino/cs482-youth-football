@@ -54,6 +54,7 @@ const upload = multer({ storage });
 const UserController = require('./src/UserController')
 // POST /login
 app.post('/loginuser', UserController.login);
+app.post('/registeruser', UserController.register);
 
 app.use(express.static('view/html'));
 
