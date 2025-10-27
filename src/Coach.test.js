@@ -263,6 +263,63 @@ describe("Coach updateAccount Tests", function() {
         expect(console.log).toHaveBeenCalledWith("Account updated to:", updates);
     });
 
+    test("updateAccount() updates email successfully", async () => {
+        coach = new Coach();
+        const mockUser = { _id: "123", email: "test@example.com"};
+        const updates = { _id: "123", email: "test2@example.com", name: "Loren" };
+
+        UserDao.readAll.mockResolvedValue([mockUser]);
+        UserDao.update.mockResolvedValue(updates);
+
+        coach.ask = jest.fn().mockResolvedValueOnce("test@example.com")
+            .mockResolvedValueOnce("2") // 2 for updating email
+            .mockResolvedValueOnce("test2@example.com");
+
+        await coach.updateAccount();
+        
+        expect(UserDao.readAll).toHaveBeenCalled();
+        expect(UserDao.update).toHaveBeenCalledWith("123", { email: "test2@example.com" });
+        expect(console.log).toHaveBeenCalledWith("Account updated to:", updates);
+    });
+
+    test("updateAccount() updates phone successfully", async () => {
+        coach = new Coach();
+        const mockUser = { _id: "123", email: "test@example.com"};
+        const updates = { _id: "123", email: "test@example.com", phone: "1234567890" };
+
+        UserDao.readAll.mockResolvedValue([mockUser]);
+        UserDao.update.mockResolvedValue(updates);
+
+        coach.ask = jest.fn().mockResolvedValueOnce("test@example.com")
+            .mockResolvedValueOnce("3") // 3 for updating phone
+            .mockResolvedValueOnce("1234567890");
+
+        await coach.updateAccount();
+        
+        expect(UserDao.readAll).toHaveBeenCalled();
+        expect(UserDao.update).toHaveBeenCalledWith("123", { phone: "1234567890" });
+        expect(console.log).toHaveBeenCalledWith("Account updated to:", updates);
+    });
+
+    test("updateAccount() updates password successfully", async () => {
+        coach = new Coach();
+        const mockUser = { _id: "123", email: "test@example.com"};
+        const updates = { _id: "123", email: "test@example.com", password: "Loren" };
+
+        UserDao.readAll.mockResolvedValue([mockUser]);
+        UserDao.update.mockResolvedValue(updates);
+
+        coach.ask = jest.fn().mockResolvedValueOnce("test@example.com")
+            .mockResolvedValueOnce("4") // 4 for updating password
+            .mockResolvedValueOnce("Loren");
+
+        await coach.updateAccount();
+        
+        expect(UserDao.readAll).toHaveBeenCalled();
+        expect(UserDao.update).toHaveBeenCalledWith("123", { password: "Loren" });
+        expect(console.log).toHaveBeenCalledWith("Account updated to:", updates);
+    });
+
 
 
 });
