@@ -343,8 +343,29 @@ describe("Coach updateAccount Tests", function() {
         
         expect(console.log).toHaveBeenCalledWith("Invalid choice");
     });
-
-
-
 });
+
+
+
+// last Jest tests I tried to write but couldn't get working properly
+
+
+//describe("run tests", function() {
+//    test("run() works properly", async () => {
+//        coach = new Coach();
+//        expect(console.log).toHaveBeenCalledWith("To update your account, please enter a corresponding number:");
     
+//    });
+
+    // from Coach.js so I don't have to keep flipping files
+    //async run() {
+    //    let exit = false;
+    //    while (!exit) {
+    //        await this.menu();
+    //        const userChoice = await this.ask("Enter your choice: ");
+    //        exit = await this.choice(userChoice);
+
+     //   }
+    //    this.rl.close();
+    //}
+//});
