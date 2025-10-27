@@ -52,7 +52,7 @@ exports.deleteAll = async function(){
 }
 
 exports.findLogin = async function(plogin){
-    let user = await userModel.findOne({login: plogin});
+    let user = await userModel.findOne({email: plogin});
     return user;
 }
 

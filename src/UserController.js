@@ -65,10 +65,11 @@ exports.login = async function(req, res){
             //passwords match
             console.log('successful login');
 
-            req.session.user = user;
-            res.redirect('/') //redirect to home page, could change 
+            req.User = user;
+            res.redirect('/profile.html') //redirect to home page, could change 
+
         } else{ //passwords do not match
-            res.redirect('/login.html') //redirect back to login, NtE error message
+            res.redirect('/') //redirect back to login, NtE error message
 
         }
     } 
