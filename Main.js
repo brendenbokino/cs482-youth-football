@@ -1,4 +1,5 @@
-const Coach = require('./src/Coach');
+const UserController = require('./UserController.js');
+const User = UserController.User;
 const mongoose = require('mongoose');
 require('dotenv').config();
 
@@ -10,13 +11,13 @@ async function main() {
         await mongoose.connect(DB_URI);
         console.log('Connected to MongoDB');
     
-        const coach = new Coach();
+        const user = new User();
 
         
-        //await coach.menu(); 
-        //await coach.choice();
+        //await user.menu(); 
+        //await user.choice();
 
-        await coach.run();
+        await user.run();
 
 
     } catch (error) {

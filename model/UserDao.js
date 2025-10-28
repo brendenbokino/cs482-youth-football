@@ -1,12 +1,20 @@
+const { Int32 } = require('mongodb');
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
     email: {
         type: String,
+    },
+    username: {
+        type: String,
         required: true
     },
     name: {
         type: String,
+        required: true
+    },
+    permission: {
+        type: Int32,
         required: true
     },
     phone: {
@@ -19,7 +27,7 @@ const userSchema = new mongoose.Schema({
     }
 });
 
-const userModel = mongoose.model('user', userSchema);
+const userModel = mongoose.model('users', userSchema);
 
 exports.readAll = async function(){
     let users = await userModel.find();
@@ -49,6 +57,11 @@ exports.del = async function(id){
 
 exports.deleteAll = async function(){
     await userModel.deleteMany();
+}
+
+exports.findLogin = async function(plogin){
+    let user = await userModel.findOne({email: plogin})
+    return user;
 }
 
 
