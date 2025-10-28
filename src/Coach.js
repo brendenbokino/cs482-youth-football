@@ -37,6 +37,14 @@ class Coach {
 
     
     // functions to get user input for coach account creation
+    async checkForExistingAccount(input) {
+        const users = await UserDao.readAll();
+        const user = users.find(u => u.input === input);
+        if (user) {
+            console.log("You already have an account \nAccount Info:", user);
+        }
+    }
+
     async name(){
         const name = await this.ask("Enter your name: ");
         this.userInput.name = name;
@@ -44,7 +52,14 @@ class Coach {
 
     async email(){
         const email = await this.ask("Enter your email: ");
-        this.userInput.email = email;
+        const users = await UserDao.readAll();
+        const user = users.find(u => u.email === email);
+        if (user) {
+            console.log("You already have an account \nAccount Info:", user);
+        }
+        else {
+            this.userInput.email = email;
+        }
     }
 
     async phone(){
