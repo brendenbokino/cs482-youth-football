@@ -9,6 +9,8 @@ const {GridFsStorage} = require('multer-gridfs-storage');
 const Grid = require('gridfs-stream');
 const {ObjectID} = mongoose.Types
 const methodOverride = require('method-override');
+const Coach = require('./src/Coach');
+const UserDao = require('./model/UserDao');
 
 
 app = express()
@@ -150,6 +152,33 @@ app.delete('/files/:id', (req, res) => {
     res.redirect('/')
   })
 })
+
+
+// coach account routes
+app.post('/coach/createaccount', async (req, res) => {
+    const coach = new Coach();
+    await coach.createAccount();
+    res.send("Coach account created.");
+});
+
+app.post('/coach/viewaccount', async (req, res) => {
+    const coach = new Coach();
+    await coach.viewAccountInfo();
+    res.send("Coach account info displayed.");
+});
+
+app.post('/coach/deleteaccount', async (req, res) => {
+    const coach = new Coach();
+    await coach.deleteAccount();
+    res.send("Coach account deleted.");
+});
+
+app.post('/coach/updateaccount', async (req, res) => {
+    const coach = new Coach();
+    await coach.updateAccount();
+    res.send("Coach account updated.");
+});
+
 
 
 exports.app = app;
