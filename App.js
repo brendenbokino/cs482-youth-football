@@ -56,6 +56,15 @@ const UserController = require('./src/UserController')
 app.post('/loginuser', UserController.login);
 app.post('/registeruser', UserController.register);
 
+//Team Controller Functions
+const TeamController = require('./src/TeamController')
+// Team Routes
+app.post('/teamregister', TeamController.register);
+app.get('/teams', TeamController.getAll);
+app.get('/teamsid', TeamController.getById);
+app.post('/teamsupdate', TeamController.update);
+app.post('/teamsaddplayer', TeamController.addPlayer);
+
 app.use(express.static('view/html'));
 
 //File Storage Functions
