@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+    <head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="football, youth league, sports">
+    <title>Loyal Order of Youth League Athletes</title>
+    <link href="./css/popup.css" rel="stylesheet" type="text/css">
+    <link href="./css/main.css" rel="stylesheet" type="text/css">
+
+    </head>
+
+    <body>
+        <header>
+            <img src="./images/logo.png" href="index.html">
+            <h1> Loyal Order of Youth League Athletes </h1>
+            <div class="topnav">
+                <a href="calendar.html">Calendar</a>
+                <a href="team.html">Team</a>
+                <a href="profile.html">Profile</a>
+                <a href="login.html">Login</a>
+                <a href="register.html">Register</a>
+                <a href="photos.html">Photos</a>
+                <a href="coach.html">Coach Account</a>
+            </div>
+        </header>
+
+        <main>
+            <div style="max-width: 1100px; margin: 20px auto; padding: 10px;">
+                <h2>Season Schedule</h2>
+                <div id="calendar"></div>
+
+                <hr style="margin: 24px 0;">
+
+                <h3>Add New Game</h3>
+                <form method="POST" action="/gameCreate" style="margin-bottom: 20px;">
+                    <label for="team1">Team 1</label><br>
+                    <input type="text" id="team1" name="team1" required style="width: 100%; padding: 8px; margin: 6px 0;"><br>
+
+                    <label for="team2">Team 2</label><br>
+                    <input type="text" id="team2" name="team2" required style="width: 100%; padding: 8px; margin: 6px 0;"><br>
+
+                    <label for="date">Date</label><br>
+                    <input type="date" id="date" name="date" required style="width: 100%; padding: 8px; margin: 6px 0;"><br>
+
+                    <label for="location">Location</label><br>
+                    <input type="text" id="location" name="location" required style="width: 100%; padding: 8px; margin: 6px 0;"><br>
+
+                    <label for="youtubeUrl">Video URL (YouTube or Vimeo)</label><br>
+                    <input type="text" id="youtubeUrl" name="videoUrl" placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/..." style="width: 100%; padding: 8px; margin: 6px 0;"><br>
+
+                    <button type="submit" style="padding: 10px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Create Game</button>
+                </form>
+            </div>
+        </main>
+
+        <!-- Game Details Modal -->
+        <div id="gameModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modalTitle">Game Details</h2>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="game-info">
+                        <div class="game-info-item">
+                            <strong>Teams:</strong>
+                            <span id="modalTeams"></span>
+                        </div>
+                        <div class="game-info-item">
+                            <strong>Date:</strong>
+                            <span id="modalDate"></span>
+                        </div>
+                        <div class="game-info-item">
+                            <strong>Location:</strong>
+                            <span id="modalLocation"></span>
+                        </div>
+                    </div>
+
+                    <div id="videoSection" style="display: none;">
+                        <h3>Watch Live <span class="live-badge">● LIVE</span></h3>
+                        <div class="video-container">
+                            <iframe id="youtubeEmbed" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen>
+                            </iframe>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="viewFullDetails()">View Full Stats</button>
+                        <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FullCalendar CDN -->
+        <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css' rel='stylesheet' />
+        <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+        <script>
+            const modal = document.getElementById('gameModal');
+            const closeBtn = document.querySelector('.close');
+
+            function showGameDetails(props) {
+                // Populate modal with game details
+                document.getElementById('modalTitle').textContent = 'Game Details';
+                document.getElementById('modalTeams').textContent = `${props.team1} vs ${props.team2}`;
+                document.getElementById('modalDate').textContent = props.date || 'TBD';
+                document.getElementById('modalLocation').textContent = props.location || 'TBD';
+
+                // Handle video embed (YouTube or Vimeo)
+                const videoSection = document.getElementById('videoSection');
+                const videoEmbed = document.getElementById('youtubeEmbed');
+                
+                if (props.videoUrl) {
+                    const embedUrl = getEmbedUrl(props.videoUrl);
+                    if (embedUrl) {
+                        videoEmbed.src = embedUrl;
+                        videoSection.style.display = 'block';
+                    } else {
+                        videoSection.style.display = 'none';
+                    }
+                } else {
+                    videoSection.style.display = 'none';
+                }
+
+                // Show modal
+                modal.style.display = 'block';
+            }
+
+            function getEmbedUrl(url) {
+                if (!url) return null;
+
+                // Check if it's already an embed URL
+                if (url.includes('player.vimeo.com/video') || url.includes('youtube.com/embed')) {
+                    return url;
+                }
+
+                // Handle Vimeo URLs
+                if (url.includes('vimeo.com')) {
+                    const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+                    if (vimeoMatch && vimeoMatch[1]) {
+                        return `https://player.vimeo.com/video/${vimeoMatch[1]}?badge=0&autopause=0`;
+                    }
+                }
+
+                // Handle YouTube URLs
+                if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                    const videoId = extractYouTubeVideoId(url);
+                    if (videoId) {
+                        return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&enablejsapi=1`;
+                    }
+                }
+
+                return null;
+            }
+
+            function extractYouTubeVideoId(url) {
+                if (!url) return null;
+                const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+                const match = url.match(regExp);
+                return (match && match[7].length === 11) ? match[7] : null;
+            }
+
+            function closeModal() {
+                modal.style.display = 'none';
+                // Stop video playback
+                document.getElementById('youtubeEmbed').src = '';
+            }
+
+            function viewFullDetails() {
+                // Redirect to detailed game page or expand details
+                alert('Redirecting to full game statistics page...');
+                // window.location.href = '/game-details?id=123';
+            }
+
+            // Close modal when clicking X
+            closeBtn.onclick = closeModal;
+
+            // Close modal when clicking outside
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    closeModal();
+                }
+            }
+
+            // Close modal on Escape key
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && modal.style.display === 'block') {
+                    closeModal();
+                }
+            });
+
+            async function loadGames() {
+                // DUMMY DATA FOR SPIKE - Replace with real fetch call later
+                const dummyGames = [
+                    {
+                        team1: "Lions",
+                        team2: "Tigers",
+                        date: "2025-11-05",
+                        location: "Main Stadium",
+                        videoUrl: "https://player.vimeo.com/video/890704111"
+                    },
+                    {
+                        team1: "Eagles",
+                        team2: "Hawks",
+                        date: "2025-11-12",
+                        location: "North Field",
+                        videoUrl: null
+                    },
+                    {
+                        team1: "Bears",
+                        team2: "Wolves",
+                        date: "2025-11-19",
+                        location: "Central Park",
+                        videoUrl: "https://vimeo.com/890704111"
+                    }
+                ];
+
+                // Uncomment below for real implementation
+                /*
+                try {
+                    const res = await fetch('/games');
+                    const data = await res.json();
+                    if (!Array.isArray(data)) return [];
+                    return data
+                        .filter(g => !!g.date)
+                        .map(g => ({
+                            title: `${g.team1} vs ${g.team2}`,
+                            start: g.date,
+                            extendedProps: { 
+                                location: g.location, 
+                                team1: g.team1, 
+                                team2: g.team2,
+                                date: g.date,
+                                videoUrl: g.videoUrl
+                            }
+                        }));
+                } catch (e) {
+                    console.error('Failed to load games', e);
+                    return [];
+                }
+                */
+
+                // Return dummy data formatted for FullCalendar
+                return dummyGames
+                    .filter(g => !!g.date)
+                    .map(g => ({
+                        title: `${g.team1} vs ${g.team2}`,
+                        start: g.date,
+                        extendedProps: { 
+                            location: g.location, 
+                            team1: g.team1, 
+                            team2: g.team2,
+                            date: g.date,
+                            videoUrl: g.videoUrl
+                        }
+                    }));
+            }
+
+            document.addEventListener('DOMContentLoaded', async function() {
+                const events = await loadGames();
+                const el = document.getElementById('calendar');
+                const cal = new FullCalendar.Calendar(el, {
+                    initialView: 'dayGridMonth',
+                    events: events,
+                    eventClick: function(info) { 
+                        showGameDetails(info.event.extendedProps); 
+                    },
+                    headerToolbar: { 
+                        left: 'prev,next today', 
+                        center: 'title', 
+                        right: 'dayGridMonth,dayGridWeek' 
+                    }
+                });
+                cal.render();
+            });
+        </script>
+
+        <footer>
+            <p>
+                Loyal Order of Youth League Athletes
+                <br>
+                contact info
+            </p>
+        </footer>
+    </body>
+</html>
