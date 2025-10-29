@@ -4,7 +4,49 @@
     <head>
         <meta charset="utf-8">
         <meta name="keywords" content="football, youth league, sports">
-        <title>Loyal Order of Youth League Athletes</title>
+        <title>Coach Account</title>
+        <style>
+            body {
+              font-family: "Segoe UI", sans-serif;
+              background: #f7f8fb;
+              color: #333;
+              max-width: 800px;
+              margin: 2rem auto;
+            }
+            h1 {
+              text-align: center;
+              color: #911ee9;
+            }
+            form {
+              background: #fff;
+              border-radius: 10px;
+              padding: 1.5rem;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+              margin-bottom: 2rem;
+            }
+            label { display: block; margin: 0.5rem 0 0.2rem; }
+            input { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 5px; }
+            button {
+              margin-top: 1rem;
+              background: #911ee9;
+              color: #fff;
+              border: none;
+              border-radius: 5px;
+              padding: 0.6rem 1rem;
+              cursor: pointer;
+            }
+            button:hover { background: #911ee9; } 
+            #coachList {
+              background: #fff;
+              padding: 1rem;
+              border-radius: 10px;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            }
+            .coach-item {
+              border-bottom: 1px solid #ddd;
+              padding: 0.5rem 0;
+            }
+        </style>
         <link href="./css/main.css" rel="stylesheet" type="text/css">
     </head>
 
@@ -19,16 +61,13 @@
                 <a href="login.html">Login</a>
                 <a href="register.html">Register</a>
                 <a href="photos.html">Photos</a>
-                <a href="coach.html">Coach Account</a>
             </div>
         </header>
 
         <main>
-            <form method="post" action="registeruser">
+            <form method="post" action="/registeruser">
                 <label for="email">Email:</label><br>
                 <input type="text" id="email" name="email"><br>
-                <label for="username">Username:</label><br>
-                <input type="text" id="username" name="username"><br>
                 <label for="name">First and Last name:</label><br>
                 <input type="text" id="name" name="name"><br>
                 <label for="phone">Phone number:</label><br>
@@ -39,6 +78,7 @@
                 <input type="password" id="confirm_pass" name="confirm_pass"><br><br>
                 <input type="submit" value="Submit">
             </form>
+            
         </main>
 
         <footer>
