@@ -63,4 +63,26 @@ class GameController {
 }
 
 
-module.exports = GameController;
+// Export handlers
+exports.create = async function(req, res) {
+    const controller = new GameController();
+    // Map form body to expected shape
+    const mockReq = req && req.body ? {
+        team1: req.body.team1,
+        team2: req.body.team2,
+        date: req.body.date,
+        location: req.body.location
+    } : null;
+    const mockRes = { status: null, send: null };
+    await controller.createNewGame(mockReq, mockRes);
+    res.status(mockRes.status || 500).json(mockRes.send || { error: 'Unknown error' });
+}
+
+exports.getAll = async function(req, res) {
+    const controller = new GameController();
+    const mockRes = { status: null, send: null };
+    await controller.getAllGames({}, mockRes);
+    res.status(mockRes.status || 500).json(mockRes.send || { error: 'Unknown error' });
+}
+
+module.exports.GameController = GameController;

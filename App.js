@@ -59,13 +59,20 @@ app.post('/loginuser', UserController.login);
 app.post('/registeruser', UserController.register);
 
 //Team Controller Functions
-const TeamController = require('./src/TeamController')
+const TeamController = require('./src/TeamController');
+const GameController = require('./src/GameController');
 // Team Routes
 app.post('/teamregister', TeamController.register);
 app.get('/teams', TeamController.getAll);
 app.get('/teamsid', TeamController.getById);
 app.post('/teamsupdate', TeamController.update);
 app.post('/teamsaddplayer', TeamController.addPlayer);
+
+// game routes (Express-friendly wrappers)
+app.post('/gameCreate', GameController.create);
+app.get('/games', GameController.getAll);
+
+
 
 app.use(express.static('view/html'));
 
