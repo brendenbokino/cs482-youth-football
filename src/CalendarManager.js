@@ -38,6 +38,8 @@ class CalendarManager {
             // 1. Fetch all games from the database
             const games = await gameDao.readAll();
 
+            
+
             const calendarEvents = games.map(game => ({
                 title: `${game.team1} vs ${game.team2}`,
                 start: game.date,

@@ -212,45 +212,176 @@ class TeamController {
         }
     }
 
-    // // Add player to team
-    // async addPlayerToTeam (req, res) {
-    //     try {
-    //         if (!req.params || !req.params.id) {
-    //             res.status = 400;
-    //             res.send = { error: "Team ID is required" };
-    //             return;
-    //         }
+    // Add player to team
+    async addPlayerToTeam (req, res) {
+        try {
+            if (!req.params || !req.params.id) {
+                res.status = 400;
+                res.send = { error: "Team ID is required" };
+                return;
+            }
 
-    //         if (!req.body || !req.body.playerName) {
-    //             res.status = 400;
-    //             res.send = { error: "Player name is required" };
-    //             return;
-    //         }
+            if (!req.body || !req.body.playerName) {
+                res.status = 400;
+                res.send = { error: "Player name is required" };
+                return;
+            }
 
-    //         let team = await TeamDao.read(req.params.id);
-    //         if (!team) {
-    //             res.status = 404;
-    //             res.send = { error: "Team not found" };
-    //             return;
-    //         }
+            let team = await TeamDao.read(req.params.id);
+            if (!team) {
+                res.status = 404;
+                res.send = { error: "Team not found" };
+                return;
+            }
 
-    //         // Check if player already exists
-    //         if (team.players.includes(req.body.playerName)) {
-    //             res.status = 400;
-    //             res.send = { error: "Player already exists on this team" };
-    //             return;
-    //         }
+            // Check if player already exists
+            if (team.players.includes(req.body.playerName)) {
+                res.status = 400;
+                res.send = { error: "Player already exists on this team" };
+                return;
+            }
 
-    //         team.players.push(req.body.playerName);
-    //         let updatedTeam = await TeamDao.update(req.params.id, { players: team.players });
+            team.players.push(req.body.playerName);
+            let updatedTeam = await TeamDao.update(req.params.id, { players: team.players });
 
-    //         res.status = 200;
-    //         res.send = { success: true, message: "Player added successfully", team: updatedTeam };
-    //     } catch (error) {
-    //         res.status = 500;
-    //         res.send = { error: "Failed to add player to team" };
-    //     }
-    // }
+            res.status = 200;
+            res.send = { success: true, message: "Player added successfully", team: updatedTeam };
+        } catch (error) {
+            res.status = 500;
+            res.send = {error: "Failed to add player to team" };
+        }
+    }
+
+    // Register a new team
+    async registerTeam(req, res) {
+        try {
+            // Validate required fields
+            if (!req.body || !req.body.teamName) {
+                res.status = 400;
+                res.send = { error: "Team name is required" };
+                return;
+            }
+
+            if (!req.body.coach) {
+                res.status = 400;
+                res.send = { error: "Coach name is required" };
+                return;
+            }
+
+            // Validate coach is not empty string
+            if (req.body.coach.trim() === "") {
+                res.status = 400;
+                res.send = { error: "Coach name cannot be empty" };
+                return;
+            }
+
+            // Set up initial team structure
+            const teamPayload = {
+                coach: req.body.coach.trim(),
+                players: req.body.players || [],
+                games: req.body.games || [],
+                teamName: req.body.teamName.trim()
+            };
+
+            let team = await TeamDao.create(teamPayload);
+            this.teamData = team;
+
+            res.status = 200;
+            res.send = { success: true, message: "Team has been registered", team: team };
+        } catch (error) {
+            res.status = 500;
+            res.send = { error: "Failed to register team" };
+        }
+    }
+
+    // Get team by ID
+    async getTeamById (req, res) {
+        try {
+            if (!req.params || !req.params.id) {
+                res.status = 400;
+                res.send = { error: "Team ID is required" };
+                return;
+            }
+
+            let team = await TeamDao.read(req.params.id);
+            
+            if (!team) {
+                res.status = 404;
+                res.send = { error: "Team not found" };
+                return;
+            }
+
+            res.status = 200;
+            res.send = { success: true, team: team };
+        } catch (error) {
+            res.status = 500;
+            res.send = { error: "Failed to fetch team" };
+        }
+    }
 }
 
-module.exports = TeamController;
+// Export the class AND route handler functions
+const exportsObj = TeamController;
+
+// ============================================================================
+// Export functions for direct use by Express routes
+// These functions create TeamController instances and call the class methods
+// ============================================================================
+
+// Register a new team (requires: teamName, coach)
+exports.register = async function (req, res) {
+    // Create an instance of TeamController and leverage the functions
+    const team = new TeamController();
+    
+    // Create a mock response object
+    const mockRes = { status: null, send: null };
+    
+    // Take the inputs from the html in req and generate a team
+    await team.registerTeam(req, mockRes);
+    
+    // Send actual HTTP response
+    res.status(mockRes.status || 500).json(mockRes.send || { error: "Unknown error" });
+}
+
+exports.addPlayer = async function (req, res) {
+    // Handle form data - get teamId from body
+    req.params = req.params || {};
+    req.params.id = req.body.teamId;
+    
+    const team = new TeamController();
+    const mockRes = { status: null, send: null };
+    await team.addPlayerToTeam(req, mockRes);
+    
+    res.status(mockRes.status || 500).json(mockRes.send || { error: "Unknown error" });
+}
+
+exports.update = async function (req, res) {
+    // Handle form data - get updateTeamId from body
+    req.params = req.params || {};
+    req.params.id = req.body.updateTeamId;
+    
+    const team = new TeamController();
+    const mockRes = { status: null, send: null };
+    await team.updateTeam(req, mockRes);
+    
+    res.status(mockRes.status || 500).json(mockRes.send || { error: "Unknown error" });
+}
+
+exports.getAll = async function (req, res) {
+    const team = new TeamController();
+    const mockRes = { status: null, send: null };
+    await team.getAllTeams(req, mockRes);
+    
+    res.status(mockRes.status || 500).json(mockRes.send || { error: "Unknown error" });
+}
+
+exports.getById = async function (req, res) {
+    const team = new TeamController();
+    const mockRes = { status: null, send: null };
+    await team.getTeamById(req, mockRes);
+    
+    res.status(mockRes.status || 500).json(mockRes.send || { error: "Unknown error" });
+}
+
+// Export everything
+module.exports.TeamController = TeamController;

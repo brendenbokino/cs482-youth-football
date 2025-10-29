@@ -23,7 +23,59 @@
         </header>
 
         <main>
+            <div style="max-width: 800px; margin: 40px auto; padding: 20px;">
+                <h2>Register New Team</h2>
+                <form method="POST" action="teamregister" style="margin-bottom: 40px;">
+                    <label for="teamName">Team Name:</label><br>
+                    <input type="text" id="teamName" name="teamName" required style="width: 100%; padding: 10px; margin: 10px 0;"><br>
+                    
+                    <label for="coach">Coach Name:</label><br>
+                    <input type="text" id="coach" name="coach" required style="width: 100%; padding: 10px; margin: 10px 0;"><br>
+                    
+                    <button type="submit" style="padding: 12px 24px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+                        Register Team
+                    </button>
+                </form>
 
+                <hr>
+
+                <h2>Add Player to Team</h2>
+                <form method="POST" action="teamsaddplayer" style="margin-bottom: 40px;">
+                    <label for="teamId">Team ID:</label><br>
+                    <input type="text" id="teamId" name="teamId" required style="width: 100%; padding: 10px; margin: 10px 0;"><br>
+                    
+                    <label for="playerName">Player Name:</label><br>
+                    <input type="text" id="playerName" name="playerName" required style="width: 100%; padding: 10px; margin: 10px 0;"><br>
+                    
+                    <button type="submit" style="padding: 12px 24px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+                        Add Player
+                    </button>
+                </form>
+
+                <hr>
+
+                <h2>Update Team</h2>
+                <form method="POST" action="teamsupdate" style="margin-bottom: 40px;">
+                    <label for="updateTeamId">Team ID:</label><br>
+                    <input type="text" id="updateTeamId" name="updateTeamId" required style="width: 100%; padding: 10px; margin: 10px 0;"><br>
+                    
+                    <label for="updateCoach">Coach Name:</label><br>
+                    <input type="text" id="updateCoach" name="updateCoach" style="width: 100%; padding: 10px; margin: 10px 0;"><br>
+                    
+                    <button type="submit" style="padding: 12px 24px; background-color: #ffc107; color: black; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+                        Update Team
+                    </button>
+                </form>
+
+                <hr>
+
+                <h2>View All Teams</h2>
+                <form method="GET" action="teams">
+                    <button type="submit" style="padding: 12px 24px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-bottom: 20px;">
+                        Load All Teams
+                    </button>
+                </form>
+            </div>
         </main>
 
         <footer>

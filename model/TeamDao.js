@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const teamSchema = new mongoose.Schema({
     // team should have a list of players, coach & stats 
+    teamName: String,
     players: Array,
     coach: String,
     games: Array
