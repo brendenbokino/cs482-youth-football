@@ -161,24 +161,35 @@ app.post('/coach/createaccount', async (req, res) => {
     res.send("Coach account created.");
 });
 
-app.post('/coach/viewaccount', async (req, res) => {
-    const coach = new Coach();
-    await coach.viewAccountInfo();
-    res.send("Coach account info displayed.");
+app.post('/viewaccount', async (req, res) => {
+    const { email } = req.body;
+    const user = await UserDao.findLogin(email);
+    if (user) {
+        res.json({ message: "Account Info", user });
+    } else {
+        res.status(404).json({ message: "Account not found" });
+    }
 });
 
-app.post('/coach/deleteaccount', async (req, res) => {
-    const coach = new Coach();
-    await coach.deleteAccount();
-    res.send("Coach account deleted.");
+app.post('/updateaccount', async (req, res) => {
+    const { email, field, value } = req.body;
+    const user = await UserDao.findLogin(email);
+    if (!user) {
+        return res.status(404).json({ message: "Account not found" });
+    }
+    const updates = { [field]: value };
+    const updatedUser = await UserDao.update(user._id, updates);
+    res.json({ message: "Account updated", updatedUser });
 });
 
-app.post('/coach/updateaccount', async (req, res) => {
-    const coach = new Coach();
-    await coach.updateAccount();
-    res.send("Coach account updated.");
+app.post('/deleteaccount', async (req, res) => {
+    const { email } = req.body;
+    const user = await UserDao.findLogin(email);
+    if (!user) {
+        return res.status(404).json({ message: "Account not found" });
+    }
+    await UserDao.del(user._id);
+    res.json({ message: "Account deleted" });
 });
-
-
 
 exports.app = app;
