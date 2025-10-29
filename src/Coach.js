@@ -79,13 +79,28 @@ class Coach {
         }
         this.userInput.password = password;
     }
-    
+
+    async username() {
+        const username = await this.ask("Enter your username: ");
+        this.userInput.username = username;
+    }
+
+    async permission() {
+        const permission = await this.ask("Enter your permission level (integer): ");
+        if (isNaN(permission)) {
+            console.log("Permission must be a number.");
+            return this.permission();
+        }
+        this.userInput.permission = parseInt(permission, 10);
+    }
 
     async createAccount() {
         await this.name();
         await this.email();
         await this.phone();
         await this.password();
+        await this.username();
+        await this.permission();
     
         await UserDao.create(this.userInput);
     
