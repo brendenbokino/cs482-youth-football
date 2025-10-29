@@ -48,6 +48,24 @@
             }
         </style>
         <link href="./css/main.css" rel="stylesheet" type="text/css">
+        <script>
+            function showCreateAccount() {
+                document.getElementById('createAccountForm').style.display = 'block';
+                document.getElementById('accountOptions').style.display = 'none';
+            }
+
+            function showAccountOptions() {
+                document.getElementById('createAccountForm').style.display = 'none';
+                document.getElementById('accountOptions').style.display = 'block';
+            }
+
+            function showSection(sectionId) {
+                document.querySelectorAll('.account-section').forEach(section => {
+                    section.style.display = 'none';
+                });
+                document.getElementById(sectionId).style.display = 'block';
+            }
+        </script>
     </head>
 
     <body>
@@ -65,20 +83,63 @@
         </header>
 
         <main>
-            <form method="post" action="/registeruser">
+            <button onclick="showCreateAccount()">Create Account</button>
+            <button onclick="showAccountOptions()">Already Have an Account</button>
+
+            <form id="createAccountForm" method="post" action="/coach/createaccount" style="display: none;">
+                <label for="name">Name:</label><br>
+                <input type="text" id="name" name="name" required><br>
                 <label for="email">Email:</label><br>
-                <input type="text" id="email" name="email"><br>
-                <label for="name">First and Last name:</label><br>
-                <input type="text" id="name" name="name"><br>
-                <label for="phone">Phone number:</label><br>
-                <input type="text" id="phone" name="phone"><br>
-                <label for="pass">Password:</label><br>
-                <input type="password" id="pass" name="pass"><br>
-                <label for="confirm_pass">Confirm password:</label><br>
-                <input type="password" id="confirm_pass" name="confirm_pass"><br><br>
-                <input type="submit" value="Submit">
+                <input type="email" id="email" name="email" required><br>
+                <label for="phone">Phone:</label><br>
+                <input type="text" id="phone" name="phone" required><br>
+                <label for="password">Password:</label><br>
+                <input type="password" id="password" name="password" required><br>
+                <label for="username">Username:</label><br>
+                <input type="text" id="username" name="username" required><br>
+                <label for="permission">Permission Level:</label><br>
+                <input type="number" id="permission" name="permission" required><br><br>
+                <button type="submit">Create Account</button>
             </form>
-            
+
+            <div id="accountOptions" style="display: none;">
+                <button onclick="showSection('viewAccount')">View Account</button>
+                <button onclick="showSection('updateAccount')">Update Account</button>
+                <button onclick="showSection('deleteAccount')">Delete Account</button>
+            </div>
+
+            <div id="viewAccount" class="account-section" style="display: none;">
+                <form method="post" action="/viewaccount">
+                    <label for="viewEmail">Email:</label>
+                    <input type="email" id="viewEmail" name="email" required>
+                    <button type="submit">View</button>
+                </form>
+            </div>
+
+            <div id="updateAccount" class="account-section" style="display: none;">
+                <form method="post" action="/updateaccount">
+                    <label for="updateEmail">Email:</label>
+                    <input type="email" id="updateEmail" name="email" required>
+                    <label for="updateField">Field to Update:</label>
+                    <select id="updateField" name="field">
+                        <option value="name">Name</option>
+                        <option value="email">Email</option>
+                        <option value="phone">Phone</option>
+                        <option value="password">Password</option>
+                    </select>
+                    <label for="updateValue">New Value:</label>
+                    <input type="text" id="updateValue" name="value" required>
+                    <button type="submit">Update</button>
+                </form>
+            </div>
+
+            <div id="deleteAccount" class="account-section" style="display: none;">
+                <form method="post" action="/deleteaccount">
+                    <label for="deleteEmail">Email:</label>
+                    <input type="email" id="deleteEmail" name="email" required>
+                    <button type="submit">Delete</button>
+                </form>
+            </div>
         </main>
 
         <footer>
