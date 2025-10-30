@@ -11,6 +11,7 @@ class Comms {
             output: process.stdout
         });
         this.userInput = {};
+        this.messages = []; // In-memory storage for messages
     }
 
     // async prompt for user input
@@ -25,7 +26,11 @@ class Comms {
     // functions to get user input for communications
     async postMessage(){
         const message = await this.ask("Enter your message: ");
-        this.userInput.message = message;
+        const author = await this.ask("Enter your name: ");
+        const date = new Date();
+        const newMessage = { message, author, date };
+        this.messages.push(newMessage); // Save message in memory
+        this.userInput = newMessage;
     }
 
     async getDate(){
@@ -39,7 +44,7 @@ class Comms {
     }
 
     async viewMessages(){
-        // retrieve messages from the database and display them
+        return this.messages; // Return all messages
     }
 
     async deleteMessages(){
@@ -61,4 +66,5 @@ class Comms {
     // post question, type person who created question, flag for edited, date created, date edited
     // test cases: 1 user in database use their id, fetch user when it's ready, update fetch function when login is ready
 }
-    
+
+module.exports = Comms;

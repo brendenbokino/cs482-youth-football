@@ -11,7 +11,7 @@ const {ObjectID} = mongoose.Types
 const methodOverride = require('method-override');
 const Coach = require('./src/Coach');
 const UserDao = require('./model/UserDao');
-
+const Comms = require('./src/Comms'); 
 
 app = express()
 
@@ -226,6 +226,20 @@ app.post('/deleteaccount', async (req, res) => {
     }
     await UserDao.del(user._id);
     res.json({ message: "Account deleted" });
+});
+
+// Communications
+const comms = new Comms();
+
+app.post('/comms/postMessage', async (req, res) => {
+    const { message, author } = req.body;
+    const date = new Date();s
+    comms.messages.push({ message, author, date });
+    res.json({ message: "Message posted successfully", data: { message, author, date } });
+});
+
+app.get('/comms/viewMessages', (req, res) => {
+    res.json({ messages: comms.messages });
 });
 
 exports.app = app;
