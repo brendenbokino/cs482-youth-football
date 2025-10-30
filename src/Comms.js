@@ -3,6 +3,8 @@
 // Loren Kim
 
 const readline = require('readline');
+const { connect, disconnect } = require('../model/DbConnect');
+const UserDao = require('../model/UserDao');
 
 class Comms {
     constructor() {
@@ -11,7 +13,8 @@ class Comms {
             output: process.stdout
         });
         this.userInput = {};
-        this.messages = []; // In-memory storage for messages
+        this.messages = []; // storage for messages
+        this.currentUser = null; // store user
     }
 
     // async prompt for user input
@@ -23,14 +26,53 @@ class Comms {
         });
     }
 
+    async login() {
+        try {
+            connect();
+            const email = await this.ask("Enter your email: ");
+            const password = await this.ask("Enter your password: ");
+
+            const account = await UserDao.findLogin(email);
+
+            if (!account) {
+                console.log("No account found with that email.");
+                await disconnect();
+                return;
+            }
+
+            if (account.password !== password) {
+                console.log("Incorrect password.");
+                await disconnect();
+                return;
+            }
+
+            this.currentUser = account;
+            console.log(`Logged in as ${account.name}`);
+        } catch (err) {
+            console.error("Login error:", err);
+        }
+    }
+
+
+    
+
     // functions to get user input for communications
     async postMessage(){
+        if (!this.currentUser) {
+            console.log("Please log in to post/reply to messages.");
+            await this.login();
+            if (!this.currentUser) return;
+        }
+
         const message = await this.ask("Enter your message: ");
-        const author = await this.ask("Enter your name: ");
+        const author = this.currentUser.name;
         const date = new Date();
+
         const newMessage = { message, author, date };
-        this.messages.push(newMessage); // Save message in memory
+        this.messages.push(newMessage);
         this.userInput = newMessage;
+
+        console.log(`Message posted by ${author} on ${date.toLocaleString()}`);
     }
 
     async getDate(){
@@ -38,13 +80,16 @@ class Comms {
         this.userInput.date = date;
     }
 
-    async getAuthor(){
-        const author = await this.ask("Enter your name: ");
-        this.userInput.author = author;
-    }
+    async viewMessages() {
+        if (this.messages.length === 0) {
+            console.log("No messages.");
+            return;
+        }
 
-    async viewMessages(){
-        return this.messages; // Return all messages
+        console.log("Message Board:");
+        this.messages.forEach((msg, i) => {
+            console.log(`${i + 1}. [${msg.date.toLocaleString()}] ${msg.author}: ${msg.message}`);
+        });
     }
 
     async deleteMessages(){
