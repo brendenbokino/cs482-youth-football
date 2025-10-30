@@ -3,8 +3,8 @@
 // Loren Kim
 
 const readline = require('readline');
-const { connect, disconnect } = require('./model/DbConnect');
-const UserDao = require('./model/UserDao');
+const { connect, disconnect } = require('../model/DbConnect');
+const UserDao = require('../model/UserDao');
 
 class Comms {
     constructor() {
@@ -90,10 +90,6 @@ class Comms {
         this.messages.forEach((msg, i) => {
             console.log(`${i + 1}. [${msg.date.toLocaleString()}] ${msg.author}: ${msg.message}`);
         });
-    }
-
-    async viewMessages(){
-        return this.messages; // Return all messages
     }
 
     async deleteMessages(){
