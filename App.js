@@ -1,4 +1,6 @@
 const express = require('express'); //import express server
+const session = require('express-session');
+const memorystore = require('memorystore')(session);
 
 const bodyParser = require('body-parser');
 const path = require('path');
@@ -14,6 +16,14 @@ const UserDao = require('./model/UserDao');
 const Comms = require('./src/Comms'); 
 
 app = express()
+
+app.use(session({
+  secret: 'Pineapple - Guava - Orange',
+  cookie: {maxAge: 86400000 }, // = 1000*60*60*24 = 24Hours
+  store: new memorystore({ checkPeriod:86400000 }),
+  resave: false,
+  saveUninitialized: true
+}));
 
 app.use(express.json());
 //app.use(bodyParser.json());
@@ -49,6 +59,7 @@ const storage = new GridFsStorage({
       });
     }
 });
+
 //const storage = new GridFsStorage({url: process.env.FILESDB_URI});
 const upload = multer({ storage });
 
@@ -57,6 +68,8 @@ const UserController = require('./src/UserController')
 // POST /login
 app.post('/loginuser', UserController.login);
 app.post('/registeruser', UserController.register);
+
+app.post('/logoutuser', UserController.logout);
 
 //Team Controller Functions
 const TeamController = require('./src/TeamController');

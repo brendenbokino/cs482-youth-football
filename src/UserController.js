@@ -222,7 +222,7 @@ exports.login = async function(req, res){
             //passwords match
             console.log('successful login');
 
-            req.user = user;
+            req.session.user = user;
             res.redirect('/profile.html') //redirect to home page, could change 
 
         } else{ //passwords do not match
@@ -233,7 +233,7 @@ exports.login = async function(req, res){
 }
 
 exports.logout = async function(req, res){
-    req.user = null;
+    req.session.user = null;
     res.redirect('/');
 }
 
