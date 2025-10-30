@@ -320,15 +320,8 @@ class TeamController {
     }
 }
 
-// Export the class AND route handler functions
-const exportsObj = TeamController;
 
-// ============================================================================
-// Export functions for direct use by Express routes
-// These functions create TeamController instances and call the class methods
-// ============================================================================
 
-// Register a new team (requires: teamName, coach)
 exports.register = async function (req, res) {
     // Create an instance of TeamController and leverage the functions
     const team = new TeamController();
@@ -338,9 +331,17 @@ exports.register = async function (req, res) {
     
     // Take the inputs from the html in req and generate a team
     await team.registerTeam(req, mockRes);
-    
-    // Send actual HTTP response
-    res.status(mockRes.status || 500).json(mockRes.send || { error: "Unknown error" });
+
+    // Check the status from the controller operation
+    if (mockRes.status == 200) {
+        // if it's a successful call then return back to a page: team html here
+        console.log('Game created successfully. Redirecting...'); // Optional logging
+        return res.redirect('/team.html'); // Add 'return' to stop further execution
+    } else {
+        // if it fails then just send information back 
+        console.error('Game creation failed. Sending error response.'); // Optional logging
+        return res.status(mockRes.status || 500).json(mockRes.send || { error: 'Unknown error during game creation' });
+    }
 }
 
 exports.addPlayer = async function (req, res) {
@@ -351,8 +352,6 @@ exports.addPlayer = async function (req, res) {
     const team = new TeamController();
     const mockRes = { status: null, send: null };
     await team.addPlayerToTeam(req, mockRes);
-    
-    res.status(mockRes.status || 500).json(mockRes.send || { error: "Unknown error" });
 }
 
 exports.update = async function (req, res) {
@@ -364,7 +363,7 @@ exports.update = async function (req, res) {
     const mockRes = { status: null, send: null };
     await team.updateTeam(req, mockRes);
     
-    res.status(mockRes.status || 500).json(mockRes.send || { error: "Unknown error" });
+
 }
 
 exports.getAll = async function (req, res) {
@@ -372,15 +371,15 @@ exports.getAll = async function (req, res) {
     const mockRes = { status: null, send: null };
     await team.getAllTeams(req, mockRes);
     
-    res.status(mockRes.status || 500).json(mockRes.send || { error: "Unknown error" });
+    return;
 }
 
 exports.getById = async function (req, res) {
     const team = new TeamController();
     const mockRes = { status: null, send: null };
     await team.getTeamById(req, mockRes);
-    
-    res.status(mockRes.status || 500).json(mockRes.send || { error: "Unknown error" });
+
+
 }
 
 // Export everything

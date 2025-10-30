@@ -76,6 +76,8 @@ exports.create = async function(req, res) {
     const mockRes = { status: null, send: null };
     await controller.createNewGame(mockReq, mockRes);
     res.status(mockRes.status || 500).json(mockRes.send || { error: 'Unknown error' });
+    res.redirect('/calendar.html');
+    return;
 }
 
 exports.getAll = async function(req, res) {
@@ -83,6 +85,8 @@ exports.getAll = async function(req, res) {
     const mockRes = { status: null, send: null };
     await controller.getAllGames({}, mockRes);
     res.status(mockRes.status || 500).json(mockRes.send || { error: 'Unknown error' });
+    res.redirect('/calendar.html');
+    return;
 }
 
 module.exports.GameController = GameController;

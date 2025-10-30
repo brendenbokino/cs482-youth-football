@@ -51,12 +51,13 @@
 
         
         <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css' rel='stylesheet' />
+       
         <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
         <script>
             function showGameDetails(props) {
                 alert(`${props.team1} vs ${props.team2} at ${props.location}`);
             }
-        
+
             async function loadGames() {
                 try {
                     const res = await fetch('/games');
@@ -74,7 +75,7 @@
                     return [];
                 }
             }
-        
+
             document.addEventListener('DOMContentLoaded', async function() {
                 const events = await loadGames();
                 const el = document.getElementById('calendar');

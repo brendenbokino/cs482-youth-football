@@ -60,9 +60,24 @@ app.post('/registeruser', UserController.register);
 
 //Team Controller Functions
 const TeamController = require('./src/TeamController');
+
+//Game Controller Functions
 const GameController = require('./src/GameController');
-// Team Routes
-app.post('/teamregister', TeamController.register);
+
+
+
+
+
+
+app.use(express.static('view/html'));
+
+
+// Team & Game APP api endpoint 
+app.post('/teamregister', TeamController.register,(req, res) => {
+  //res.json({file: req.file});
+  res.redirect("/team.html");
+  
+})
 app.get('/teams', TeamController.getAll);
 app.get('/teamsid', TeamController.getById);
 app.post('/teamsupdate', TeamController.update);
@@ -70,11 +85,8 @@ app.post('/teamsaddplayer', TeamController.addPlayer);
 
 // game routes (Express-friendly wrappers)
 app.post('/gameCreate', GameController.create);
+
 app.get('/games', GameController.getAll);
-
-
-
-app.use(express.static('view/html'));
 
 //File Storage Functions
 
