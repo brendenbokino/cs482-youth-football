@@ -180,19 +180,22 @@ app.get("/files/:filename", async (req, res) => {
 // GET /files/:filename
 // display image
 
-/**app.get("/image/:filename", async (req, res) => {
+app.get("/image/:filename", async (req, res) => {
   let file;
   try {
-      file = await gfs.files.findOne({filename: req.params.filename});
+    const cursor = bucket.find({filename: req.params.filename});
+    file = await cursor.next();
       //res.json(file);
   } catch (err) {
       res.json({err: 'file doesnt exist'})
   }
-
+console.log('file exists')
   //check if image
   if(file.contentType === 'image/jpeg' || file.contentType === 'image/png') {
     // read output to browser
-    let readstream = gfs.createReadStream({filename: file.filename});
+    console.log('file is an image')
+    let readstream = bucket.openDownloadStream(file._id);
+    console.log('readstream created')
     readstream.pipe(res);
   } else {
     res.status(404).json({
@@ -203,7 +206,7 @@ app.get("/files/:filename", async (req, res) => {
 
 // DELETE /files/:id
 // delete file
-app.delete('/files/:id', (req, res) => {
+/**app.delete('/files/:id', (req, res) => {
   gfs.remove({_id: req.params.id, root: 'uploads'}, (err, gridStore) => {
     if (err) {
       return res.status(404).json({err: err})
