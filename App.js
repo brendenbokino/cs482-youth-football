@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const crypto = require('crypto');
 const mongoose = require('mongoose');
+const { GridFSBucket } = require('mongodb');
 const multer = require('multer');
 const {GridFsStorage} = require('multer-gridfs-storage');
 const Grid = require('gridfs-stream');
@@ -32,12 +33,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 //init GFS
-var gfs;
+let bucket;
 
 mongoose.connection.once('open', () => {
     //init stream
-    gfs = Grid(mongoose.connection.db, mongoose.mongo);
-    gfs.collection('uploads');
+    //gfs = Grid(mongoose.connection.db, mongoose.mongo);
+    bucket = new GridFSBucket(mongoose.connection.db, {
+      bucketName: 'uploads'
+    })
+    //gfs.collection('uploads');
 })
 
 //create storage option
@@ -140,8 +144,14 @@ app.post('/upload', upload.single('file'), (req, res) => {
 });**/
 app.get("/files", async (req, res) => {
   try {
-      let files = await gfs.files.find().toArray();
-      res.json({files})
+      //let files = await gfs.files.find().toArray();
+      const cursor = bucket.find({});
+      const files = await cursor.toArray();
+      /**for await (const doc of cursor) {
+        res.json(doc)
+      }**/
+      res.json(files)
+      //res.json({files})
   } catch (err) {
       res.json({err: 'no files exist'})
   }
@@ -152,8 +162,16 @@ app.get("/files", async (req, res) => {
 
 app.get("/files/:filename", async (req, res) => {
   try {
-      let file = await gfs.files.findOne({filename: req.params.filename});
+      //let file = await gfs.files.findOne({filename: req.params.filename});
+      const cursor = bucket.find({filename: req.params.filename});
+      //console.log(await cursor.hasNext())
+      const file = await cursor.next();
+      //const file = await cursor.toArray();
       res.json(file);
+      /**for await (const doc of cursor) {
+        res.json(doc)
+      }**/
+      //res.json(file);
   } catch (err) {
       res.json({err: 'file doesnt exist'})
   }
@@ -162,7 +180,7 @@ app.get("/files/:filename", async (req, res) => {
 // GET /files/:filename
 // display image
 
-app.get("/image/:filename", async (req, res) => {
+/**app.get("/image/:filename", async (req, res) => {
   let file;
   try {
       file = await gfs.files.findOne({filename: req.params.filename});
@@ -192,7 +210,7 @@ app.delete('/files/:id', (req, res) => {
     }
     res.redirect('/')
   })
-})
+})**/
 
 
 // coach account routes
