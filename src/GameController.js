@@ -71,7 +71,8 @@ exports.create = async function(req, res) {
         team1: req.body.team1,
         team2: req.body.team2,
         date: req.body.date,
-        location: req.body.location
+        location: req.body.location,
+        link: req.body.link
     } : null;
     const mockRes = { status: null, send: null };
     await controller.createNewGame(mockReq, mockRes);

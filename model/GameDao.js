@@ -6,6 +6,7 @@ const gameSchema = new mongoose.Schema({
     team2: String,
     date: Date, /// date type to make sorting easier 
     location: String,
+    link: String
 });
 
 const gameModel = mongoose.model('game', gameSchema);

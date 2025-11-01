@@ -30,14 +30,16 @@ describe('Game Controller Tests', () => {
             team1: 'Bears',
             team2: 'Goats',
             date: Date('Oct-20-2025'),
-            location: 'Metlife'
+            location: 'Metlife',
+            link: ""
         };
 
         const req = {
             team1: 'Bears',
             team2: 'Goats',
             date: Date('Oct-20-2025'),
-            location: 'Metlife'
+            location: 'Metlife',
+            link:""
         };
 
         let res = {
@@ -63,7 +65,8 @@ describe('Game Controller Tests', () => {
             team1: null,
             team2: 'Goats',
             date: new Date('Oct-20-2025'),
-            location: 'Metlife'
+            location: 'Metlife',
+            link: ""
         };
 
         let res = {
@@ -85,7 +88,8 @@ describe('Game Controller Tests', () => {
             team1: "Bears",
             team2: null,
             date: 'Oct-20-2025',
-            location: 'Metlife'
+            location: 'Metlife',
+            link: ""
         };
 
         let res = {
@@ -118,8 +122,8 @@ describe('Game Controller Tests', () => {
         const game = new GameController();
         
         const mockGames = [
-            { _id: '1', team1: 'Bears', team2: 'Goats', date: 'Oct-20-2025', location: 'Metlife' },
-            { _id: '2', team1: 'Eagles', team2: 'Hawks', date: 'Oct-21-2025', location: 'Central Field' }
+            { _id: '1', team1: 'Bears', team2: 'Goats', date: 'Oct-20-2025', location: 'Metlife', link:"" },
+            { _id: '2', team1: 'Eagles', team2: 'Hawks', date: 'Oct-21-2025', location: 'Central Field',link:"" }
         ];
 
         let res = {
@@ -157,4 +161,5 @@ describe('Game Controller Tests', () => {
 
 
 
-
+// link for testing 
+// https://player.vimeo.com/video/890704111
