@@ -25,7 +25,6 @@ jest.mock('readline', () => ({
 const UserController = require('./UserController.js');
 const User =  UserController.User
 const UserDao = require('../model/UserDao.js'); 
-//const { test } = require('picomatch');
 jest.mock('../model/UserDao');
 
 

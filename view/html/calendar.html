@@ -45,6 +45,9 @@
                     <label for="location">Location</label><br>
                     <input type="text" id="location" name="location" required style="width: 100%; padding: 8px; margin: 6px 0;"><br>
 
+                    <label for="link">Live Link (optional)</label><br>
+                    <input type="text" id="link" name="link" placeholder="https://..." style="width: 100%; padding: 8px; margin: 6px 0;"><br>
+
                     <button type="submit" style="padding: 10px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Create Game</button>
                 </form>
             </div>
@@ -54,10 +57,209 @@
         <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css' rel='stylesheet' />
        
         <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+        <!-- Popup Modal -->
+        <div id="gamePopup" class="popup">
+            <div class="popup-content">
+                <div class="popup-header">
+                    <h2>Game Details</h2>
+                    <span class="close" id="closePopup">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="game-info">
+                        <div class="game-info-item">
+                            <strong>Team 1:</strong> <span id="popup-team1"></span>
+                        </div>
+                        <div class="game-info-item">
+                            <strong>Team 2:</strong> <span id="popup-team2"></span>
+                        </div>
+                        <div class="game-info-item">
+                            <strong>Date:</strong> <span id="popup-date"></span>
+                        </div>
+                        <div class="game-info-item">
+                            <strong>Location:</strong> <span id="popup-location"></span>
+                        </div>
+                        <div class="game-info-item" id="popup-link-container" style="display: none;">
+                            <strong>Live Link:</strong> 
+                            <a id="popup-link" href="" target="_blank" rel="noopener noreferrer">
+                                Watch Live <span class="live-badge">LIVE</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Edit Form (initially hidden) -->
+                    <div id="editForm" style="display: none;">
+                        <h3>Edit Game</h3>
+                        <form id="updateGameForm" style="margin-top: 20px;">
+                            <input type="hidden" id="edit-game-id">
+                            <label for="edit-team1">Team 1</label>
+                            <input type="text" id="edit-team1" required style="width: 100%; padding: 8px; margin: 6px 0; box-sizing: border-box;"><br>
+
+                            <label for="edit-team2">Team 2</label>
+                            <input type="text" id="edit-team2" required style="width: 100%; padding: 8px; margin: 6px 0; box-sizing: border-box;"><br>
+
+                            <label for="edit-date">Date</label>
+                            <input type="date" id="edit-date" required style="width: 100%; padding: 8px; margin: 6px 0; box-sizing: border-box;"><br>
+
+                            <label for="edit-location">Location</label>
+                            <input type="text" id="edit-location" required style="width: 100%; padding: 8px; margin: 6px 0; box-sizing: border-box;"><br>
+
+                            <label for="edit-link">Live Link (optional)</label>
+                            <input type="text" id="edit-link" placeholder="https://..." style="width: 100%; padding: 8px; margin: 6px 0; box-sizing: border-box;"><br>
+
+                            <div class="action-buttons">
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                                <button type="button" class="btn btn-secondary" id="cancelEdit">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons" id="actionButtons">
+                        <button class="btn btn-primary" id="editGameBtn">Edit Game</button>
+                        <button class="btn btn-secondary" id="deleteGameBtn" style="background-color: #dc3545;">Delete Game</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <script>
-            function showGameDetails(props) {
-                alert(`${props.team1} vs ${props.team2} at ${props.location}`);
+            let currentGameId = null;
+            let calendarInstance = null;
+
+            // Popup management
+            const popup = document.getElementById('gamePopup');
+            const closeBtn = document.getElementById('closePopup');
+            const editBtn = document.getElementById('editGameBtn');
+            const deleteBtn = document.getElementById('deleteGameBtn');
+            const cancelEditBtn = document.getElementById('cancelEdit');
+            const editForm = document.getElementById('editForm');
+            const updateGameForm = document.getElementById('updateGameForm');
+            const actionButtons = document.getElementById('actionButtons');
+
+            closeBtn.onclick = function() {
+                popup.style.display = 'none';
+                editForm.style.display = 'none';
+                actionButtons.style.display = 'flex';
+            };
+
+            window.onclick = function(event) {
+                if (event.target == popup) {
+                    popup.style.display = 'none';
+                    editForm.style.display = 'none';
+                    actionButtons.style.display = 'flex';
+                }
+            };
+
+            function showGameDetails(game) {
+                currentGameId = game.id || game._id;
+                
+                // Populate display fields
+                document.getElementById('popup-team1').textContent = game.team1;
+                document.getElementById('popup-team2').textContent = game.team2;
+                document.getElementById('popup-date').textContent = new Date(game.date).toLocaleDateString();
+                document.getElementById('popup-location').textContent = game.location || 'TBD';
+                
+                // Handle live link
+                const linkContainer = document.getElementById('popup-link-container');
+                const linkElement = document.getElementById('popup-link');
+                if (game.link && game.link.trim() !== '') {
+                    linkElement.href = game.link;
+                    linkContainer.style.display = 'block';
+                } else {
+                    linkContainer.style.display = 'none';
+                }
+
+                // Populate edit form
+                document.getElementById('edit-game-id').value = game.id || game._id;
+                document.getElementById('edit-team1').value = game.team1;
+                document.getElementById('edit-team2').value = game.team2;
+                
+                // Format date for input (YYYY-MM-DD)
+                const dateObj = new Date(game.date);
+                const dateStr = dateObj.toISOString().split('T')[0];
+                document.getElementById('edit-date').value = dateStr;
+                
+                document.getElementById('edit-location').value = game.location || '';
+                document.getElementById('edit-link').value = game.link || '';
+
+                // Show popup
+                popup.style.display = 'block';
+                editForm.style.display = 'none';
+                actionButtons.style.display = 'flex';
             }
+
+            editBtn.onclick = function() {
+                editForm.style.display = 'block';
+                actionButtons.style.display = 'none';
+            };
+
+            cancelEditBtn.onclick = function() {
+                editForm.style.display = 'none';
+                actionButtons.style.display = 'flex';
+            };
+
+            updateGameForm.onsubmit = async function(e) {
+                e.preventDefault();
+                const gameId = document.getElementById('edit-game-id').value;
+                
+                const updateData = {
+                    team1: document.getElementById('edit-team1').value,
+                    team2: document.getElementById('edit-team2').value,
+                    date: document.getElementById('edit-date').value,
+                    location: document.getElementById('edit-location').value,
+                    link: document.getElementById('edit-link').value
+                };
+
+                try {
+                    const res = await fetch(`/games/${gameId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(updateData)
+                    });
+                    
+                    const result = await res.json();
+                    if (res.ok && result.success) {
+                        alert('Game updated successfully!');
+                        popup.style.display = 'none';
+                        // Reload calendar
+                        const events = await loadGames();
+                        calendarInstance.removeAllEvents();
+                        calendarInstance.addEvents(events);
+                    } else {
+                        alert('Error updating game: ' + (result.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Error updating game:', error);
+                    alert('Failed to update game. Please try again.');
+                }
+            };
+
+            deleteBtn.onclick = async function() {
+                if (!confirm('Are you sure you want to delete this game?')) {
+                    return;
+                }
+
+                try {
+                    const res = await fetch(`/games/${currentGameId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    const result = await res.json();
+                    if (res.ok && result.success) {
+                        alert('Game deleted successfully!');
+                        popup.style.display = 'none';
+                        // Reload calendar
+                        const events = await loadGames();
+                        calendarInstance.removeAllEvents();
+                        calendarInstance.addEvents(events);
+                    } else {
+                        alert('Error deleting game: ' + (result.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Error deleting game:', error);
+                    alert('Failed to delete game. Please try again.');
+                }
+            };
 
             async function loadGames() {
                 try {
@@ -69,7 +271,14 @@
                         .map(g => ({
                             title: `${g.team1} vs ${g.team2}`,
                             start: g.date,
-                            extendedProps: { location: g.location, team1: g.team1, team2: g.team2 }
+                            extendedProps: { 
+                                id: g._id,
+                                location: g.location, 
+                                team1: g.team1, 
+                                team2: g.team2,
+                                date: g.date,
+                                link: g.link
+                            }
                         }));
                 } catch (e) {
                     console.error('Failed to load games', e);
@@ -80,7 +289,7 @@
             document.addEventListener('DOMContentLoaded', async function() {
                 const events = await loadGames();
                 const el = document.getElementById('calendar');
-                const cal = new FullCalendar.Calendar(el, {
+                calendarInstance = new FullCalendar.Calendar(el, {
                     initialView: 'dayGridMonth',
                     events: events,
                     eventClick: function(info) { 
@@ -92,7 +301,7 @@
                         right: 'dayGridMonth,dayGridWeek' 
                     }
                 });
-                cal.render();
+                calendarInstance.render();
             });
         </script>
     

@@ -4,7 +4,8 @@
 
 const readline = require('readline');
 const { connect, disconnect } = require('../model/DbConnect');
-const UserDao = require('../model/UserDao');
+const { cliLogin } = require('../controller/UserController');
+const MessageDao = require('../model/MessageDao');
 
 class Comms {
     constructor() {
@@ -12,9 +13,7 @@ class Comms {
             input: process.stdin,
             output: process.stdout
         });
-        this.userInput = {};
-        this.messages = []; // storage for messages
-        this.currentUser = null; // store user
+        this.currentUser = null;
     }
 
     // async prompt for user input
@@ -27,37 +26,13 @@ class Comms {
     }
 
     async login() {
-        try {
-            connect();
-            const email = await this.ask("Enter your email: ");
-            const password = await this.ask("Enter your password: ");
-
-            const account = await UserDao.findLogin(email);
-
-            if (!account) {
-                console.log("No account found with that email.");
-                await disconnect();
-                return;
-            }
-
-            if (account.password !== password) {
-                console.log("Incorrect password.");
-                await disconnect();
-                return;
-            }
-
-            this.currentUser = account;
-            console.log(`Logged in as ${account.name}`);
-        } catch (err) {
-            console.error("Login error:", err);
-        }
+        const email = await this.ask("Enter your email: ");
+        const password = await this.ask("Enter your password: ");
+        this.currentUser = await cliLogin(email, password);
     }
 
-
-    
-
     // functions to get user input for communications
-    async postMessage(){
+    async postMessage() {
         if (!this.currentUser) {
             console.log("Please log in to post/reply to messages.");
             await this.login();
@@ -65,14 +40,14 @@ class Comms {
         }
 
         const message = await this.ask("Enter your message: ");
-        const author = this.currentUser.name;
-        const date = new Date();
+        const newMsg = {
+            message,
+            author: this.currentUser.name,
+            authorType: this.currentUser.permission, // Assuming permission is authorType
+        };
 
-        const newMessage = { message, author, date };
-        this.messages.push(newMessage);
-        this.userInput = newMessage;
-
-        console.log(`Message posted by ${author} on ${date.toLocaleString()}`);
+        await MessageDao.create(newMsg);
+        console.log(`Message posted by ${this.currentUser.name}`);
     }
 
     async getDate(){
@@ -81,14 +56,20 @@ class Comms {
     }
 
     async viewMessages() {
-        if (this.messages.length === 0) {
+        const messages = await MessageDao.readAll();
+        if (!messages.length) {
             console.log("No messages.");
             return;
         }
 
-        console.log("Message Board:");
-        this.messages.forEach((msg, i) => {
-            console.log(`${i + 1}. [${msg.date.toLocaleString()}] ${msg.author}: ${msg.message}`);
+        console.log("\nMessage Board:");
+        messages.forEach((msg, i) => {
+            console.log(`${i + 1}. [${new Date(msg.dateCreated).toLocaleString()}] ${msg.author}: ${msg.message}`);
+            if (msg.replies && msg.replies.length > 0) {
+                msg.replies.forEach((r, j) => {
+                    console.log(`   ↳ Reply ${j + 1} by ${r.email} [${new Date(r.date).toLocaleString()}]: ${r.message}`);
+                });
+            }
         });
     }
 
@@ -96,7 +77,7 @@ class Comms {
         // delete messages from the database
     }
 
-    async replyMessage(){
+    async replyMessage(){ 
         // reply to a message
     }
 
