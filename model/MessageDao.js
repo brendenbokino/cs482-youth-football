@@ -14,7 +14,7 @@ const messageSchema = new mongoose.Schema({
   dateCreated: { type: Date, default: Date.now },
   dateEdited: { type: Date },
   messageEdited: { type: String },
-  replies: [replySchema] // Fixed reference to replySchema
+  replies: [replySchema]
 });
 
 const messageModel = mongoose.model('Message', messageSchema);
