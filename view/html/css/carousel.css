@@ -1,0 +1,14 @@
+.c-item{
+    height:480px;
+}
+
+.c-img{
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.6)
+}
+
+
+.carousel-control-prev-icon,.carousel-control-next-icon{
+    filter: invert(100%);
+}

@@ -8,11 +8,7 @@ const UserDao = require('../model/UserDao');
 
 class Comms {
     constructor() {
-        this.rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout
-        });
-        this.userInput = {};
+        this.session = session; // use session to track logged-in users
         this.messages = []; // storage for messages
         this.currentUser = null; // store user
     }
@@ -26,35 +22,16 @@ class Comms {
         });
     }
 
-    async login() {
+    // login function to get current user
+    async getCurrentUser() {
         try {
-            connect();
-            const email = await this.ask("Enter your email: ");
-            const password = await this.ask("Enter your password: ");
-
-            const account = await UserDao.findLogin(email);
-
-            if (!account) {
-                console.log("No account found with that email.");
-                await disconnect();
-                return;
-            }
-
-            if (account.password !== password) {
-                console.log("Incorrect password.");
-                await disconnect();
-                return;
-            }
-
-            this.currentUser = account;
-            console.log(`Logged in as ${account.name}`);
+            const response = await axios.get('http://localhost:3000/loggedUser', { withCredentials: true });
+            this.currentUser = response.data;
+            if (!this.currentUser) console.log("No user logged in.");
         } catch (err) {
-            console.error("Login error:", err);
+            console.error("Error fetching logged user:", err);
         }
     }
-
-
-    
 
     // functions to get user input for communications
     async postMessage(){
@@ -93,10 +70,28 @@ class Comms {
     }
 
     async deleteMessages(){
+        if (this.messages.length === 0) {
+            console.log("No messages to delete.");
+            return;
+        }
+
+        await this.viewMessages();
+
+        if (!this.currentUser || this.currentUser.name !== msg.author) {
+            console.log("You can only delete your own messages.");
+            return;
+        }
+
+        console.log("Message deleted successfully.");
         // delete messages from the database
     }
 
     async replyMessage(){
+        if (this.messages.length === 0) {
+            console.log("No messages to reply to.");
+            return;
+        }
+
         // reply to a message
     }
 

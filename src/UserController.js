@@ -16,6 +16,7 @@ Permission Levels:
 
 const readline = require('readline');
 const UserDao = require('../model/UserDao');
+const hash = require('../util/Hashing');
 
 class User {
     constructor() {
@@ -76,7 +77,7 @@ class User {
             console.log("Password must be at least 4 characters long.");
             return this.password();
         }
-        this.userInput.password = password;
+        this.userInput.password = hash.hashString(password);
     }
     
 
@@ -149,6 +150,7 @@ class User {
                 break;
             case '4':
                 updates.password = await this.ask("Enter new password: ");
+                updates.password = hash.hashString(updates.password);
                 break;
             case '5':
                 updates.username = await this.ask("Enter a new username: ");
@@ -218,7 +220,7 @@ exports.login = async function(req, res){
     if (user == null){ //login not found
         res.redirect('/login.html'); //redirect back to login, NtE error message
     } else {
-        if (req.body.login_pass.localeCompare(user.password)==0){
+        if (hash.compareHash(req.body.login_pass, user.password)){
             //passwords match
             console.log('successful login');
 
@@ -230,6 +232,15 @@ exports.login = async function(req, res){
 
         }
     } 
+}
+
+exports.loggedUser = function(req, res){
+    res.status(200) //200 = ok
+    if(req.session.user) //if there is a user logged in
+        res.send(req.session.user) //send the logged user
+    else
+        res.json(null);
+    res.end();
 }
 
 exports.logout = async function(req, res){
@@ -255,7 +266,7 @@ exports.register = async function(req, res) {
             name: req.body.name,
             permission: 4, // Default to guest
             phone: req.body.phone,
-            password: req.body.pass
+            password: hash.hashString(req.body.pass)
         };
 
         UserDao.create(userInfo);
