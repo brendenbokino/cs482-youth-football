@@ -7,12 +7,46 @@ const replySchema = new mongoose.Schema({
 });
 
 const messageSchema = new mongoose.Schema({
-    message: { type: String, required: true },
-    authorName: { type: String, required: true },
-    authorEmail: { type: String, required: true },
-    authorType: { type: Number, required: true }, 
-    edited: { type: Boolean, default: false },
-    dateCreated: { type: Date, default: Date.now },
-    dateEdited: { type: Date },
-    // TODO: replies
-  });
+  message: { type: String, required: true },
+  author: { type: String, required: true },
+  authorType: { type: Number, required: true }, 
+  edited: { type: Boolean, default: false },
+  dateCreated: { type: Date, default: Date.now },
+  dateEdited: { type: Date },
+  messageEdited: { type: String, required: true },
+  replies: [ReplySchema]
+});
+
+const messageModel = mongoose.model('Message', messageSchema);
+
+module.exports = {
+  async create(data) {
+      return await messageModel.create(data);
+  },
+
+  async readAll() {
+      return await messageModel.find().sort({ date: -1 }).lean();
+  },
+
+  async findById(id) {
+      return await messageModel.findById(id);
+  },
+
+  async addReply(id, reply) {
+      const msg = await messageModel.findById(id);
+      if (!msg) return null;
+      msg.replies.push(reply);
+      await msg.save();
+      return msg;
+  },
+
+  async delete(id) {
+      return await messageModel.findByIdAndDelete(id);
+  },
+
+  async update(id, updates) {
+      updates.edited = true;
+      updates.date = new Date();
+      return await messageModel.findByIdAndUpdate(id, updates, { new: true });
+  }
+};
