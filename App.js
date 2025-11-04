@@ -104,6 +104,8 @@ app.post('/teamsaddplayer', TeamController.addPlayer);
 app.post('/gameCreate', GameController.create);
 
 app.get('/games', GameController.getAll);
+app.put('/games/:id', GameController.update);
+app.delete('/games/:id', GameController.delete);
 
 //File Storage Functions
 

@@ -60,6 +60,52 @@ class GameController {
         
     }
 
+    // update a single game by id
+    async updateGame(req, res) {
+        if (req != null && req.id != null) {
+            if (req.team1 != null && req.team2 != null) {
+                const updateData = {
+                    team1: req.team1,
+                    team2: req.team2,
+                    date: req.date,
+                    location: req.location,
+                    link: req.link
+                };
+                let game = await gameDao.update(req.id, updateData);
+                if (game) {
+                    res.status = 200;
+                    res.send = { success: true, game: game };
+                } else {
+                    res.status = 404;
+                    res.send = { error: "Game not found" };
+                }
+            } else {
+                res.status = 400;
+                res.send = { error: "There must be at least 2 teams" };
+            }
+        } else {
+            res.status = 400;
+            res.send = { error: "Request is empty or missing game ID" };
+        }
+    }
+
+    // delete a single game by id
+    async deleteGame(req, res) {
+        if (req != null && req.id != null) {
+            let game = await gameDao.del(req.id);
+            if (game) {
+                res.status = 200;
+                res.send = { success: true, message: "Game deleted successfully" };
+            } else {
+                res.status = 404;
+                res.send = { error: "Game not found" };
+            }
+        } else {
+            res.status = 400;
+            res.send = { error: "Request is empty or missing game ID" };
+        }
+    }
+
 }
 
 
@@ -76,8 +122,17 @@ exports.create = async function(req, res) {
     } : null;
     const mockRes = { status: null, send: null };
     await controller.createNewGame(mockReq, mockRes);
-    res.status(mockRes.status || 500).json(mockRes.send || { error: 'Unknown error' });
-    res.redirect('/calendar.html');
+    
+    // For form submissions, redirect. For API calls, send JSON.
+    if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
+        res.status(mockRes.status || 500).json(mockRes.send || { error: 'Unknown error' });
+    } else {
+        if (mockRes.status === 200) {
+            res.redirect('/calendar.html');
+        } else {
+            res.status(mockRes.status || 500).send(mockRes.send?.error || 'Unknown error');
+        }
+    }
     return;
 }
 
@@ -86,7 +141,33 @@ exports.getAll = async function(req, res) {
     const mockRes = { status: null, send: null };
     await controller.getAllGames({}, mockRes);
     res.status(mockRes.status || 500).json(mockRes.send || { error: 'Unknown error' });
-    res.redirect('/calendar.html');
+    return;
+}
+
+exports.update = async function(req, res) {
+    const controller = new GameController();
+    const mockReq = req && req.body ? {
+        id: req.params.id || req.body.id,
+        team1: req.body.team1,
+        team2: req.body.team2,
+        date: req.body.date,
+        location: req.body.location,
+        link: req.body.link
+    } : null;
+    const mockRes = { status: null, send: null };
+    await controller.updateGame(mockReq, mockRes);
+    res.status(mockRes.status || 500).json(mockRes.send || { error: 'Unknown error' });
+    return;
+}
+
+exports.delete = async function(req, res) {
+    const controller = new GameController();
+    const mockReq = req ? {
+        id: req.params.id || req.body.id
+    } : null;
+    const mockRes = { status: null, send: null };
+    await controller.deleteGame(mockReq, mockRes);
+    res.status(mockRes.status || 500).json(mockRes.send || { error: 'Unknown error' });
     return;
 }
 

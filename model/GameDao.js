@@ -27,7 +27,10 @@ exports.create = async function(newgame){
     return game;
 }
 
-exports.update = function(game){}
+exports.update = async function(id, updateData){
+    let game = await gameModel.findByIdAndUpdate(id, updateData, { new: true });
+    return game;
+}
 
 exports.del = async function(id){
     let game = await gameModel.findByIdAndDelete(id);
