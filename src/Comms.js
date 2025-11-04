@@ -4,13 +4,16 @@
 
 const readline = require('readline');
 const { connect, disconnect } = require('../model/DbConnect');
-const UserDao = require('../model/UserDao');
+const { cliLogin } = require('../controller/UserController');
+const MessageDao = require('../model/MessageDao');
 
 class Comms {
     constructor() {
-        this.session = session; // use session to track logged-in users
-        this.messages = []; // storage for messages
-        this.currentUser = null; // store user
+        this.rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
+        this.currentUser = null;
     }
 
     // async prompt for user input
@@ -22,15 +25,10 @@ class Comms {
         });
     }
 
-    // login function to get current user
-    async getCurrentUser() {
-        try {
-            const response = await axios.get('http://localhost:3000/loggedUser', { withCredentials: true });
-            this.currentUser = response.data;
-            if (!this.currentUser) console.log("No user logged in.");
-        } catch (err) {
-            console.error("Error fetching logged user:", err);
-        }
+    async login() {
+        const email = await this.ask("Enter your email: ");
+        const password = await this.ask("Enter your password: ");
+        this.currentUser = await cliLogin(email, password);
     }
 
     // functions to get user input for communications
@@ -42,13 +40,14 @@ class Comms {
         }
 
         const message = await this.ask("Enter your message: ");
-        const author = this.currentUser.name;
-        const date = new Date();
+        const newMsg = {
+            message,
+            author: this.currentUser.name,
+            date: new Date(),
+            replies: []
+        };
 
-        const newMessage = { message, author, date };
-        this.messages.push(newMessage);
-        this.userInput = newMessage;
-
+        await MessageDao.create(newMsg);
         console.log(`Message posted by ${author} on ${date.toLocaleString()}`);
     }
 
@@ -63,35 +62,25 @@ class Comms {
             return;
         }
 
-        console.log("Message Board:");
-        this.messages.forEach((msg, i) => {
+        console.log("\nMessage Board:");
+        messages.forEach((msg, i) => {
             console.log(`${i + 1}. [${msg.date.toLocaleString()}] ${msg.author}: ${msg.message}`);
+            if (msg.replies && msg.replies.length > 0) {
+                msg.replies.forEach((r, j) => {
+                    console.log(`   ↳ Reply ${j + 1} by ${r.author} [${r.date.toLocaleString()}]: ${r.message}`);
+                });
+            }
         });
+
+        console.log("");
+        return messages;
     }
 
     async deleteMessages(){
-        if (this.messages.length === 0) {
-            console.log("No messages to delete.");
-            return;
-        }
-
-        await this.viewMessages();
-
-        if (!this.currentUser || this.currentUser.name !== msg.author) {
-            console.log("You can only delete your own messages.");
-            return;
-        }
-
-        console.log("Message deleted successfully.");
         // delete messages from the database
     }
 
-    async replyMessage(){
-        if (this.messages.length === 0) {
-            console.log("No messages to reply to.");
-            return;
-        }
-
+    async replyMessage(){ 
         // reply to a message
     }
 
