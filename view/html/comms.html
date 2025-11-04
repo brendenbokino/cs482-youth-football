@@ -52,11 +52,12 @@
             async function postMessage() {
                 const message = document.getElementById('messageBody').value;
                 const author = document.getElementById('messageAuthor').value;
+                const authorType = parseInt(document.getElementById('messageAuthorType').value, 10);
 
                 const response = await fetch('/comms/postMessage', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message, author })
+                    body: JSON.stringify({ message, author, authorType })
                 });
 
                 const result = await response.json();
@@ -100,6 +101,8 @@
             <form onsubmit="event.preventDefault(); postMessage();">
                 <label for="messageAuthor">Your Name:</label>
                 <input type="text" id="messageAuthor" name="messageAuthor" required>
+                <label for="messageAuthorType">Author Type:</label>
+                <input type="number" id="messageAuthorType" name="messageAuthorType" required>
                 <label for="messageBody">Message:</label>
                 <textarea id="messageBody" name="messageBody" rows="4" required></textarea>
                 <button type="submit">Send Message</button>

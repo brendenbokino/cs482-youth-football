@@ -13,8 +13,8 @@ const messageSchema = new mongoose.Schema({
   edited: { type: Boolean, default: false },
   dateCreated: { type: Date, default: Date.now },
   dateEdited: { type: Date },
-  messageEdited: { type: String, required: true },
-  replies: [ReplySchema]
+  messageEdited: { type: String },
+  replies: [replySchema] // Fixed reference to replySchema
 });
 
 const messageModel = mongoose.model('Message', messageSchema);
@@ -46,7 +46,7 @@ module.exports = {
 
   async update(id, updates) {
       updates.edited = true;
-      updates.date = new Date();
+      updates.dateEdited = new Date(); // Fixed field name
       return await messageModel.findByIdAndUpdate(id, updates, { new: true });
   }
 };

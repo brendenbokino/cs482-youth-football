@@ -32,7 +32,7 @@ class Comms {
     }
 
     // functions to get user input for communications
-    async postMessage(){
+    async postMessage() {
         if (!this.currentUser) {
             console.log("Please log in to post/reply to messages.");
             await this.login();
@@ -43,12 +43,11 @@ class Comms {
         const newMsg = {
             message,
             author: this.currentUser.name,
-            date: new Date(),
-            replies: []
+            authorType: this.currentUser.permission, // Assuming permission is authorType
         };
 
         await MessageDao.create(newMsg);
-        console.log(`Message posted by ${author} on ${date.toLocaleString()}`);
+        console.log(`Message posted by ${this.currentUser.name}`);
     }
 
     async getDate(){
@@ -57,23 +56,21 @@ class Comms {
     }
 
     async viewMessages() {
-        if (this.messages.length === 0) {
+        const messages = await MessageDao.readAll();
+        if (!messages.length) {
             console.log("No messages.");
             return;
         }
 
         console.log("\nMessage Board:");
         messages.forEach((msg, i) => {
-            console.log(`${i + 1}. [${msg.date.toLocaleString()}] ${msg.author}: ${msg.message}`);
+            console.log(`${i + 1}. [${new Date(msg.dateCreated).toLocaleString()}] ${msg.author}: ${msg.message}`);
             if (msg.replies && msg.replies.length > 0) {
                 msg.replies.forEach((r, j) => {
-                    console.log(`   ↳ Reply ${j + 1} by ${r.author} [${r.date.toLocaleString()}]: ${r.message}`);
+                    console.log(`   ↳ Reply ${j + 1} by ${r.email} [${new Date(r.date).toLocaleString()}]: ${r.message}`);
                 });
             }
         });
-
-        console.log("");
-        return messages;
     }
 
     async deleteMessages(){

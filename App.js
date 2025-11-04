@@ -15,6 +15,7 @@ const methodOverride = require('method-override');
 const Coach = require('./src/Coach');
 const UserDao = require('./model/UserDao');
 const Comms = require('./src/Comms'); 
+const MessageDao = require('./model/MessageDao');
 
 app = express()
 
@@ -268,14 +269,22 @@ app.post('/deleteaccount', async (req, res) => {
 const comms = new Comms();
 
 app.post('/comms/postMessage', async (req, res) => {
-    const { message, author } = req.body;
-    const date = new Date();s
-    comms.messages.push({ message, author, date });
-    res.json({ message: "Message posted successfully", data: { message, author, date } });
+    const { message, author, authorType } = req.body;
+    try {
+        const newMessage = await MessageDao.create({ message, author, authorType });
+        res.json({ message: "Message posted successfully", data: newMessage });
+    } catch (err) {
+        res.status(500).json({ error: "Failed to post message", details: err.message });
+    }
 });
 
-app.get('/comms/viewMessages', (req, res) => {
-    res.json({ messages: comms.messages });
+app.get('/comms/viewMessages', async (req, res) => {
+    try {
+        const messages = await MessageDao.readAll();
+        res.json({ messages });
+    } catch (err) {
+        res.status(500).json({ error: "Failed to fetch messages", details: err.message });
+    }
 });
 
 exports.app = app;
