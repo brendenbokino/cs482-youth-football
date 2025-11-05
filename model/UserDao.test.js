@@ -1,6 +1,6 @@
 // Code from Rosha Parking
 
-const dbcon = require('./DbConnection');
+const dbcon = require('./DbConnect');
 const dao = require('./UserDao');
 
 beforeAll(async function(){ //Executed once before all tests

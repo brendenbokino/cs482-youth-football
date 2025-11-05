@@ -63,6 +63,10 @@ exports.findLogin = async function(plogin){
     let user = await userModel.findOne({email: plogin})
     return user;
 }
+
+
+
+
 /*
 // Call DBConnection on the Server.js
 const mongoose = require('mongoose');
