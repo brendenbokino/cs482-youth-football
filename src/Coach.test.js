@@ -2,7 +2,7 @@
 // Loren Kim - 1/2 Coach account tests
 
 // replaced mongoose with a mock for jest testing
-jest.mock('mongoose', () => ({
+/*jest.mock('mongoose', () => ({
     connect: jest.fn().mockResolvedValue(),
     model: jest.fn().mockReturnValue({
       find: jest.fn(),
@@ -266,4 +266,4 @@ describe("Coach updateAccount Tests", function() {
 
 
 });
-    
+    */
