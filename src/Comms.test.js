@@ -104,6 +104,7 @@ describe('Comms class tests', () => {
   });
 
   test('getDate() should set current date in userInput.date', async () => {
+    comms.userInput = {};
     await comms.getDate();
     const now = new Date();
     const inputDate = comms.userInput.date;

@@ -1,5 +1,10 @@
 // Code from Rosha Parking
 
+jest.mock('./DbConnect', () => ({
+    connect: jest.fn().mockResolvedValue(true),
+    disconnect: jest.fn().mockResolvedValue(true),
+}));
+
 const dbcon = require('./DbConnect');
 const dao = require('./UserDao');
 
@@ -8,7 +13,7 @@ beforeAll(async function(){ //Executed once before all tests
 });
 afterAll(async function(){ // Executed once after all tests have ran
     await dao.deleteAll();
-    dbcon.disconnect();
+    await dbcon.disconnect();
 });
 beforeEach(async function(){ // Executed before each test
     await dao.deleteAll();

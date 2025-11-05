@@ -5,7 +5,7 @@
 // Iteration #1
 // Loren Kim - Coach account tests
 
-const dbcon = require('./DbConnection');
+const dbcon = require('../model/DbConnect');
 const dao = require('../model/UserDao');
 const Coach = require('../controller/Coach');
 
