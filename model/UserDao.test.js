@@ -4,7 +4,7 @@ const dbcon = require('./DbConnect');
 const dao = require('./UserDao');
 
 beforeAll(async function(){ //Executed once before all tests
-    dbcon.connect('test');
+    await dbcon.connect('test');
 });
 afterAll(async function(){ // Executed once after all tests have ran
     await dao.deleteAll();

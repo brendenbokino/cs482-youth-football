@@ -102,4 +102,14 @@ describe('Comms class tests', () => {
     expect(consoleSpy).toHaveBeenCalledWith('No messages.');
     consoleSpy.mockRestore();
   });
+
+  test('getDate() should set current date in userInput.date', async () => {
+    await comms.getDate();
+    const now = new Date();
+    const inputDate = comms.userInput.date;
+    expect(inputDate).toBeInstanceOf(Date);
+    expect(inputDate.getFullYear()).toBe(now.getFullYear());
+    expect(inputDate.getMonth()).toBe(now.getMonth());
+    expect(inputDate.getDate()).toBe(now.getDate());
+  });
 });
