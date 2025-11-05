@@ -2,11 +2,11 @@
 // Unit tests for Communications
 // Loren Kim
 
-const Comms = require('../controller/Comms');
+const Comms = require('./Comms');
 const MessageDao = require('../model/MessageDao');
-const { cliLogin } = require('../controller/UserController');
+const { cliLogin } = require('./UserController');
 
-jest.mock('../controller/UserController', () => ({
+jest.mock('./UserController', () => ({
   cliLogin: jest.fn()
 }));
 
