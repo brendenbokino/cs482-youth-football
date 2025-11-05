@@ -24,7 +24,6 @@ jest.mock('readline', () => ({
 
 const Coach = require('./Coach.js');
 const UserDao = require('../model/UserDao.js'); 
-//const { test } = require('picomatch');
 jest.mock('../model/UserDao');
 
 
@@ -37,30 +36,51 @@ describe("Coach Account Tests", function() {
     test("create a new coach account", async()  =>{
         const coach = new Coach();
         UserDao.create.mockResolvedValue(true);
+        UserDao.readAll.mockResolvedValue([]);
 
-        coach.userInput = {
+        coach.ask = jest.fn()
+            .mockResolvedValueOnce("Loren Kim")
+            .mockResolvedValueOnce("loren@example.com")
+            .mockResolvedValueOnce("1234567890")
+            .mockResolvedValueOnce("password123")
+            .mockResolvedValueOnce("lkim_coach")
+            .mockResolvedValueOnce("1");
+        
+        await coach.createAccount();
+    
+        const expectedInput = {
             name: "Loren Kim",           
             email: "loren@example.com",
             phone: "1234567890",
             password: "password123",
+            username: "lkim_coach",
+            permission: 1
         };
 
-        coach.name = jest.fn();
-        coach.email = jest.fn();
-        coach.phone = jest.fn();
-        coach.password = jest.fn();
+        expect(UserDao.create).toHaveBeenCalledWith(expectedInput);
+        expect(coach.userInput).toEqual(expectedInput);
+        expect(coach.ask).toHaveBeenCalledTimes(6);
+    });
 
-        await coach.createAccount();
-    
-        expect(UserDao.create).toHaveBeenCalledWith(coach.userInput);
-        expect(coach.userInput.name).toBe("Loren Kim");
-        expect(coach.userInput.email).toBe("loren@example.com");
-        expect(coach.userInput.phone).toBe("1234567890");
-        expect(coach.userInput.password).toBe("password123");
-    
+    test("checkForExistingAccount should return null if no account exists", async () => {
+        const coach = new Coach();
+        UserDao.readAll.mockResolvedValue([]);
+        const result = await coach.checkForExistingAccount("nonexistent@email.com");
+        expect(result).toBeNull();
+        expect(console.log).not.toHaveBeenCalled();
+    });
+
+    test("checkForExistingAccount should return user and log info if account exists", async () => {
+        const coach = new Coach();
+        const mockUser = { email: "existing@email.com" };
+        UserDao.readAll.mockResolvedValue([mockUser]);
+        const result = await coach.checkForExistingAccount("existing@email.com");
+        expect(result).toEqual(mockUser);
+        expect(console.log).toHaveBeenCalledWith("You already have an account \nAccount Info:", mockUser);
     });
 
 });
+
 
 describe("Coach Input Validation Tests", function () {
     let coach;
@@ -68,6 +88,7 @@ describe("Coach Input Validation Tests", function () {
     beforeEach(() => {
         coach = new Coach();
         console.log = jest.fn();
+        UserDao.readAll.mockResolvedValue([]);
     });
 
     test("name() should accept valid name", async () => {
@@ -110,6 +131,15 @@ describe("Coach Input Validation Tests", function () {
         await coach.password();
         expect(console.log).toHaveBeenCalledWith("Password must be at least 4 characters long.");
         expect(coach.userInput.password).toBe("abcd");
+    });
+
+    test("permission() should re-prompt on non-numeric input", async () => {
+        coach.ask = jest.fn()
+          .mockResolvedValueOnce("xyz") 
+          .mockResolvedValueOnce("2"); 
+        await coach.permission();
+        expect(console.log).toHaveBeenCalledWith("Permission must be a number.");
+        expect(coach.userInput.permission).toBe(2);
     });
 });
 
@@ -244,6 +274,16 @@ describe("Coach updateAccount Tests", function() {
         expect(console.log).toHaveBeenCalledWith("No account found with that email.");
     });
 
+    test("updateAccount() should exit if no user is found for email", async () => {
+        UserDao.readAll.mockResolvedValue([]); 
+        coach.ask = jest.fn().mockResolvedValueOnce("nonexistent@email.com");
+
+        await coach.updateAccount();
+
+        expect(console.log).toHaveBeenCalledWith("No account found with that email.");
+        expect(UserDao.update).not.toHaveBeenCalled();
+    });
+
     test("updateAccount() updates name successfully", async () => {
         coach = new Coach();
         const mockUser = { _id: "123", email: "test@example.com"};
@@ -261,6 +301,57 @@ describe("Coach updateAccount Tests", function() {
         expect(UserDao.readAll).toHaveBeenCalled();
         expect(UserDao.update).toHaveBeenCalledWith("123", { name: "Loren" });
         expect(console.log).toHaveBeenCalledWith("Account updated to:", updates);
+    });
+
+    test("updateAccount() updates email successfully (choice '2')", async () => {
+        const updates = { _id: "123", email: "new@email.com", name: "Jane" };
+        UserDao.update.mockResolvedValue(updates);
+
+        coach.ask = jest.fn().mockResolvedValueOnce("test@example.com")
+            .mockResolvedValueOnce("2") 
+            .mockResolvedValueOnce("new@email.com"); 
+
+        await coach.updateAccount();
+        
+        expect(UserDao.update).toHaveBeenCalledWith("123", { email: "new@email.com" });
+    });
+
+    test("updateAccount() updates phone successfully (choice '3')", async () => {
+        const updates = { _id: "123", email: "test@email.com", phone: "1112223333" };
+        UserDao.update.mockResolvedValue(updates);
+
+        coach.ask = jest.fn().mockResolvedValueOnce("test@example.com")
+            .mockResolvedValueOnce("3") 
+            .mockResolvedValueOnce("1112223333"); 
+
+        await coach.updateAccount();
+        
+        expect(UserDao.update).toHaveBeenCalledWith("123", { phone: "1112223333" });
+    });
+
+    test("updateAccount() updates password successfully (choice '4')", async () => {
+        const updates = { _id: "123", email: "test@email.com", password: "newpassword" };
+        UserDao.update.mockResolvedValue(updates);
+
+        coach.ask = jest.fn().mockResolvedValueOnce("test@example.com")
+            .mockResolvedValueOnce("4") 
+            .mockResolvedValueOnce("newpassword"); 
+
+        await coach.updateAccount();
+        
+        expect(UserDao.update).toHaveBeenCalledWith("123", { password: "newpassword" });
+    });
+
+    test("updateAccount() handles invalid choice and returns", async () => {
+        UserDao.update.mockClear(); 
+
+        coach.ask = jest.fn().mockResolvedValueOnce("test@example.com")
+            .mockResolvedValueOnce("9"); 
+
+        await coach.updateAccount();
+        
+        expect(console.log).toHaveBeenCalledWith("Invalid choice");
+        expect(UserDao.update).not.toHaveBeenCalled();
     });
 
 
