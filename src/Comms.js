@@ -44,7 +44,7 @@ class Comms {
         const newMsg = {
             message,
             author: this.currentUser.name,
-            authorType: this.currentUser.permission, // Assuming permission is authorType
+            authorType: this.currentUser.permission, 
         };
 
         await MessageDao.create(newMsg);
