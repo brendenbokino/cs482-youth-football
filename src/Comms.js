@@ -2,6 +2,7 @@
 // Communications
 // Loren Kim
 
+const express = require("express");
 const readline = require('readline');
 const { connect, disconnect } = require('../model/DbConnect');
 const { cliLogin } = require('../src/UserController');
@@ -48,6 +49,12 @@ class Comms {
 
         await MessageDao.create(newMsg);
         console.log(`Message posted by ${this.currentUser.name}`);
+        document.getElementById("confirmationMessage").style.display = "block";
+        setTimeout(() => {
+            document.getElementById("confirmationMessage").style.display = "none";
+        }, 3000);
+
+        document.getElementById("messageForm").reset();
     }
 
     async getDate(){
@@ -56,6 +63,12 @@ class Comms {
     }
 
     async viewMessages() {
+        if (!this.currentUser) {
+            console.log("Please log in to view messages.");
+            await this.login();
+            if (!this.currentUser) return;
+        }
+
         const messages = await MessageDao.readAll();
         if (!messages.length) {
             console.log("No messages.");
