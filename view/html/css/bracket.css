@@ -1,0 +1,39 @@
+.bracket-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+}
+
+.round {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    gap: 40px; /* Space between matchups in a round */
+}
+
+.matchup {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.team {
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    margin: 2px 0;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    background-color: #f9f9f9;
+}
+
+.team:hover {
+    background-color: #e9e9e9;
+}
+
+.team.winner {
+    background-color: #4CAF50; /* Green highlight for winner */
+    color: white;
+}
+
+/* Basic visual connectors can be added using CSS or SVG for a cleaner look */

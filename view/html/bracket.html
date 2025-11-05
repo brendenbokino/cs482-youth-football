@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="keywords" content="football, youth league, sports">
+        <title>Loyal Order of Youth League Athletes</title>
+        <link href="./css/main.css" rel="stylesheet" type="text/css">
+        <link href="./css/bracket.css" rel="stylesheet" type="text/css">
+    </head>
+
+    <body>
+        <header>
+            <img src="./images/logo.png" href="index.html">
+            <h1> Loyal Order of Youth League Athletes </h1>
+            <div class="topnav">
+                <a href="calendar.html">Calendar</a>
+                <a href="team.html">Team</a>
+                <a href="profile.html">Profile</a>
+                <a href="login.html">Login</a>
+                <a href="register.html">Register</a>
+                <a href="photos.html">Photos</a>
+            </div>
+        </header>
+
+        <main>
+            <h1>Playoff Bracket</h1>
+    <div class="bracket-container">
+        <!-- Round 1 -->
+        <div class="round" id="round1">
+            <div class="matchup">
+                <div class="team" onclick="pickWinner(this, 'match1-winner')">Team A</div>
+                <div class="team" onclick="pickWinner(this, 'match1-winner')">Team B</div>
+            </div>
+            <div class="matchup">
+                <div class="team" onclick="pickWinner(this, 'match2-winner')">Team C</div>
+                <div class="team" onclick="pickWinner(this, 'match2-winner')">Team D</div>
+            </div>
+        </div>
+        <!-- Round 2 -->
+        <div class="round" id="round2">
+            <div class="matchup">
+                <div class="team" id="match1-winner">Winner A/B</div>
+                <div class="team" id="match2-winner">Winner C/D</div>
+            </div>
+        </div>
+        <!-- Final Round -->
+        <div class="round" id="final-round">
+            <div class="matchup">
+                <div class="team" id="final-winner">Tournament Winner</div>
+            </div>
+        </div>
+    </div>
+    <script src="../../src/Bracket.js"></script>
+        </main>
+
+        <footer>
+            <p>
+                Loyal Order of Youth League Athletes
+                <br>
+                contact info
+            </p>
+        </footer>
+    </body>
+</html>
+
+

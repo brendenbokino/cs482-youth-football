@@ -4,7 +4,7 @@
 
 const readline = require('readline');
 const { connect, disconnect } = require('../model/DbConnect');
-const { cliLogin } = require('../controller/UserController');
+const { cliLogin } = require('../src/UserController');
 const MessageDao = require('../model/MessageDao');
 
 class Comms {

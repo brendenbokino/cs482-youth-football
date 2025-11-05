@@ -1,17 +1,17 @@
 const express = require('express'); //import express server
 const session = require('express-session');
 const memorystore = require('memorystore')(session);
-
+const methodOverride = require('method-override');
 const bodyParser = require('body-parser');
+
+const multer = require('multer');
+const mongoose = require('mongoose');
 const path = require('path');
 const crypto = require('crypto');
-const mongoose = require('mongoose');
 const { GridFSBucket } = require('mongodb');
-const multer = require('multer');
 const {GridFsStorage} = require('multer-gridfs-storage');
 const Grid = require('gridfs-stream');
 const {ObjectID} = mongoose.Types
-const methodOverride = require('method-override');
 const Coach = require('./src/Coach');
 const UserDao = require('./model/UserDao');
 const Comms = require('./src/Comms'); 
@@ -34,7 +34,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 //init GFS
-let bucket;
+/**let bucket;
 
 mongoose.connection.once('open', () => {
     //init stream
@@ -65,8 +65,7 @@ const storage = new GridFsStorage({
     }
 });
 
-//const storage = new GridFsStorage({url: process.env.FILESDB_URI});
-const upload = multer({ storage });
+const upload = multer({ storage });**/
 
 //User Controller Functions
 const UserController = require('./src/UserController')
@@ -108,51 +107,58 @@ app.get('/games', GameController.getAll);
 app.put('/games/:id', GameController.update);
 app.delete('/games/:id', GameController.delete);
 
-//File Storage Functions
 
-// POST /upload
-app.post('/upload', upload.single('file'), (req, res) => {
-    //res.json({file: req.file});
-    res.redirect('/')
+//FILE STORAGE
+app.use(express.json());
+app.use(methodOverride('_method'));
+app.use(bodyParser.urlencoded({ extended: true }));
+
+//initialize connection to db
+let bucket;
+
+mongoose.connection.once('open', () => {
+    bucket = new GridFSBucket(mongoose.connection.db, {
+      bucketName: 'uploads'
+    })
 })
 
-// GET /files
-// display all files in JSON
-/**app.get('/files', (req, res) => {
-  try{
-    let files = await gfs.files.find().toArray();
-    return res.json(files);
-  } catch (err) {
-    return res.status(404).json({
-      err: 'no files exist'
-    })
-  }
-  gfs.files.find().toArray((err, files) => {
-    // check if files
-    if(!files || files.length === 0)
-      return res.status(404).json({
-        err: 'no files exist'
+//create storage
+const storage = new GridFsStorage({
+    url: process.env.FILESDB_URI,
+    file: (req, file) => {
+      return new Promise((resolve, reject) => {
+        crypto.randomBytes(16, (err, buf) => {
+          if (err) {
+            return reject(err);
+          }
+          const filename = buf.toString('hex') + path.extname(file.originalname);
+          const fileInfo = {
+            filename: filename,
+            bucketName: 'uploads'
+          };
+          resolve(fileInfo);
+        });
       });
-    
-    //files exist
-    return res.json(files);
-  });
-});**/
-
-/**app.get("/files", async (req, res) => {
-  await gfs.files.find().toArray((err, files) => {
-  if (err) return res.status(400).json({ err });
-  return res.json(files);
+    }
 });
-});**/
+
+const upload = multer({ storage });
+
+//upload file to db
+app.post('/upload', upload.single('file'), (req, res) => {
+  //res.json({file: req.file});
+  res.redirect('/')
+});
+
+// display all files in JSON
 app.get("/files", async (req, res) => {
   try {
       //let files = await gfs.files.find().toArray();
       const cursor = bucket.find({});
       const files = await cursor.toArray();
-      /**for await (const doc of cursor) {
+      for await (const doc of cursor) {
         res.json(doc)
-      }**/
+      }
       res.json(files)
       //res.json({files})
   } catch (err) {
@@ -160,45 +166,34 @@ app.get("/files", async (req, res) => {
   }
 });
 
-// GET /files/:filename
 // display single file in JSON
-
 app.get("/files/:filename", async (req, res) => {
   try {
-      //let file = await gfs.files.findOne({filename: req.params.filename});
       const cursor = bucket.find({filename: req.params.filename});
-      //console.log(await cursor.hasNext())
       const file = await cursor.next();
-      //const file = await cursor.toArray();
+      
       res.json(file);
-      /**for await (const doc of cursor) {
-        res.json(doc)
-      }**/
-      //res.json(file);
   } catch (err) {
       res.json({err: 'file doesnt exist'})
   }
 });
 
-// GET /files/:filename
 // display image
-
 app.get("/image/:filename", async (req, res) => {
   let file;
   try {
     const cursor = bucket.find({filename: req.params.filename});
     file = await cursor.next();
-      //res.json(file);
   } catch (err) {
       res.json({err: 'file doesnt exist'})
   }
-console.log('file exists')
+//console.log('file exists')
   //check if image
   if(file.contentType === 'image/jpeg' || file.contentType === 'image/png') {
     // read output to browser
-    console.log('file is an image')
+    //console.log('file is an image')
     let readstream = bucket.openDownloadStream(file._id);
-    console.log('readstream created')
+    //console.log('readstream created')
     readstream.pipe(res);
   } else {
     res.status(404).json({
@@ -207,8 +202,7 @@ console.log('file exists')
   }
 });
 
-// DELETE /files/:id
-// delete file
+// delete file NEED TO UPDATE FROM GRIDFS TO GRIDFSBUCKET
 /**app.delete('/files/:id', (req, res) => {
   gfs.remove({_id: req.params.id, root: 'uploads'}, (err, gridStore) => {
     if (err) {
