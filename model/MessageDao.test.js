@@ -46,3 +46,57 @@ test('Read all messages', async () => {
   expect(messages[0]).toHaveProperty('message');
 });
 
+test('Find message by ID', async () => {
+  const msg = { message: 'Find me', author: 'Finder', authorType: 1 };
+  const created = await MessageDao.create(msg);
+
+  const found = await MessageDao.findById(created._id);
+
+  expect(found).not.toBeNull();
+  expect(found._id.toString()).toEqual(created._id.toString());
+  expect(found.message).toBe('Find me');
+});
+
+test('Update message', async () => {
+  const msg = { message: 'Old text', author: 'Loren', authorType: 1 };
+  const created = await MessageDao.create(msg);
+
+  const updated = await MessageDao.update(created._id, { message: 'Updated text' });
+
+  expect(updated.message).toBe('Updated text');
+  expect(updated.edited).toBe(true);
+  expect(updated.dateEdited).not.toBeNull();
+});
+
+test('Add reply to message', async () => {
+  const msg = { message: 'Original', author: 'Poster', authorType: 1 };
+  const created = await MessageDao.create(msg);
+
+  const reply = { email: 'responder@test.com', message: 'Reply here' };
+  const updated = await MessageDao.addReply(created._id, reply);
+
+  expect(updated.replies.length).toBe(1);
+  expect(updated.replies[0].email).toBe('responder@test.com');
+});
+
+test('Delete message', async () => {
+  const msg = { message: 'Delete me', author: 'Temp', authorType: 1 };
+  const created = await MessageDao.create(msg);
+
+  await MessageDao.delete(created._id);
+  const found = await MessageDao.findById(created._id);
+
+  expect(found).toBeNull();
+});
+
+test('Check author validity', async () => {
+  const msg = { message: 'My post', author: 'Loren', authorType: 1 };
+  const created = await MessageDao.create(msg);
+
+  const valid = await MessageDao.isAuthor(created._id, 'Loren');
+  const invalid = await MessageDao.isAuthor(created._id, 'NotLoren');
+
+  expect(valid).toBe(true);
+  expect(invalid).toBe(false);
+});
+
