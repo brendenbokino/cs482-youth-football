@@ -36,6 +36,7 @@
 
             <p id="confirmationMessage" style="display: none; color: green;">Message sent successfully!</p>
             <button class="refresh-btn" onclick="viewMessages()">View Messages</button>
+            <button class="hide-btn" onclick="toggleMessages()">Hide Messages</button>
             <div id="messageList"></div>
         </main>
             
@@ -92,7 +93,7 @@
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({ message: messageBody }),
-                        credentials: 'include', // Include session cookies
+                        credentials: 'include', 
                     });
 
                     if (response.ok) {
@@ -117,7 +118,7 @@
                 try {
                     const response = await fetch('/comms/viewMessages', {
                         method: 'GET',
-                        credentials: 'include', // Include session cookies
+                        credentials: 'include', 
                     });
 
                     if (response.ok) {
@@ -149,9 +150,18 @@
                 }
             }
 
-            document.addEventListener('DOMContentLoaded', () => {
-                viewMessages();
-            });
+            function toggleMessages() {
+                const messageList = document.getElementById('messageList');
+                const hideBtn = document.querySelector('.hide-btn');
+
+                if (messageList.style.display === 'none' ){ //|| messageList.style.display === '') {
+                    messageList.style.display = 'block';
+                    hideBtn.textContent = 'Hide Messages';
+                } else {
+                    messageList.style.display = 'none';
+                    hideBtn.textContent = 'View Messages';
+                }
+            }
         </script>
     </body>
 </html>
