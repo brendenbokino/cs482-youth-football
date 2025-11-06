@@ -16,6 +16,7 @@ const Coach = require('./src/Coach');
 const UserDao = require('./model/UserDao');
 const Comms = require('./src/Comms'); 
 const MessageDao = require('./model/MessageDao');
+const { login, register, logout, loggedUser } = require('./src/UserController');
 
 app = express()
 
@@ -269,34 +270,29 @@ app.post('/deleteaccount', async (req, res) => {
 // Communications
 const comms = new Comms();
 
-
 // changed to handle sessions
 app.post('/comms/postMessage', isAuthenticated, async (req, res) => {
   const { message } = req.body;
-  const currentUser = req.session.user; 
-
-  if (!currentUser) {
-      return res.status(401).json({ error: "User session not found." });
-  }
+  const user = req.session.user;
 
   try {
-      const newMessage = await MessageDao.create({
-          message,
-          author: currentUser.name || "Unknown User",
-          authorType: currentUser.permission, 
-      });
-      res.json({ message: "Message posted successfully", data: newMessage });
+    const newMessage = await MessageDao.create({
+      message,
+      author: user.name,
+      authorType: user.permission,
+    });
+    res.status(200).json({ success: true, newMessage });
   } catch (err) {
-      res.status(500).json({ error: "Failed to post message", details: err.message });
+    res.status(500).json({ error: "Failed to post message", details: err.message });
   }
 });
 
 app.get('/comms/viewMessages', isAuthenticated, async (req, res) => {
   try {
-      const messages = await MessageDao.readAll();
-      res.json({ messages });
+    const messages = await MessageDao.readAll();
+    res.json({ messages });
   } catch (err) {
-      res.status(500).json({ error: "Failed to fetch messages", details: err.message });
+    res.status(500).json({ error: "Failed to fetch messages", details: err.message });
   }
 });
 

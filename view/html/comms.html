@@ -79,10 +79,11 @@
             }
 
             async function postMessage() {
-                const email = prompt("Enter your email:");
-                const password = prompt("Enter your password:");
                 const messageBody = document.getElementById('messageBody').value;
-                if (!email || !password || !messageBody) return;
+                if (!messageBody) {
+                    alert("Message cannot be empty.");
+                    return;
+                }
 
                 try {
                     const response = await fetch('/comms/postMessage', {
@@ -90,59 +91,61 @@
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ email, password, message: messageBody }),
+                        body: JSON.stringify({ message: messageBody }),
+                        credentials: 'include', // Include session cookies
                     });
 
-                    const result = await response.json();
-
                     if (response.ok) {
-                        document.getElementById("confirmationMessage").classList.remove('hidden');
+                        document.getElementById("confirmationMessage").style.display = "block";
                         setTimeout(() => {
-                            document.getElementById("confirmationMessage").classList.add('hidden');
+                            document.getElementById("confirmationMessage").style.display = "none";
                         }, 3000);
                         document.getElementById("messageForm").reset();
                         viewMessages();
                     } else {
+                        const result = await response.json();
                         console.error("Post failed:", result.error || "Unknown server error.");
+                        alert("Failed to post message: " + (result.error || "Unknown error."));
                     }
                 } catch (error) {
                     console.error('Network error during post:', error);
+                    alert("Network error. Please try again.");
                 }
             }
 
             async function viewMessages() {
-                const email = prompt("Enter your email:");
-                const password = prompt("Enter your password:");
-                if (!email || !password) return;
-
                 try {
                     const response = await fetch('/comms/viewMessages', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ email, password }),
+                        method: 'GET',
+                        credentials: 'include', // Include session cookies
                     });
 
-                    const data = await response.json();
-                    const messageList = document.getElementById('messageList');
-                    messageList.innerHTML = '';
+                    if (response.ok) {
+                        const data = await response.json();
+                        const messageList = document.getElementById('messageList');
+                        messageList.innerHTML = '';
 
-                    data.messages.forEach(msg => {
-                        const msgDiv = document.createElement('div');
-                        msgDiv.classList.add('message');
+                        data.messages.forEach(msg => {
+                            const msgDiv = document.createElement('div');
+                            msgDiv.classList.add('message');
 
-                        const authorType = getAuthorType(msg.authorType);
+                            const authorType = getAuthorType(msg.authorType);
 
-                        msgDiv.innerHTML = `
-                            <p><strong>${msg.author} (${authorType}):</strong></p>
-                            <p>${msg.message}</p>
-                            <hr>
-                        `;
-                        messageList.appendChild(msgDiv);
-                    });
+                            msgDiv.innerHTML = `
+                                <p><strong>${msg.author} (${authorType}):</strong></p>
+                                <p>${msg.message}</p>
+                                <hr>
+                            `;
+                            messageList.appendChild(msgDiv);
+                        });
+                    } else {
+                        const result = await response.json();
+                        console.error("Failed to fetch messages:", result.error || "Unknown server error.");
+                        alert("Failed to fetch messages: " + (result.error || "Unknown error."));
+                    }
                 } catch (error) {
                     console.error('Network error during message retrieval:', error);
+                    alert("Network error. Please try again.");
                 }
             }
 
