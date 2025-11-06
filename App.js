@@ -283,6 +283,14 @@ app.post('/deleteaccount', async (req, res) => {
 // Communications
 const comms = new Comms();
 
+app.get('/loggedUser', (req, res) => {
+  if (req.session && req.session.user) {
+    res.json(req.session.user);
+  } else {
+    res.status(401).json({ loggedIn: false });
+  }
+});
+
 // changed to handle sessions
 app.post('/comms/postMessage', isAuthenticated, async (req, res) => {
   const { message } = req.body;
@@ -305,7 +313,41 @@ app.get('/comms/viewMessages', isAuthenticated, async (req, res) => {
     const messages = await MessageDao.readAll();
     res.json({ messages });
   } catch (err) {
+    console.error("Error fetching messages:", err); 
     res.status(500).json({ error: "Failed to fetch messages", details: err.message });
+  }
+});
+
+app.delete('/comms/deleteMessage/:id', isAuthenticated, async (req, res) => {
+  const { id } = req.params;
+  const user = req.session.user;
+
+  try {
+    const isAuthor = await MessageDao.isAuthor(id, user.name);
+    if (!isAuthor) {
+      return res.status(403).json({ error: "You are not authorized to delete this message." });
+    }
+    await MessageDao.delete(id);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete message", details: err.message });
+  }
+});
+
+app.put('/comms/updateMessage/:id', isAuthenticated, async (req, res) => {
+  const { id } = req.params;
+  const { message } = req.body;
+  const user = req.session.user;
+
+  try {
+    const isAuthor = await MessageDao.isAuthor(id, user.name);
+    if (!isAuthor) {
+      return res.status(403).json({ error: "You are not authorized to update this message." });
+    }
+    const updatedMessage = await MessageDao.update(id, { message });
+    res.status(200).json({ success: true, updatedMessage });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update message", details: err.message });
   }
 });
 

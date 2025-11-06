@@ -44,9 +44,14 @@ module.exports = {
       return await messageModel.findByIdAndDelete(id);
   },
 
+  async isAuthor(messageId, userName) {
+      const message = await messageModel.findById(messageId);
+      return message && message.author === userName;
+  },
+
   async update(id, updates) {
       updates.edited = true;
-      updates.dateEdited = new Date(); // Fixed field name
+      updates.dateEdited = new Date();
       return await messageModel.findByIdAndUpdate(id, updates, { new: true });
   }
 };
