@@ -86,7 +86,7 @@ class Comms {
         });
     }
 
-    async deleteMessages(){
+    async deleteMessages(){ /*
         if (!this.currentUser) {
             console.log("Please log in to view messages.");
             await this.login();
@@ -107,7 +107,7 @@ class Comms {
                     console.log(`   ↳ Reply ${j + 1} by ${r.email} [${new Date(r.date).toLocaleString()}]: ${r.message}`);
                 });
             }
-        });
+        });*/
     }
 
     async replyMessage(){ 
