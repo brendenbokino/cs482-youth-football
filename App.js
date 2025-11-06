@@ -270,6 +270,14 @@ app.post('/deleteaccount', async (req, res) => {
 // Communications
 const comms = new Comms();
 
+app.get('/loggedUser', (req, res) => {
+  if (req.session && req.session.user) {
+    res.json(req.session.user);
+  } else {
+    res.status(401).json({ loggedIn: false });
+  }
+});
+
 // changed to handle sessions
 app.post('/comms/postMessage', isAuthenticated, async (req, res) => {
   const { message } = req.body;
@@ -292,6 +300,7 @@ app.get('/comms/viewMessages', isAuthenticated, async (req, res) => {
     const messages = await MessageDao.readAll();
     res.json({ messages });
   } catch (err) {
+    console.error("Error fetching messages:", err); 
     res.status(500).json({ error: "Failed to fetch messages", details: err.message });
   }
 });
