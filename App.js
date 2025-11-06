@@ -296,4 +296,37 @@ app.get('/comms/viewMessages', isAuthenticated, async (req, res) => {
   }
 });
 
+app.delete('/comms/deleteMessage/:id', isAuthenticated, async (req, res) => {
+  const { id } = req.params;
+  const user = req.session.user;
+
+  try {
+    const isAuthor = await MessageDao.isAuthor(id, user.name);
+    if (!isAuthor) {
+      return res.status(403).json({ error: "You are not authorized to delete this message." });
+    }
+    await MessageDao.delete(id);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete message", details: err.message });
+  }
+});
+
+app.put('/comms/updateMessage/:id', isAuthenticated, async (req, res) => {
+  const { id } = req.params;
+  const { message } = req.body;
+  const user = req.session.user;
+
+  try {
+    const isAuthor = await MessageDao.isAuthor(id, user.name);
+    if (!isAuthor) {
+      return res.status(403).json({ error: "You are not authorized to update this message." });
+    }
+    const updatedMessage = await MessageDao.update(id, { message });
+    res.status(200).json({ success: true, updatedMessage });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update message", details: err.message });
+  }
+});
+
 exports.app = app;
