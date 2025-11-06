@@ -152,6 +152,23 @@ const storage = new GridFsStorage({
 
 const upload = multer({ storage });
 
+app.get('/photos.html', (req, res) =>{
+  const cursor = bucket.find({});
+  const files = cursor.toArray();
+  if (!files || files.length == 0){
+    res.render('/photos.html', {files: false})
+  } else{
+    files.map(file => {
+      if (file.contentType === 'image/jpeg' || file.contentType === 'image/png'){
+        file.isImage = true;
+      } else{
+        file.isImage = false;
+      }
+    });
+    res.render('/photos.html', {files: files})
+  }
+})
+
 //upload file to db
 app.post('/upload', upload.single('file'), (req, res) => {
   //res.json({file: req.file});
@@ -160,17 +177,13 @@ app.post('/upload', upload.single('file'), (req, res) => {
 
 // display all files in JSON
 app.get("/files", async (req, res) => {
-  try {
-      //let files = await gfs.files.find().toArray();
-      const cursor = bucket.find({});
-      const files = await cursor.toArray();
-      for await (const doc of cursor) {
-        res.json(doc)
-      }
-      res.json(files)
-      //res.json({files})
-  } catch (err) {
-      res.json({err: 'no files exist'})
+  const cursor = bucket.find({});
+  const files = await cursor.toArray();
+  if (!files || files.length == 0){
+    res.json({err: 'no files exist'})
+  }
+  else{
+    res.json(files)
   }
 });
 

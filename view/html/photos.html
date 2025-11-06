@@ -24,15 +24,36 @@
             </div>
         </header>
 
-            <main>
-                <h1>Mongo File Uploads</h1>
-                <form action="/upload" method="POST" enctype="multipart/form-data">
-                    <div class="custom-file mb-3">
-                        <input type="file" name="file" id="file">
-                        <label for="file">Choose File</label>
-                    </div>
-                    <input type="submit" value="submit" class="btn btn-primary btn-block">
-                </form>
+            <main id="id">
+                <div>
+                    <h1>Mongo File Uploads</h1>
+                    <form action="/upload" method="POST" enctype="multipart/form-data">
+                        <div class="custom-file mb-3">
+                            <input type="file" name="file" id="file">
+                            <label for="file">Choose File</label>
+                        </div>
+                        <input type="submit" value="submit" class="btn btn-primary btn-block">
+                    </form>
+                    <hr>
+                    <script>
+                        if (files){
+                            document.getElementById("id").innerHTML +=
+                            files.forEach(function(file) {
+                                '<div class="card card-body mb-3">';
+                                if (file.isImage) {
+                                    document.getElementById("id").innerHTML +=
+                                    '<img src="image/${file.filename}" alt="">';
+                                }else{
+                                    document.getElementById("id").innerHTML +=
+                                    '${file.filename}';
+                                }
+                            })
+                        } else{
+                            document.getElementById("id").innerHTML += 
+                            '<p>No files to show</p>';
+                        }
+                    </script>
+                </div>
             </main>
 
         <footer>
