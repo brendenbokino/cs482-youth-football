@@ -106,4 +106,34 @@ class Comms {
     // test cases: 1 user in database use their id, fetch user when it's ready, update fetch function when login is ready
 }
 
+const app = express();
+
+app.post('/comms/viewMessages', async (req, res) => {
+    const { email, password } = req.body;
+    const user = await cliLogin(email, password); // Authenticate using email/password
+    if (!user) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    const messages = await MessageDao.readAll();
+    res.json({ messages });
+});
+
+app.post('/comms/postMessage', async (req, res) => {
+    const { email, password, message } = req.body;
+    const user = await cliLogin(email, password); // Authenticate using email/password
+    if (!user) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    const newMsg = {
+        message,
+        author: user.name,
+        authorType: user.permission,
+    };
+
+    await MessageDao.create(newMsg);
+    res.status(200).json({ success: true });
+});
+
 module.exports = Comms;

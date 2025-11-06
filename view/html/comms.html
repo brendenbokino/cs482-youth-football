@@ -46,7 +46,110 @@
                 contact info
             </p>
         </footer>
-        <script src="./src/CommsFrontend.js"></script>
+        <script>
+            function getAuthorType(permission) {
+                switch (permission) {
+                    case 1: return 'Coach';
+                    case 2: return 'Parent';
+                    case 3: return 'Player';
+                    default: return 'User';
+                }
+            }
+
+            async function checkLoginStatus() {
+                // session-based login not working
+                // try {
+                //     const response = await fetch('/comms/viewMessages', { credentials: 'include' });
+                //     if (response.status === 401) {
+                //         window.location.href = 'login.html';
+                //         return false;
+                //     }
+                //     const data = await response.json();
+                //     if (!data.loggedIn) {
+                //         window.location.href = 'login.html';
+                //         return false;
+                //     }
+                //     return true;
+                // } catch (error) {
+                //     console.error('Network error during login status check:', error);
+                //     window.location.href = 'login.html';
+                //     return false;
+                // }
+                return true; // Allow access without session checks
+            }
+
+            async function postMessage() {
+                const email = prompt("Enter your email:");
+                const password = prompt("Enter your password:");
+                const messageBody = document.getElementById('messageBody').value;
+                if (!email || !password || !messageBody) return;
+
+                try {
+                    const response = await fetch('/comms/postMessage', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ email, password, message: messageBody }),
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        document.getElementById("confirmationMessage").classList.remove('hidden');
+                        setTimeout(() => {
+                            document.getElementById("confirmationMessage").classList.add('hidden');
+                        }, 3000);
+                        document.getElementById("messageForm").reset();
+                        viewMessages();
+                    } else {
+                        console.error("Post failed:", result.error || "Unknown server error.");
+                    }
+                } catch (error) {
+                    console.error('Network error during post:', error);
+                }
+            }
+
+            async function viewMessages() {
+                const email = prompt("Enter your email:");
+                const password = prompt("Enter your password:");
+                if (!email || !password) return;
+
+                try {
+                    const response = await fetch('/comms/viewMessages', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ email, password }),
+                    });
+
+                    const data = await response.json();
+                    const messageList = document.getElementById('messageList');
+                    messageList.innerHTML = '';
+
+                    data.messages.forEach(msg => {
+                        const msgDiv = document.createElement('div');
+                        msgDiv.classList.add('message');
+
+                        const authorType = getAuthorType(msg.authorType);
+
+                        msgDiv.innerHTML = `
+                            <p><strong>${msg.author} (${authorType}):</strong></p>
+                            <p>${msg.message}</p>
+                            <hr>
+                        `;
+                        messageList.appendChild(msgDiv);
+                    });
+                } catch (error) {
+                    console.error('Network error during message retrieval:', error);
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                viewMessages();
+            });
+        </script>
     </body>
 </html>
 
