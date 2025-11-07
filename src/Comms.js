@@ -44,7 +44,7 @@ class Comms {
         const newMsg = {
             message,
             author: this.currentUser.name,
-            authorType: this.currentUser.permission, // Assuming permission is authorType
+            authorType: this.currentUser.permission, 
         };
 
         await MessageDao.create(newMsg);
@@ -86,8 +86,28 @@ class Comms {
         });
     }
 
-    async deleteMessages(){
-        // delete messages from the database
+    async deleteMessages(){ /*
+        if (!this.currentUser) {
+            console.log("Please log in to view messages.");
+            await this.login();
+            if (!this.currentUser) return;
+        }
+
+        const messages = await MessageDao.readAll();
+        if (!messages.length) {
+            console.log("No messages.");
+            return;
+        }
+
+        console.log("\nMessage Board:");
+        messages.forEach((msg, i) => {
+            console.log(`${i + 1}. [${new Date(msg.dateCreated).toLocaleString()}] ${msg.author}: ${msg.message}`);
+            if (msg.replies && msg.replies.length > 0) {
+                msg.replies.forEach((r, j) => {
+                    console.log(`   ↳ Reply ${j + 1} by ${r.email} [${new Date(r.date).toLocaleString()}]: ${r.message}`);
+                });
+            }
+        });*/
     }
 
     async replyMessage(){ 
@@ -105,5 +125,7 @@ class Comms {
     // post question, type person who created question, flag for edited, date created, date edited
     // test cases: 1 user in database use their id, fetch user when it's ready, update fetch function when login is ready
 }
+
+const app = express();
 
 module.exports = Comms;

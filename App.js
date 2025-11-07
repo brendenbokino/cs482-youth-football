@@ -16,6 +16,7 @@ const Coach = require('./src/Coach');
 const UserDao = require('./model/UserDao');
 const Comms = require('./src/Comms'); 
 const MessageDao = require('./model/MessageDao');
+const { login, register, logout, loggedUser } = require('./src/UserController');
 
 app = express()
 
@@ -66,6 +67,13 @@ const storage = new GridFsStorage({
 });
 
 const upload = multer({ storage });**/
+
+const isAuthenticated = (req, res, next) => {
+  if (req.session && req.session.user) {
+      return next();
+  }
+  res.status(401).json({ error: "Unauthorized. Please log in." });
+};
 
 //User Controller Functions
 const UserController = require('./src/UserController')
@@ -144,6 +152,23 @@ const storage = new GridFsStorage({
 
 const upload = multer({ storage });
 
+app.get('/photos.html', (req, res) =>{
+  const cursor = bucket.find({});
+  const files = cursor.toArray();
+  if (!files || files.length == 0){
+    res.render('/photos.html', {files: false})
+  } else{
+    files.map(file => {
+      if (file.contentType === 'image/jpeg' || file.contentType === 'image/png'){
+        file.isImage = true;
+      } else{
+        file.isImage = false;
+      }
+    });
+    res.render('/photos.html', {files: files})
+  }
+})
+
 //upload file to db
 app.post('/upload', upload.single('file'), (req, res) => {
   //res.json({file: req.file});
@@ -152,17 +177,13 @@ app.post('/upload', upload.single('file'), (req, res) => {
 
 // display all files in JSON
 app.get("/files", async (req, res) => {
-  try {
-      //let files = await gfs.files.find().toArray();
-      const cursor = bucket.find({});
-      const files = await cursor.toArray();
-      for await (const doc of cursor) {
-        res.json(doc)
-      }
-      res.json(files)
-      //res.json({files})
-  } catch (err) {
-      res.json({err: 'no files exist'})
+  const cursor = bucket.find({});
+  const files = await cursor.toArray();
+  if (!files || files.length == 0){
+    res.json({err: 'no files exist'})
+  }
+  else{
+    res.json(files)
   }
 });
 
@@ -262,23 +283,72 @@ app.post('/deleteaccount', async (req, res) => {
 // Communications
 const comms = new Comms();
 
-app.post('/comms/postMessage', async (req, res) => {
-    const { message, author, authorType } = req.body;
-    try {
-        const newMessage = await MessageDao.create({ message, author, authorType });
-        res.json({ message: "Message posted successfully", data: newMessage });
-    } catch (err) {
-        res.status(500).json({ error: "Failed to post message", details: err.message });
-    }
+app.get('/loggedUser', (req, res) => {
+  if (req.session && req.session.user) {
+    res.json(req.session.user);
+  } else {
+    res.status(401).json({ loggedIn: false });
+  }
 });
 
-app.get('/comms/viewMessages', async (req, res) => {
-    try {
-        const messages = await MessageDao.readAll();
-        res.json({ messages });
-    } catch (err) {
-        res.status(500).json({ error: "Failed to fetch messages", details: err.message });
+// changed to handle sessions
+app.post('/comms/postMessage', isAuthenticated, async (req, res) => {
+  const { message } = req.body;
+  const user = req.session.user;
+
+  try {
+    const newMessage = await MessageDao.create({
+      message,
+      author: user.name,
+      authorType: user.permission,
+    });
+    res.status(200).json({ success: true, newMessage });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to post message", details: err.message });
+  }
+});
+
+app.get('/comms/viewMessages', isAuthenticated, async (req, res) => {
+  try {
+    const messages = await MessageDao.readAll();
+    res.json({ messages });
+  } catch (err) {
+    console.error("Error fetching messages:", err); 
+    res.status(500).json({ error: "Failed to fetch messages", details: err.message });
+  }
+});
+
+app.delete('/comms/deleteMessage/:id', isAuthenticated, async (req, res) => {
+  const { id } = req.params;
+  const user = req.session.user;
+
+  try {
+    const isAuthor = await MessageDao.isAuthor(id, user.name);
+    if (!isAuthor) {
+      return res.status(403).json({ error: "You are not authorized to delete this message." });
     }
+    await MessageDao.delete(id);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete message", details: err.message });
+  }
+});
+
+app.put('/comms/updateMessage/:id', isAuthenticated, async (req, res) => {
+  const { id } = req.params;
+  const { message } = req.body;
+  const user = req.session.user;
+
+  try {
+    const isAuthor = await MessageDao.isAuthor(id, user.name);
+    if (!isAuthor) {
+      return res.status(403).json({ error: "You are not authorized to update this message." });
+    }
+    const updatedMessage = await MessageDao.update(id, { message });
+    res.status(200).json({ success: true, updatedMessage });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update message", details: err.message });
+  }
 });
 
 exports.app = app;

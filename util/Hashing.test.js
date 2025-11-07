@@ -12,5 +12,5 @@ test('Hashing and Comparing Passwords', async function(){
     expect(hashedpwd).not.toBeNull();
     expect(hashedpwd).not.toEqual(pwd1);    
     expect(same1).toBeTruthy();
-    expect(same2).toBeFalsey();
+    expect(same2).toBeFalsy();
 })

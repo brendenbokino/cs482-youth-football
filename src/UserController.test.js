@@ -406,7 +406,7 @@ describe("User updateAccount Tests", function() {
     });
 });
 
-describe("User login tests.", function() {
+describe("User login/logout tests.", function() {
     beforeEach(() => {
         jest.clearAllMocks();
     });
@@ -449,6 +449,32 @@ describe("User login tests.", function() {
         //expect(req.session.user).toBeNull();
         expect(res.redirect).toHaveBeenCalledWith('/login.html') //login page w/ error message
     });
+
+    test('Fetch Logged User',async function(){
+        let req = { session: { user: {_id:'a1',permission:1 } }};
+        let res = { status: jest.fn(), //mock res.status function
+                    send: jest.fn(), //mock res.send()
+                    end: jest.fn() //mock res.end()
+                }; 
+    
+        controller.loggedUser(req,res);
+    
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.send).toHaveBeenCalledWith({_id:'a1',permission:1 });
+        expect(res.end).toHaveBeenCalled();
+    });
+
+    test('Logout User',async function(){
+        let req = { session: { user: {_id:'a1',permission:1 } }};
+        let res = { redirect: jest.fn(), //mock res.redirect function
+                }; 
+    
+        controller.logout(req,res);
+    
+        expect(req.session.user).toBeNull(); 
+        expect(res.redirect).toHaveBeenCalledWith('/');
+    });
+    
 });
 
 describe("User registration tests.", function() {
