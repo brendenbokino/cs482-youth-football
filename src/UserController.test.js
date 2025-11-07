@@ -449,7 +449,7 @@ describe("User login/logout tests.", function() {
 
         expect(UserDao.findLogin).toHaveBeenCalled();
         expect(req.session.user).toBeNull();
-        expect(res.redirect).toHaveBeenCalledWith('/') //login page w/ error message
+        expect(res.redirect).toHaveBeenCalledWith('/login.html?error=2') //login page w/ error message
     });
 
     test('Incorrect Login', async function(){
@@ -462,7 +462,7 @@ describe("User login/logout tests.", function() {
 
         expect(UserDao.findLogin).toHaveBeenCalled();
         expect(req.session.user).toBeNull();
-        expect(res.redirect).toHaveBeenCalledWith('/login.html') //login page w/ error message
+        expect(res.redirect).toHaveBeenCalledWith('/login.html?error=1') //login page w/ error message
     });
 
     test('Fetch Logged User',async function(){

@@ -30,11 +30,11 @@
             </div>
             <script type='text/javascript' onerror="alert('error!')">
                 async function checkLoggedUser(){
-                    let response = await fetch('/loggedUser');
+                    let response = await fetch('/loggeduser');
                     let user =  await response.json();
                     
                     if(user != null){
-                        document.getElementById("usercheck").innerHTML += ` ${response}`;
+                        document.getElementById("usercheck").innerHTML += ` ${user}`;
                     }else{
                         document.getElementById("usercheck").innerHTML += ` Guest`
                     }

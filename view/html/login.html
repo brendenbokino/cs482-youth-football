@@ -32,6 +32,40 @@
                 <input type="password" id="login_pass" name="login_pass"><br><br>
                 <input type="submit" value="Submit">
             </form>
+
+            <div class="container">
+                <div class="row">
+                  <div class="col-md-6" id="msg-display">
+                      <!-- I will dynamically insert error messages here using regurlar JS
+                       Script below for the error message -->
+                  </div>
+                </div>
+              </div>
+
+              <script type="text/javascript">
+                const params = new URLSearchParams(window.location.search);    
+                let error = params.get('error');
+                let msg = null;
+                if(error === '1'){
+                    msg = `
+                        <div class="alert alert-danger alert-dismissible">
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            <strong>Error!</strong> Incorrect Login.
+                        </div>
+                    `;
+                    document.getElementById("msg-display").innerHTML = msg;
+                } 
+                else if (error === '2'){
+                    msg = `
+                        <div class="alert alert-danger alert-dismissible">
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            <strong>Error!</strong> Incorrect Password.
+                        </div>
+                    `;
+                    document.getElementById("msg-display").innerHTML = msg;
+                }
+                //window.alert('Login or Password Incorrect');
+            </script>
         </main>
 
         <footer>
