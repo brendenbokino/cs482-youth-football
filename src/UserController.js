@@ -77,7 +77,8 @@ class User {
             console.log("Password must be at least 4 characters long.");
             return this.password();
         }
-        this.userInput.password = hash.hashString(password);
+        hashedpwd = hash.hashString(password)
+        this.userInput.password = hashedpwd;
     }
     
 

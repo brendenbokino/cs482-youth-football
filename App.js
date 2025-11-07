@@ -82,6 +82,7 @@ app.post('/loginuser', UserController.login);
 app.post('/registeruser', UserController.register);
 
 app.post('/logoutuser', UserController.logout);
+app.get('/loggeduser', UserController.loggedUser);
 
 //Team Controller Functions
 const TeamController = require('./src/TeamController');

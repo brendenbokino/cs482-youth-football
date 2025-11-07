@@ -24,9 +24,24 @@
             </div>
         </header>
 
-        <main>
-
-        </main>
+        <body>
+            <div id="usercheck">
+                Hello, 
+            </div>
+            <script type='text/javascript' onerror="alert('error!')">
+                async function checkLoggedUser(){
+                    let response = await fetch('/loggedUser');
+                    let user =  await response.json();
+                    
+                    if(user != null){
+                        document.getElementById("usercheck").innerHTML += ` ${response}`;
+                    }else{
+                        document.getElementById("usercheck").innerHTML += ` Guest`
+                    }
+}
+checkLoggedUser();
+            </script>
+        </body>
 
         <footer>
             <p>
