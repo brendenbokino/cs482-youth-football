@@ -26,7 +26,8 @@ const UserController = require('./UserController.js');
 const User =  UserController.User
 const UserDao = require('../model/UserDao.js'); 
 const hash = require('../util/Hashing.js')
-jest.mock('../model/UserDao');
+jest.mock('../model/UserDao.js');
+jest.mock('../util/Hashing.js');
 
 
 
@@ -136,7 +137,7 @@ describe("User Input Validation Tests", function () {
           .mockResolvedValueOnce("abcd"); 
         await user.password();
         expect(console.log).toHaveBeenCalledWith("Password must be at least 4 characters long.");
-        expect(hash.hashString()).toHaveBeenCalledWith("abcd");
+        expect(hash.hashString).toHaveBeenCalledWith("abcd");
         //expect(hash.compareHash(user.userInput.password, "abcd")).toBeTruthy();
     });
 });
@@ -387,8 +388,8 @@ describe("User updateAccount Tests", function() {
         await user.updateAccount();
         
         expect(UserDao.readAll).toHaveBeenCalled();
-        expect(hash.hashString()).toHaveBeenCalledWith(password);
-        expect(UserDao.update).toHaveBeenCalledWith("123", hash.hashString(password));
+        expect(hash.hashString).toHaveBeenCalledWith(updates.password);
+        expect(UserDao.update).toHaveBeenCalledWith("123", hash.hashString());
         expect(console.log).toHaveBeenCalledWith("Account updated to:", updates);
     });
 
@@ -427,15 +428,15 @@ describe("User login/logout tests.", function() {
         let req = { body: {login_id: 'oscarr@ex.com', login_pass: '12345'},
                     session: {user: null}};
         let res = { redirect: jest.fn() };
-        UserDao.findLogin = jest.fn( async() => ({login:'oscarr@ex.com', password:'hashed'}));
+        UserDao.findLogin = jest.fn( async() => ({login:'oscarr@ex.com', password: 'hashed'}));
         hash.comparePassword = jest.fn( () => true );
         
         await UserController.login(req, res);
 
-        expect(UserDao.findLogin).toHaveBeenCalled();
+        expect(UserDao.findLogin).toHaveBeenCalledWith(req.body.login_id);
         expect(req.session.user).not.toBeNull();
         expect(hash.comparePassword).toHaveBeenCalledWith('12345', 'hashed');
-        expect(res.redirect).toHaveBeenCalledWith('/profile.html'); //redirect to account page?
+        expect(res.redirect).toHaveBeenCalledWith('/profile.html'); 
     });
 
     test('Login w/ Wrong Password', async function(){
