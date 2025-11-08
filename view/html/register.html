@@ -23,23 +23,51 @@
   
     <body>
         <div id="header"></div>
-
         <main>
-            <form method="post" action="registeruser">
-                <label for="email">Email:</label><br>
-                <input type="text" id="email" name="email"><br>
-                <label for="username">Username:</label><br>
-                <input type="text" id="username" name="username"><br>
-                <label for="name">First and Last name:</label><br>
-                <input type="text" id="name" name="name"><br>
-                <label for="phone">Phone number:</label><br>
-                <input type="text" id="phone" name="phone"><br>
-                <label for="pass">Password:</label><br>
-                <input type="password" id="pass" name="pass"><br>
-                <label for="confirm_pass">Confirm password:</label><br>
-                <input type="password" id="confirm_pass" name="confirm_pass"><br><br>
-                <input type="submit" value="Submit">
-            </form>
+            <div class="container pt-5 pb-5">
+                <div class="row justify-content-center align-items-center">
+                    <div class="col-8">
+                        <h2 class="text-center mb-4">Register</h2>
+                        <form method="post" action="registeruser">
+                            <div class="form-floating mb-3">
+                                <input type="email" class="form-control" id="email" name="email" placeholder="placeholder">
+                                <label for="email">Email:</label>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="username" name="username" placeholder="placeholder">
+                                <label for="username">Username:</label>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="name" name="name" placeholder="placeholder">
+                                <label for="name">First and Last name:</label>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input type="tel" class="form-control" id="phone" name="phone" placeholder="placeholder">
+                                <label for="phone">Phone number:</label>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" id="pass" name="pass" placeholder="placeholder">
+                                <label for="pass">Password:</label>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" id="confirm_pass" name="confirm_pass" placeholder="placeholder">
+                                <label for="confirm_pass">Confirm password:</label>
+                            </div>
+
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-purple">
+                                    Submit
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <div id="footer"></div>

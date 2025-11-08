@@ -24,13 +24,31 @@
         <div id="header"></div>
 
         <main>
-            <form method="post" action="/loginuser">
-                <label for="login_id">Email or Username:</label><br>
-                <input type="text" id="login_id" name="login_id"><br>
-                <label for="login_pass">Password:</label><br>
-                <input type="password" id="login_pass" name="login_pass"><br><br>
-                <input type="submit" value="Submit">
-            </form>
+            <div class="container pt-5 pb-5">
+                <div class="row justify-content-center align-items-center">
+                    <div class="col-8">
+                        <h2 class="text-center mb-4">Login</h2>
+                        <form method="post" action="/loginuser">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="login_id" placeholder="placeholder">
+                                <label for="login_id">Email or Username:</label>
+                            </div>
+                            
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" id="login_pass" placeholder="placeholder">
+                                <label for="login_pass">Password:</label>
+                            </div>
+
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-purple">
+                                    Login
+                                </button>                                
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
 
             <div class="container">
                 <div class="row">
