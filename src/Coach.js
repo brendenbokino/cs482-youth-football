@@ -37,12 +37,14 @@ class Coach {
 
     
     // functions to get user input for coach account creation
-    async checkForExistingAccount(input) {
+    async checkForExistingAccount(email) {
         const users = await UserDao.readAll();
-        const user = users.find(u => u.input === input);
+        const user = users.find(u => u.email === email);
         if (user) {
             console.log("You already have an account \nAccount Info:", user);
+            return user;
         }
+        return null;
     }
 
     async name(){
@@ -132,7 +134,7 @@ class Coach {
     }
 
     // update user account info & need to refactor in next iteration
-    async updateAccount(){
+    async updateAccount() {
         const email = await this.ask("Enter your email to update account: ");
         const users = await UserDao.readAll();
         const user = users.find(u => u.email === email);
@@ -148,7 +150,7 @@ class Coach {
 
         const choice = await this.ask("Enter the number of the field you want to update: ");
         let updates = {};
-        switch(choice){
+        switch (choice) {
             case '1':
                 updates.name = await this.ask("Enter new name: ");
                 break;
@@ -163,11 +165,12 @@ class Coach {
                 break;
             default:
                 console.log("Invalid choice");
-                break; 
+                return;
         }
 
         const updatedUser = await UserDao.update(user._id, updates);
         console.log("Account updated to:", updatedUser);
+        return updatedUser;
     }
 
     async menu(){

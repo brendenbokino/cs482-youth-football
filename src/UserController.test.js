@@ -25,7 +25,9 @@ jest.mock('readline', () => ({
 const UserController = require('./UserController.js');
 const User =  UserController.User
 const UserDao = require('../model/UserDao.js'); 
-jest.mock('../model/UserDao');
+const hash = require('../util/Hashing.js')
+jest.mock('../model/UserDao.js');
+jest.mock('../util/Hashing.js');
 
 
 
@@ -68,8 +70,10 @@ describe("User Controller Tests", function() {
 
 describe("User Input Validation Tests", function () {
     let user;
+
     
     beforeEach(() => {
+        jest.clearAllMocks(); // read to clear mocks before each test
         user = new User();
         console.log = jest.fn();
     });
@@ -123,7 +127,8 @@ describe("User Input Validation Tests", function () {
     test("password() should accept valid password", async () => {
         user.ask = jest.fn().mockResolvedValueOnce("abcd1234");
         await user.password();
-        expect(user.userInput.password).toBe("abcd1234");
+        expect(hash.hashString()).toHaveBeenCalledWith(user.userInput.password);
+        //expect(hash.compareHash(user.userInput.password,"abcd1234")).toBeTruthy();
     });
 
     test("password() should re-prompt if password too short", async () => {
@@ -132,12 +137,18 @@ describe("User Input Validation Tests", function () {
           .mockResolvedValueOnce("abcd"); 
         await user.password();
         expect(console.log).toHaveBeenCalledWith("Password must be at least 4 characters long.");
-        expect(user.userInput.password).toBe("abcd");
+        expect(hash.hashString).toHaveBeenCalledWith("abcd");
+        //expect(hash.compareHash(user.userInput.password, "abcd")).toBeTruthy();
     });
 });
 
 
 describe("User ask() method", () => {
+
+    beforeEach(() => {
+        jest.clearAllMocks(); // read to clear mocks before each test
+    });
+   
     test("should resolve user input correctly", async () => {
       const user = new User();
   
@@ -377,7 +388,8 @@ describe("User updateAccount Tests", function() {
         await user.updateAccount();
         
         expect(UserDao.readAll).toHaveBeenCalled();
-        expect(UserDao.update).toHaveBeenCalledWith("123", { password: "Loren" });
+        expect(hash.hashString).toHaveBeenCalledWith(updates.password);
+        expect(UserDao.update).toHaveBeenCalledWith("123", hash.hashString());
         expect(console.log).toHaveBeenCalledWith("Account updated to:", updates);
     });
 
@@ -406,49 +418,79 @@ describe("User updateAccount Tests", function() {
     });
 });
 
-describe("User login tests.", function() {
+describe("User login/logout tests.", function() {
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
     test('Successful Login', async function (){
 
-        let req = { body: {login_id: 'oscarr@ex.com', login_pass: '12345'}};
+        let req = { body: {login_id: 'oscarr@ex.com', login_pass: '12345'},
+                    session: {user: null}};
         let res = { redirect: jest.fn() };
-        UserDao.findLogin = jest.fn( async() => ({login:'oscarr@ex.com', password:'12345'}));
+        UserDao.findLogin = jest.fn( async() => ({login:'oscarr@ex.com', password: 'hashed'}));
+        hash.comparePassword = jest.fn( () => true );
         
-        //need to implement findLogin
         await UserController.login(req, res);
 
-        expect(UserDao.findLogin).toHaveBeenCalled();
-        //expect(req.session.user).not.toBeNull();
-        expect(res.redirect).toHaveBeenCalledWith('/profile.html'); //redirect to account page?
+        expect(UserDao.findLogin).toHaveBeenCalledWith(req.body.login_id);
+        expect(req.session.user).not.toBeNull();
+        expect(hash.comparePassword).toHaveBeenCalledWith('12345', 'hashed');
+        expect(res.redirect).toHaveBeenCalledWith('/profile.html'); 
     });
 
     test('Login w/ Wrong Password', async function(){
-        let req = { body: {login_id: 'oscarr@ex.com', login_pass: '12345'}};
+        let req = { body: {login_id: 'oscarr@ex.com', login_pass: '12345'},
+                    session: {user: null}};
         let res = { redirect: jest.fn() };
-        UserDao.findLogin = jest.fn( async() => ({login:'oscarr@ex.com', password:'54321'}));
+        UserDao.findLogin = jest.fn( async() => ({login:'oscarr@ex.com', password:'hashed'}));
+        hash.comparePassword = jest.fn( () => false );
 
-        //need to implement findLogin
         await UserController.login(req, res);
 
         expect(UserDao.findLogin).toHaveBeenCalled();
-        //expect(req.session.user).toBeNull();
-        expect(res.redirect).toHaveBeenCalledWith('/') //login page w/ error message
+        expect(req.session.user).toBeNull();
+        expect(res.redirect).toHaveBeenCalledWith('/login.html?error=2') //login page w/ error message
     });
 
     test('Incorrect Login', async function(){
-        let req = { body: {txt_login: 'oscarr@ex.com', login_pass: '12345'}};
+        let req = { body: {login_id: 'oscarr@ex.com', login_pass: '12345'},
+                    session: {user: null}};
         let res = { redirect: jest.fn() };
         UserDao.findLogin = jest.fn( async() => null);
 
         await UserController.login(req, res);
 
         expect(UserDao.findLogin).toHaveBeenCalled();
-        //expect(req.session.user).toBeNull();
-        expect(res.redirect).toHaveBeenCalledWith('/login.html') //login page w/ error message
+        expect(req.session.user).toBeNull();
+        expect(res.redirect).toHaveBeenCalledWith('/login.html?error=1') //login page w/ error message
     });
+
+    test('Fetch Logged User',async function(){
+        let req = { session: { user: {_id:'a1',permission:1 } }};
+        let res = { status: jest.fn(), //mock res.status function
+                    send: jest.fn(), //mock res.send()
+                    end: jest.fn() //mock res.end()
+                }; 
+    
+        await UserController.loggedUser(req,res);
+    
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.send).toHaveBeenCalledWith({_id:'a1',permission:1 });
+        expect(res.end).toHaveBeenCalled();
+    });
+
+    test('Logout User',async function(){
+        let req = { session: { user: {_id:'a1',permission:1 } }};
+        let res = { redirect: jest.fn(), //mock res.redirect function
+                }; 
+    
+        await UserController.logout(req,res);
+    
+        expect(req.session.user).toBeNull(); 
+        expect(res.redirect).toHaveBeenCalledWith('/');
+    });
+    
 });
 
 describe("User registration tests.", function() {

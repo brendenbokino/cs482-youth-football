@@ -5,58 +5,364 @@
         <meta charset="utf-8">
         <meta name="keywords" content="football, youth league, sports">
         <title>Loyal Order of Youth League Athletes</title>
-        <link href="./css/main.css" rel="stylesheet" type="text/css">
         <link href="./css/popup.css" rel="stylesheet" type="text/css">
+        <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="crossorigin="anonymous"></script>
+
+        <style>
+            body {
+              font-family: 'Inter', 'Segoe UI', sans-serif;
+              background-color: #fafafa;
+              color: #333;
+              margin: 0;
+            }
+        
+            header {
+              background-color: #e6e0f8;
+              color: #3c1361;
+              padding: 0.5rem 2rem;
+              text-align: center;
+              border-bottom: 2px solid #c4b5fd;
+            }
+
+            .header-container {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .logo-title {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            }
+        
+            header h1 {
+              margin: 0.5rem 0;
+              font-size: 1.8rem;
+              font-weight: 600;
+            }
+        
+            .topnav {
+              display: flex;
+              gap: 1rem;
+            }
+        
+            .topnav a {
+              text-decoration: none;
+              color: #3c1361;
+              font-weight: 500;
+              padding: 6px 12px;
+              border-radius: 6px;
+              transition: 0.3s;
+            }
+        
+            .topnav a:hover {
+              background-color: #dcd0ff;
+              color: #2b0a50;
+            }
+        
+            main {
+              max-width: 800px;
+              margin: 2rem auto;
+              padding: 1.5rem;
+              background-color: #ffffff;
+              border-radius: 10px;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+        
+            h2 {
+              text-align: center;
+              color: #3c1361;
+              margin-bottom: 1rem;
+            }
+        
+            form {
+              display: flex;
+              flex-direction: column;
+              gap: 10px;
+            }
+        
+            textarea {
+              border-radius: 8px;
+              border: 1px solid #c4b5fd;
+              padding: 10px;
+              font-size: 1rem;
+              resize: vertical;
+              min-height: 80px;
+            }
+        
+            textarea:focus {
+              outline: none;
+              border-color: #a78bfa;
+              box-shadow: 0 0 3px #c4b5fd;
+            }
+        
+            button {
+              background-color: #a78bfa;
+              color: white;
+              border: none;
+              padding: 10px 14px;
+              border-radius: 6px;
+              font-size: 1rem;
+              cursor: pointer;
+              transition: 0.3s;
+              width: fit-content;
+              align-self: center;
+              margin-top: 5px;
+            }
+        
+            button:hover {
+              background-color: #8b5cf6;
+            }
+        
+            .refresh-btn,
+            .hide-btn {
+              margin-right: 8px;
+            }
+        
+            #confirmationMessage {
+              text-align: center;
+              font-weight: 500;
+              color: #22c55e;
+              margin-top: 10px;
+            }
+        
+            #messageList {
+              margin-top: 20px;
+            }
+        
+            .message {
+              background-color: #f9f9ff;
+              border: 1px solid #e0d7ff;
+              padding: 10px 12px;
+              border-radius: 8px;
+              margin-bottom: 12px;
+            }
+        
+            .message p {
+              margin: 0.4em 0;
+            }
+        
+            footer {
+              text-align: center;
+              font-size: 0.9rem;
+              color: #555;
+              margin-top: 2rem;
+              padding: 1rem 0;
+              border-top: 1px solid #ddd;
+              background-color: #f3f0ff;
+            }
+        </style>
     </head>
     
+    <script> 
+        $(function(){
+          $("#header").load("header.html"); 
+          $("#footer").load("footer.html"); 
+        });
+      </script> 
+
     <body>
-        <header>
-            <img src="./images/logo.png" href="index.html">
-            <h1> Loyal Order of Youth League Athletes </h1>
-            <div class="topnav">
-                <a href="calendar.html">Calendar</a>
-                <a href="team.html">Team</a>
-                <a href="profile.html">Profile</a>
-                <a href="login.html">Login</a>
-                <a href="register.html">Register</a>
-                <a href="photos.html">Photos</a>
-                <a href="coach.html">Coach Account</a>
-                <a href="comms.html">Comms</a>
-            </div>
-        </header>
+        <div id="header"></div>
 
         <main>
             <h2>Team Communications</h2>
             <form id="messageForm" onsubmit="event.preventDefault(); postMessage();">
-                <label for="messageAuthor">Your Name</label>
-                <input type="text" id="messageAuthor" name="messageAuthor" required>
-        
-                <label for="messageAuthorType">Author Type</label>
-                <select id="messageAuthorType" name="messageAuthorType" required>
-                    <option value="">Select...</option>
-                    <option value="1">Coach</option>
-                    <option value="2">Parent</option>
-                    <option value="3">Player</option>
-                </select>
-        
                 <label for="messageBody">Message</label>
                 <textarea id="messageBody" name="messageBody" rows="4" required></textarea>
-        
+
                 <button type="submit">Send Message</button>
             </form>
 
             <p id="confirmationMessage" style="display: none; color: green;">Message sent successfully!</p>
             <button class="refresh-btn" onclick="viewMessages()">View Messages</button>
+            <button class="hide-btn" onclick="toggleMessages()">Hide Messages</button>
             <div id="messageList"></div>
         </main>
             
-        <footer>
-            <p>
-                Loyal Order of Youth League Athletes
-                <br>
-                contact info
-            </p>
-        </footer>
+        <div id="footer"></div>
+        <script>
+            function getAuthorType(permission) {
+                switch (permission) {
+                    case 1: return 'Coach';
+                    case 2: return 'Parent';
+                    case 3: return 'Player';
+                    default: return 'User';
+                }
+            }
+
+            async function checkLoginStatus() {
+                // session-based login not working
+                // try {
+                //     const response = await fetch('/comms/viewMessages', { credentials: 'include' });
+                //     if (response.status === 401) {
+                //         window.location.href = 'login.html';
+                //         return false;
+                //     }
+                //     const data = await response.json();
+                //     if (!data.loggedIn) {
+                //         window.location.href = 'login.html';
+                //         return false;
+                //     }
+                //     return true;
+                // } catch (error) {
+                //     console.error('Network error during login status check:', error);
+                //     window.location.href = 'login.html';
+                //     return false;
+                // }
+                return true; // Allow access without session checks
+            }
+
+            async function postMessage() {
+                const messageBody = document.getElementById('messageBody').value;
+                if (!messageBody) {
+                    alert("Message cannot be empty.");
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/comms/postMessage', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message: messageBody }),
+                        credentials: 'include', 
+                    });
+
+                    if (response.ok) {
+                        document.getElementById("confirmationMessage").style.display = "block";
+                        setTimeout(() => {
+                            document.getElementById("confirmationMessage").style.display = "none";
+                        }, 3000);
+                        document.getElementById("messageForm").reset();
+                        viewMessages();
+                    } else {
+                        const result = await response.json();
+                        console.error("Post failed:", result.error || "Unknown server error.");
+                        alert("Failed to post message: " + (result.error || "Unknown error."));
+                    }
+                } catch (error) {
+                    console.error('Network error during post:', error);
+                    alert("Network error. Please try again.");
+                }
+            }
+
+            async function deleteMessage(messageId) {
+                try {
+                    const response = await fetch(`/comms/deleteMessage/${messageId}`, {
+                        method: 'DELETE',
+                        credentials: 'include',
+                    });
+
+                    if (response.ok) {
+                        alert("Message deleted successfully.");
+                        viewMessages();
+                    } else {
+                        const result = await response.json();
+                        alert("Failed to delete message: " + (result.error || "Unknown error."));
+                    }
+                } catch (error) {
+                    console.error('Network error during delete:', error);
+                    alert("Network error. Please try again.");
+                }
+            }
+
+            async function updateMessage(messageId) {
+                const newMessage = prompt("Enter the updated message:");
+                if (!newMessage) return;
+
+                try {
+                    const response = await fetch(`/comms/updateMessage/${messageId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message: newMessage }),
+                        credentials: 'include',
+                    });
+
+                    if (response.ok) {
+                        alert("Message updated successfully.");
+                        viewMessages();
+                    } else {
+                        const result = await response.json();
+                        alert("Failed to update message: " + (result.error || "Unknown error."));
+                    }
+                } catch (error) {
+                    console.error('Network error during update:', error);
+                    alert("Network error. Please try again.");
+                }
+            }
+
+            async function viewMessages() {
+                try {
+                    const response = await fetch('/comms/viewMessages', {
+                        method: 'GET',
+                        credentials: 'include', 
+                    });
+
+                    console.log("Response status:", response.status); // Log response status
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log("Fetched messages:", data); // Log fetched messages
+                        const messageList = document.getElementById('messageList');
+                        messageList.innerHTML = '';
+
+                        const user = await fetch('/loggedUser', { credentials: 'include' }).then(res => res.json());
+
+                        data.messages.forEach(msg => {
+                            const msgDiv = document.createElement('div');
+                            msgDiv.classList.add('message');
+
+                            const authorType = getAuthorType(msg.authorType);
+                            const updatedAt = msg.edited ? ` (updated at ${new Date(msg.dateEdited).toLocaleString()})` : '';
+
+                            msgDiv.innerHTML = `
+                                <p><strong>${msg.author} (${authorType})${updatedAt}:</strong></p>
+                                <p>${msg.message}</p>
+                            `;
+
+                            if (user.name === msg.author) {
+                                const deleteBtn = document.createElement('button');
+                                deleteBtn.textContent = 'Delete';
+                                deleteBtn.onclick = () => deleteMessage(msg._id);
+
+                                const updateBtn = document.createElement('button');
+                                updateBtn.textContent = 'Update';
+                                updateBtn.onclick = () => updateMessage(msg._id);
+
+                                msgDiv.appendChild(deleteBtn);
+                                msgDiv.appendChild(updateBtn);
+                            }
+
+                            messageList.appendChild(msgDiv);
+                        });
+                    } else {
+                        const result = await response.json();
+                        console.error("Failed to fetch messages:", result.error || "Unknown server error.");
+                        alert("Failed to fetch messages: " + (result.error || "Unknown error."));
+                    }
+                } catch (error) {
+                    console.error('Network error during message retrieval:', error); // Log network error
+                    alert("Network error. Please try again.");
+                }
+            }
+
+            function toggleMessages() {
+                const messageList = document.getElementById('messageList');
+                const hideBtn = document.querySelector('.hide-btn');
+
+                if (messageList.style.display === 'none' ){ //|| messageList.style.display === '') {
+                    messageList.style.display = 'block';
+                    hideBtn.textContent = 'Hide Messages';
+                } else {
+                    messageList.style.display = 'none';
+                    hideBtn.textContent = 'View Messages';
+                }
+            }
+        </script>
     </body>
 </html>
 

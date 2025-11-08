@@ -6,6 +6,6 @@ exports.hashString = function(str) {
     return hash;
 }
 
-exports.compareHash = function(hash1, hash2){
-    return bcrypt.compareSync(hash1, hash2);
+exports.compareHash = function(string, hash){
+    return bcrypt.compareSync(string, hash);
 }
