@@ -5,23 +5,19 @@
         <meta charset="utf-8">
         <meta name="keywords" content="football, youth league, sports">
         <title>Loyal Order of Youth League Athletes</title>
-        <link href="./css/main.css" rel="stylesheet" type="text/css">
         <link href="./css/bracket.css" rel="stylesheet" type="text/css">
+        <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="crossorigin="anonymous"></script>
     </head>
 
+    <script> 
+        $(function(){
+          $("#header").load("header.html"); 
+          $("#footer").load("footer.html"); 
+        });
+      </script> 
+
     <body>
-        <header>
-            <img src="./images/logo.png" href="index.html">
-            <h1> Loyal Order of Youth League Athletes </h1>
-            <div class="topnav">
-                <a href="calendar.html">Calendar</a>
-                <a href="team.html">Team</a>
-                <a href="profile.html">Profile</a>
-                <a href="login.html">Login</a>
-                <a href="register.html">Register</a>
-                <a href="photos.html">Photos</a>
-            </div>
-        </header>
+        <div id="header"></div>
 
         <main>
             <h1>Playoff Bracket</h1>
@@ -54,13 +50,7 @@
     <script src="../../src/Bracket.js"></script>
         </main>
 
-        <footer>
-            <p>
-                Loyal Order of Youth League Athletes
-                <br>
-                contact info
-            </p>
-        </footer>
+        <div id="footer"></div>
     </body>
 </html>
 
