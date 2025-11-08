@@ -58,10 +58,13 @@ class TeamController {
 
     // Get all teams
     async getAllTeams (req, res) {
+
         try {
             let allTeams = await TeamDao.readAll();
             res.status = 200;
             res.send = { success: true, teams: allTeams };
+
+            
         } catch (error) {
             res.status = 500;
             res.send = { error: "Failed to fetch teams" };
@@ -288,6 +291,8 @@ class TeamController {
 
             res.status = 200;
             res.send = { success: true, message: "Team has been registered", team: team };
+
+
         } catch (error) {
             res.status = 500;
             res.send = { error: "Failed to register team" };
@@ -339,7 +344,7 @@ exports.register = async function (req, res) {
         return res.redirect('/team.html'); // Add 'return' to stop further execution
     } else {
         // if it fails then just send information back 
-        console.error('Game creation failed. Sending error response.'); // Optional logging
+        console.error('Team creation failed. Sending error response.'); // Optional logging
         return res.status(mockRes.status || 500).json(mockRes.send || { error: 'Unknown error during game creation' });
     }
 }
@@ -360,16 +365,19 @@ exports.update = async function (req, res) {
     req.params.id = req.body.updateTeamId;
     
     const team = new TeamController();
-    const mockRes = { status: null, send: null };
+    const mockRes = { status: null, teams: null };
     await team.updateTeam(req, mockRes);
     
 
 }
 
 exports.getAll = async function (req, res) {
-    const team = new TeamController();
+
+    const controller = new TeamController();
     const mockRes = { status: null, send: null };
-    await team.getAllTeams(req, mockRes);
+    await controller.getAllTeams({}, mockRes);
+    res.status(mockRes.status || 500).json(mockRes.send || { error: 'Unknown error' });
+    return;
     
     return;
 }

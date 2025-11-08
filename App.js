@@ -81,7 +81,7 @@ const UserController = require('./src/UserController')
 app.post('/loginuser', UserController.login);
 app.post('/registeruser', UserController.register);
 
-app.post('/logoutuser', UserController.logout);
+app.get('/logoutuser', UserController.logout);
 app.get('/loggeduser', UserController.loggedUser);
 
 //Team Controller Functions
@@ -104,7 +104,9 @@ app.post('/teamregister', TeamController.register,(req, res) => {
   res.redirect("/team.html");
   
 })
+
 app.get('/teams', TeamController.getAll);
+
 app.get('/teamsid', TeamController.getById);
 app.post('/teamsupdate', TeamController.update);
 app.post('/teamsaddplayer', TeamController.addPlayer);

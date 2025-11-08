@@ -46,6 +46,8 @@ class GameController {
         let allGames = await gameDao.readAll();
         res.status = 200;
         res.send = allGames;
+
+        
         
         
     }
