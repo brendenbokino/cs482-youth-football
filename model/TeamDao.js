@@ -5,7 +5,8 @@ const teamSchema = new mongoose.Schema({
     teamName: String,
     players: Array,
     coach: String,
-    games: Array
+    games: Array,
+    _id:Stirng
 });
 
 const teamModel = mongoose.model('teams', teamSchema);
@@ -15,14 +16,15 @@ exports.readAll = async function(){
     return teams;
 }
 
-exports.read = async function(id){
-    let team = await teamModel.findById(id);
-    return team;
-}
 
 exports.create = async function(newteam){
     const team = new teamModel(newteam);
     await team.save();
+    return team;
+}
+
+exports.read = async function(id){
+    let team = await teamModel.findById(id);
     return team;
 }
 

@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="football, youth league, sports">
+    <title>Teams - Loyal Order of Youth League Athletes</title>
+    <link href="./css/main.css" rel="stylesheet" type="text/css">
+    <link href="./css/popup.css" rel="stylesheet" type="text/css">
+    <style>
+        .teams-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 18px;
+            color: #666;
+            padding: 40px;
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .teams-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .team-card {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .team-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .team-card.editable::after {
+            content: "Click to Edit";
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #007bff;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .team-header {
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .team-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+            margin: 0 0 5px 0;
+        }
+
+        .team-id {
+            font-size: 12px;
+            color: #666;
+            font-family: monospace;
+        }
+
+        .coach-section {
+            margin: 15px 0;
+        }
+
+        .coach-label {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .coach-name {
+            color: #555;
+            font-size: 16px;
+        }
+
+        .players-section {
+            margin-top: 15px;
+        }
+
+        .players-label {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .players-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .player-item {
+            padding: 6px 10px;
+            background-color: #f8f9fa;
+            margin: 4px 0;
+            border-radius: 4px;
+            border-left: 3px solid #28a745;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .remove-player-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 2px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .remove-player-btn:hover {
+            background-color: #c82333;
+        }
+
+        .no-players {
+            color: #999;
+            font-style: italic;
+        }
+
+        .games-count {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #e7f3ff;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 14px;
+            color: #004085;
+        }
+
+        .no-teams {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .no-teams h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .refresh-button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 20px;
+            text-decoration: none;
+        }
+
+        .refresh-button:hover {
+            background-color: #0056b3;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .teams-count {
+            font-size: 18px;
+            color: #666;
+        }
+
+        .role-selector {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 2px solid #007bff;
+        }
+
+        .role-selector label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .role-selector select {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        .role-selector input {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+
+        .form-section {
+            margin: 20px 0;
+        }
+
+        .form-section label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .form-section input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .add-player-section {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .add-player-section input {
+            flex: 1;
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .admin-badge {
+            display: inline-block;
+            background-color: #dc3545;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .coach-badge {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <img src="./images/logo.png" href="index.html">
+        <h1> Loyal Order of Youth League Athletes </h1>
+        <div class="topnav">
+            <a href="calendar.html">Calendar</a>
+            <a href="team.html">Team</a>
+            <a href="profile.html">Profile</a>
+            <a href="login.html">Login</a>
+            <a href="register.html">Register</a>
+            <a href="photos.html">Photos</a>
+            <a href="coach.html">Coach Account</a>
+            <a href="comms.html">Comms</a>
+        </div>
+    </header>
+
+    <main>
+        <div class="teams-container">
+            <div class="page-header">
+                <h2>All Teams in League</h2>
+                <button class="refresh-button" onclick="loadTeams()">Refresh Teams</button>
+            </div>
+
+            <!-- Role Selector for Demo/Testing -->
+            <div class="role-selector">
+                <label for="userRole">Your Role:</label>
+                <select id="userRole" onchange="updateUserRole()">
+                    <option value="viewer">Viewer (Read Only)</option>
+                    <option value="coach">Coach</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <span id="roleBadge"></span>
+                
+                <span style="margin-left: 20px;">
+                    <label for="coachName">Coach Name (if coach):</label>
+                    <input type="text" id="coachName" placeholder="Enter your name" style="width: 200px;" onchange="updateUserRole()">
+                </span>
+            </div>
+            
+            <div class="teams-count" id="teamsCount"></div>
+            
+            <div id="loadingMessage" class="loading">Loading teams...</div>
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+            <div id="successMessage" class="success-message" style="display: none;"></div>
+            <div id="teamsGrid" class="teams-grid"></div>
+        </div>
+    </main>
+
+    <!-- Team Edit Popup -->
+    <div id="teamPopup" class="popup">
+        <div class="popup-content">
+            <div class="popup-header">
+                <h2 id="popupTitle">Team Details</h2>
+                <span class="close" onclick="closeTeamPopup()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="popupContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>
+            Loyal Order of Youth League Athletes
+            <br>
+            contact info
+        </p>
+    </footer>
+
+    <script>
+        let currentUser = {
+            role: 'viewer',
+            coachName: ''
+        };
+        let teamsData = [];
+        let currentTeam = null;
+
+        function updateUserRole() {
+            currentUser.role = document.getElementById('userRole').value;
+            currentUser.coachName = document.getElementById('coachName').value.trim();
+            
+            const roleBadge = document.getElementById('roleBadge');
+            if (currentUser.role === 'admin') {
+                roleBadge.innerHTML = '<span class="admin-badge">ADMIN ACCESS</span>';
+            } else if (currentUser.role === 'coach') {
+                roleBadge.innerHTML = '<span class="coach-badge">COACH ACCESS</span>';
+            } else {
+                roleBadge.innerHTML = '';
+            }
+            
+            // Refresh display to show/hide edit indicators
+            if (teamsData.length > 0) {
+                displayTeams(teamsData);
+            }
+        }
+
+        function canEditTeam(team) {
+            if (currentUser.role === 'admin') return true;
+            if (currentUser.role === 'coach' && currentUser.coachName && 
+                team.coach.toLowerCase() === currentUser.coachName.toLowerCase()) {
+                return true;
+            }
+            return false;
+        }
+
+        async function loadTeams() {
+            const loadingDiv = document.getElementById('loadingMessage');
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+            const teamsGrid = document.getElementById('teamsGrid');
+            const teamsCount = document.getElementById('teamsCount');
+
+            loadingDiv.style.display = 'block';
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+            teamsGrid.innerHTML = '';
+            teamsCount.textContent = '';
+
+            try {
+                const response = await fetch('/teams');
+                const data = await response.json();
+
+                loadingDiv.style.display = 'none';
+
+                if (data.success && data.teams) {
+                    teamsData = data.teams;
+                    if (data.teams.length === 0) {
+                        teamsGrid.innerHTML = `
+                            <div class="no-teams">
+                                <h3>No Teams Found</h3>
+                                <p>There are currently no teams registered in the league.</p>
+                                <a href="team.html" class="refresh-button">Register a Team</a>
+                            </div>
+                        `;
+                    } else {
+                        teamsCount.textContent = `Total Teams: ${data.teams.length}`;
+                        displayTeams(data.teams);
+                    }
+                } else {
+                    throw new Error(data.error || 'Failed to load teams');
+                }
+            } catch (error) {
+                loadingDiv.style.display = 'none';
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = `Error loading teams: ${error.message}`;
+            }
+        }
+
+        function displayTeams(teams) {
+            const teamsGrid = document.getElementById('teamsGrid');
+            teamsGrid.innerHTML = '';
+            
+            teams.forEach(team => {
+                const teamCard = document.createElement('div');
+                teamCard.className = 'team-card';
+                
+                const canEdit = canEditTeam(team);
+                if (canEdit) {
+                    teamCard.classList.add('editable');
+                    teamCard.onclick = () => openTeamPopup(team);
+                }
+                
+                const playersHTML = team.players && team.players.length > 0
+                    ? team.players.map(player => `<li class="player-item"><span>${escapeHtml(player)}</span></li>`).join('')
+                    : '<div class="no-players">No players registered</div>';
+
+                const gamesCount = team.games ? team.games.length : 0;
+
+                teamCard.innerHTML = `
+                    <div class="team-header">
+                        <h3 class="team-name">${escapeHtml(team.teamName)}</h3>
+                        <div class="team-id">ID: ${escapeHtml(team._id)}</div>
+                    </div>
+                    
+                    <div class="coach-section">
+                        <div class="coach-label">Coach:</div>
+                        <div class="coach-name">${escapeHtml(team.coach)}</div>
+                    </div>
+                    
+                    <div class="players-section">
+                        <div class="players-label">Players (${team.players ? team.players.length : 0}):</div>
+                        <ul class="players-list">
+                            ${playersHTML}
+                        </ul>
+                    </div>
+                    
+                    <div class="games-count">
+                        <strong>${gamesCount}</strong> game${gamesCount !== 1 ? 's' : ''} scheduled
+                    </div>
+                `;
+                
+                teamsGrid.appendChild(teamCard);
+            });
+        }
+
+        function openTeamPopup(team) {
+            currentTeam = team;
+            const popup = document.getElementById('teamPopup');
+            const popupTitle = document.getElementById('popupTitle');
+            const popupContent = document.getElementById('popupContent');
+            
+            popupTitle.textContent = `Edit Team: ${team.teamName}`;
+            
+            const playersListHTML = team.players && team.players.length > 0
+                ? team.players.map((player, idx) => `
+                    <div class="player-item">
+                        <span>${escapeHtml(player)}</span>
+                        <button class="remove-player-btn" onclick="removePlayer(${idx})">Remove</button>
+                    </div>
+                `).join('')
+                : '<div class="no-players">No players registered</div>';
+            
+            popupContent.innerHTML = `
+                <div class="game-info">
+                    <div class="game-info-item">
+                        <strong>Team ID:</strong> ${escapeHtml(team._id)}
+                    </div>
+                    <div class="game-info-item">
+                        <strong>Games Scheduled:</strong> ${team.games ? team.games.length : 0}
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <label for="editCoachName">Coach Name:</label>
+                    <input type="text" id="editCoachName" value="${escapeHtml(team.coach)}">
+                </div>
+
+                <div class="form-section">
+                    <label>Players (${team.players ? team.players.length : 0}):</label>
+                    <div class="players-list" id="editPlayersList">
+                        ${playersListHTML}
+                    </div>
+                    
+                    <div class="add-player-section">
+                        <input type="text" id="newPlayerName" placeholder="New player name">
+                        <button class="btn btn-primary" onclick="addPlayer()">Add Player</button>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="saveTeamChanges()">Save Changes</button>
+                    <button class="btn btn-secondary" onclick="closeTeamPopup()">Cancel</button>
+                </div>
+            `;
+            
+            popup.style.display = 'block';
+        }
+
+        function closeTeamPopup() {
+            document.getElementById('teamPopup').style.display = 'none';
+            currentTeam = null;
+        }
+
+        async function saveTeamChanges() {
+            if (!currentTeam) return;
+
+            const newCoachName = document.getElementById('editCoachName').value.trim();
+            
+            if (!newCoachName) {
+                alert('Coach name cannot be empty');
+                return;
+            }
+
+            try {
+                const response = await fetch('/teamsupdate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        updateTeamId: currentTeam._id,
+                        coach: newCoachName,
+                        players: currentTeam.players
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showSuccess('Team updated successfully!');
+                    closeTeamPopup();
+                    await loadTeams();
+                } else {
+                    alert('Error updating team: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Error updating team: ' + error.message);
+            }
+        }
+
+        async function addPlayer() {
+            if (!currentTeam) return;
+
+            const newPlayerName = document.getElementById('newPlayerName').value.trim();
+            
+            if (!newPlayerName) {
+                alert('Please enter a player name');
+                return;
+            }
+
+            if (currentTeam.players.includes(newPlayerName)) {
+                alert('Player already exists on this team');
+                return;
+            }
+
+            currentTeam.players.push(newPlayerName);
+            
+            // Update the display
+            const playersListHTML = currentTeam.players.map((player, idx) => `
+                <div class="player-item">
+                    <span>${escapeHtml(player)}</span>
+                    <button class="remove-player-btn" onclick="removePlayer(${idx})">Remove</button>
+                </div>
+            `).join('');
+            
+            document.getElementById('editPlayersList').innerHTML = playersListHTML;
+            document.getElementById('newPlayerName').value = '';
+        }
+
+        function removePlayer(index) {
+            if (!currentTeam) return;
+            
+            if (confirm(`Remove ${currentTeam.players[index]} from the team?`)) {
+                currentTeam.players.splice(index, 1);
+                
+                // Update the display
+                const playersListHTML = currentTeam.players.length > 0
+                    ? currentTeam.players.map((player, idx) => `
+                        <div class="player-item">
+                            <span>${escapeHtml(player)}</span>
+                            <button class="remove-player-btn" onclick="removePlayer(${idx})">Remove</button>
+                        </div>
+                    `).join('')
+                    : '<div class="no-players">No players registered</div>';
+                
+                document.getElementById('editPlayersList').innerHTML = playersListHTML;
+            }
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Close popup when clicking outside
+        window.onclick = function(event) {
+            const popup = document.getElementById('teamPopup');
+            if (event.target === popup) {
+                closeTeamPopup();
+            }
+        }
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            updateUserRole();
+            loadTeams();
+        });
+    </script>
+</body>
+
+</html>
