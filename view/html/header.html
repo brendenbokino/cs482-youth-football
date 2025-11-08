@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en-us">
+    <head>
+        <meta charset="utf-8">
+        <meta name="keywords" content="football, youth league, sports">
+        <title>Loyal Order of Youth League Athletes</title>
+        <link href="./css/main.css" rel="stylesheet" type="text/css">
+    </head>
+
+<nav class="navbar navbar-expand bg-purple" style="background-color: #442E7A;">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+          
+          <!-- Brand: logo + text side by side -->
+          <a href="index.html" class="navbar-brand d-flex align-items-center text-white text-decoration-none">
+            <img src="./images/logo.png" alt="LOYLA Logo" style="width: 70px; height: 70px;">
+            <span class="ms-2 fs-4 fw-bold">Loyal Order of Youth League Athletes</span>
+          </a>
+
+          <!-- Nav links -->
+          <ul class="navbar-nav ms-auto">
+            <!-- Spikes Dropdown -->
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown">Spikes</a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="calendarSPIKE.html">Calendar</a></li>
+                    <li><a class="dropdown-item" href="livelinkSPIKE.html">Live Link</a></li>
+                    <li><a class="dropdown-item" href="photos.html">Upload Photos</a></li>
+                </ul>
+            </li>
+
+            <!-- Calendar -->
+            <li class="nav-item" >
+              <a href="calendar.html" class="nav-link text-white">Calendar</a>
+            </li>
+
+            <!-- Bracket -->
+            <li class="nav-item" >
+              <a href="bracket.html" class="nav-link text-white">Bracket</a>
+            </li>
+            
+            <!-- Communication -->
+            <li class="nav-item" >
+              <a href="comms.html" class="nav-link text-white"><i class="bi bi-envelope-open-fill"></i></a>
+            </li>
+
+            <!-- Admin (Hidden if not logged in) -->
+            <li id="admin-page" style="display:none" class="nav-item" >
+              <a href="admin.html" class="nav-link text-white">Admin</a>
+            </li>
+
+            <!-- Team (Hidden if not logged in) -->
+            <li id="team-page" style="display:none" class="nav-item" >
+              <a href="team.html" class="nav-link text-white">Team</a>
+            </li>
+            
+            <!-- Account Dropdown -->
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown"><span class="bi-person-circle"></span></a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li id="menu-login"><a class="dropdown-item" href="login.html">Login</a></li>
+                    <li id="menu-register"><a class="dropdown-item" href="register.html">Register</a></li>
+                    <li id="menu-profile" style="display:none"><a class="dropdown-item" href="#">Profile</a></li>
+                    <li id="menu-logout" style="display:none"><a class="dropdown-item" href="logout">Logout</a></li>
+                </ul>
+            </li>
+          </ul>
+
+        </div>
+      </nav>
+    
+</html>

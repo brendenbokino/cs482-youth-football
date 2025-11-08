@@ -219,17 +219,17 @@ exports.login = async function(req, res){
     let user = await UserDao.findLogin(plogin); 
 
     if (user == null){ //login not found
-        res.redirect('/login.html'); //redirect back to login, NtE error message
+        res.redirect('/login.html?error=1'); //redirect back to login, NtE error message
     } else {
         if (hash.compareHash(req.body.login_pass, user.password)){
             //passwords match
             console.log('successful login');
 
             req.session.user = user;
-            res.redirect('/profile.html') //redirect to home page, could change 
+            res.redirect('/profile.html') 
 
         } else{ //passwords do not match
-            res.redirect('/') //redirect back to login, NtE error message
+            res.redirect('/login.html?error=2') //redirect back to login, NtE error message
 
         }
     } 
