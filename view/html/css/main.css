@@ -55,7 +55,6 @@ header h1{
   }
 
 footer {
-    position: fixed;
     left: 0;
     bottom: 0;
     width: 100%;
@@ -76,20 +75,39 @@ body {
     margin: 0;
   }
 
+.btn-purple {
+    background-color: #852AD5;
+    color: white;
+    border-color: #852AD5;
+}
+
+.btn-purple:hover {
+    background-color: #7324be;
+    color: white;
+    border-color: #7324be;
+}
+
+.btn-purple:active,
+.btn-purple:focus {
+    background-color: #651ea7;
+    color: white;
+    border-color: #651ea7;
+}
+
 .logo-title {
     display: flex;
     align-items: center;
     gap: 0.75rem;
 }
 
-main {
+/* main {
     max-width: 800px;
     margin: 2rem auto;
     padding: 1.5rem;
     background-color: #ffffff;
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
+} */
 
   h2 {
     text-align: center;
@@ -97,6 +115,7 @@ main {
     margin-bottom: 1rem;
   }
 
+  /*
   form {
     display: flex;
     flex-direction: column;
@@ -117,7 +136,7 @@ main {
     border-color: #a78bfa;
     box-shadow: 0 0 3px #c4b5fd;
   }
-
+*/
   button {
     background-color: #a78bfa;
     color: white;

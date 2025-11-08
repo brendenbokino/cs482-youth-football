@@ -104,7 +104,9 @@ app.post('/teamregister', TeamController.register,(req, res) => {
   res.redirect("/team.html");
   
 })
+
 app.get('/teams', TeamController.getAll);
+
 app.get('/teamsid', TeamController.getById);
 app.post('/teamsupdate', TeamController.update);
 app.post('/teamsaddplayer', TeamController.addPlayer);

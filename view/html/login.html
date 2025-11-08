@@ -5,6 +5,11 @@
         <meta charset="utf-8">
         <meta name="keywords" content="football, youth league, sports">
         <title>Loyal Order of Youth League Athletes</title>
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+        <!-- Bootrap Icons for the Icons -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
         <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="crossorigin="anonymous"></script>
     </head>
 
@@ -19,13 +24,31 @@
         <div id="header"></div>
 
         <main>
-            <form method="post" action="/loginuser">
-                <label for="login_id">Email or Username:</label><br>
-                <input type="text" id="login_id" name="login_id"><br>
-                <label for="login_pass">Password:</label><br>
-                <input type="password" id="login_pass" name="login_pass"><br><br>
-                <input type="submit" value="Submit">
-            </form>
+            <div class="container pt-5 pb-5">
+                <div class="row justify-content-center align-items-center">
+                    <div class="col-8">
+                        <h2 class="text-center mb-4">Login</h2>
+                        <form method="post" action="/loginuser">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="login_id" placeholder="placeholder">
+                                <label for="login_id">Email or Username</label>
+                            </div>
+                            
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" id="login_pass" placeholder="placeholder">
+                                <label for="login_pass">Password</label>
+                            </div>
+
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-purple">
+                                    Login
+                                </button>                                
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
 
             <div class="container">
                 <div class="row">
