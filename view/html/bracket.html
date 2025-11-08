@@ -25,29 +25,69 @@
         <!-- Round 1 -->
         <div class="round" id="round1">
             <div class="matchup">
-                <div class="team" onclick="pickWinner(this, 'match1-winner')">Team A</div>
-                <div class="team" onclick="pickWinner(this, 'match1-winner')">Team B</div>
+                <div class="team" onclick="pickWinner(this, 'match1-winner')">1 Seed</div>
+                <div class="team" onclick="pickWinner(this, 'match1-winner')">8 Seed</div>
             </div>
             <div class="matchup">
-                <div class="team" onclick="pickWinner(this, 'match2-winner')">Team C</div>
-                <div class="team" onclick="pickWinner(this, 'match2-winner')">Team D</div>
+                <div class="team" onclick="pickWinner(this, 'match2-winner')">4 Seed</div>
+                <div class="team" onclick="pickWinner(this, 'match2-winner')">5 Seed</div>
+            </div>
+            <div class="matchup">
+                <div class="team" onclick="pickWinner(this, 'match3-winner')">3 Seed</div>
+                <div class="team" onclick="pickWinner(this, 'match3-winner')">6 Seed</div>
+            </div>
+            <div class="matchup">
+                <div class="team" onclick="pickWinner(this, 'match4-winner')">2 Seed</div>
+                <div class="team" onclick="pickWinner(this, 'match4-winner')">7 Seed</div>
             </div>
         </div>
         <!-- Round 2 -->
         <div class="round" id="round2">
             <div class="matchup">
-                <div class="team" id="match1-winner">Winner A/B</div>
-                <div class="team" id="match2-winner">Winner C/D</div>
+                <div class="team" id="match1-winner" onclick="pickWinner(this, 'match5-winner')">Winner 1/8</div>
+                <div class="team" id="match2-winner" onclick="pickWinner(this, 'match5-winner')">Winner 4/5</div>
+            </div>
+            <div class="matchup">
+                <div class="team" id="match3-winner" onclick="pickWinner(this, 'match6-winner')">Winner 3/6</div>
+                <div class="team" id="match4-winner" onclick="pickWinner(this, 'match6-winner')">Winner 2/7</div>
+            </div>
+        </div>
+        <div class="round" id="round3">
+            <div class="matchup">
+                <div class="team" id="match5-winner" onclick="pickWinner(this, 'match7-winner')">Winner Top</div>
+                <div class="team" id="match6-winner" onclick="pickWinner(this, 'match7-winner')">Winner Bottom</div>
             </div>
         </div>
         <!-- Final Round -->
         <div class="round" id="final-round">
             <div class="matchup">
-                <div class="team" id="final-winner">Tournament Winner</div>
+                <div class="team" id="match7-winner">Tournament Winner</div>
             </div>
         </div>
     </div>
-    <script src="../../src/Bracket.js"></script>
+    <script>
+        function pickWinner(clickedTeam, nextRoundTeamId) {
+        console.log(clickedTeam);
+        const match = clickedTeam.parentElement;
+        // Remove 'winner' class from any other team in the same match
+        const teamsInMatch = match.querySelectorAll('.team');
+        teamsInMatch.forEach(team => {
+        team.classList.remove('winner');
+        });
+
+        // Add 'winner' class to the clicked team
+        clickedTeam.classList.add('winner');
+
+        // Update the next round with the winner's name
+        const winnerName = clickedTeam.textContent;
+        const nextRoundTeam = document.getElementById(nextRoundTeamId);
+        if (nextRoundTeam) {
+            nextRoundTeam.textContent = winnerName;
+            // Optional: add a class to the next round team to indicate it's filled
+            nextRoundTeam.classList.add('filled'); 
+        }
+    }
+    </script>
         </main>
 
         <div id="footer"></div>
