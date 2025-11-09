@@ -65,7 +65,7 @@
 
               <div class="container pt-2">
                 <div class="row justify-content-center align-items-center g-2">
-                  <div class="col">
+                  <div class="col" id="whoarewe">
                     <h2>Who are we?</h2>
                   </div>  
                 </div>
@@ -79,6 +79,24 @@
         </main>
 
        <div id="footer"></div>
+       <script type='text/javascript' onerror="alert('error!')">
+        async function checkLoggedUser(){
+            let response = await fetch('/loggeduser');
+            let user =  await response.json();   
+            /**if (document.getElementById('menu-profile') != null) {
+              document.getElementById("whoarewe").innerHTML += ` menu-profile found`
+            } else{
+              document.getElementById("whoarewe").innerHTML += ` menu-profile not found`
+            }**/
+            if (user != null){
+              document.getElementById("menu-profile").style="display:inherit"
+              document.getElementById("menu-logout").style="display:inherit";
+              document.getElementById("menu-login").style="display:none";
+              document.getElementById("menu-register").style="display:none";
+            } 
+        }
+    checkLoggedUser();
+    </script>
     </body>
 </html>
 
