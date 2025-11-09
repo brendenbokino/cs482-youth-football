@@ -151,7 +151,7 @@ body {
     box-shadow: 0 0 3px #c4b5fd;
   }
 */
-  button {
+  /* button {
     background-color: #a78bfa;
     color: white;
     border: none;
@@ -172,7 +172,7 @@ body {
   .refresh-btn,
   .hide-btn {
     margin-right: 8px;
-  }
+  } */
 
   #confirmationMessage {
     text-align: center;
@@ -180,3 +180,72 @@ body {
     color: #22c55e;
     margin-top: 10px;
   }
+
+  /* Section Dropdown */
+.btn-section-dropdown {
+    width: 100%;
+    background-color: #f8f9fa;
+    border: none;
+    border-top: 1px solid #dee2e6;
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 0;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+
+.btn-section-dropdown:hover {
+    background-color: #e9ecef;
+}
+
+.btn-section-dropdown h5 {
+    margin: 0;
+    font-weight: 600;
+    color: #3c1361;
+    font-size: 1.1rem;
+}
+
+.btn-section-dropdown .toggle-icon {
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: #852AD5;
+    transition: transform 0.3s ease;
+    line-height: 1;
+}
+
+.btn-section-dropdown:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* Navbar links hover effect */
+.navbar-nav .nav-link {
+    transition: background-color 0.3s ease;
+    border-radius: 6px;
+}
+
+.navbar-nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Dropdown items hover */
+.dropdown-item {
+    transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: #e6e0f8;
+    color: #3c1361;
+}
+
+/* Brand logo hover */
+.navbar-brand {
+    transition: opacity 0.3s ease;
+}
+
+.navbar-brand:hover {
+    opacity: 0.9;
+}
