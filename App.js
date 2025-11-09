@@ -17,6 +17,7 @@ const UserDao = require('./model/UserDao');
 const Comms = require('./src/Comms'); 
 const MessageDao = require('./model/MessageDao');
 const { login, register, logout, loggedUser } = require('./src/UserController');
+app.use(express.static(path.join(__dirname, 'src')));
 
 app = express()
 

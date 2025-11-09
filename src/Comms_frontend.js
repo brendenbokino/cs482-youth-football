@@ -9,9 +9,9 @@ function getAuthorType(permission) {
 
 async function checkLoginStatus() {
     try {
-        const response = await fetch('/loggedUser', { credentials: 'include' });
+        const response = await fetch('/loggedUser', { credentials: 'include' }).then(res => res.json());
         if (response.status === 401) {
-            window.location.href = 'login.html';
+            window.location.href = '../view/htmllogin.html';
             return false;
         }
         return true;
@@ -21,38 +21,36 @@ async function checkLoginStatus() {
     }
 }
 
-async function postMessage() {
-    const messageBody = document.getElementById('messageBody').value;
+async function postMessage(event) {
+    event.preventDefault();
+  
+    const messageBody = document.getElementById('messageBody').value.trim();
     if (!messageBody) {
-        alert("Message cannot be empty.");
-        return;
+      alert("Message cannot be empty.");
+      return;
     }
-
+  
     try {
-        const response = await fetch('/comms/postMessage', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ message: messageBody }),
-            //credentials: 'include', 
-        });
-
-        if (response.ok) {
-            document.getElementById("confirmationMessage").style.display = "block";
-            //setTimeout(() => {
-            //    document.getElementById("confirmationMessage").style.display = "none";
-            //}, 3000);
-            document.getElementById("messageForm").reset();
-            //viewMessages();
-        } else {
-            const result = await response.json();
-            //console.error("Post failed:", result.error || "Unknown server error.");
-            alert("Failed to post message: " + (result.error || "Unknown error."));
-        }
+      const response = await fetch('/comms/postMessage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: messageBody }),
+        credentials: 'include',
+      });
+  
+      if (response.ok) {
+        const confirmation = document.getElementById("confirmationMessage");
+        confirmation.style.display = "block";
+        setTimeout(() => confirmation.style.display = "none", 3000);
+        document.getElementById("messageForm").reset();
+        await viewMessages();
+      } else {
+        const result = await response.json();
+        alert("Failed to post message: " + (result.error || "Unknown error."));
+      }
     } catch (error) {
-        console.error('Network error during post:', error);
-        alert("Network error. Please try again.");
+      console.error('Network error during post:', error);
+      alert("Network error. Please try again.");
     }
 }
 
@@ -110,51 +108,47 @@ async function viewMessages() {
             credentials: 'include', 
         });
 
-        console.log("Response status:", response.status); 
-
-        if (response.ok) {
-            const data = await response.json();
-            console.log("Fetched messages:", data); 
-            const messageList = document.getElementById('messageList');
-            messageList.innerHTML = '';
-
-            const user = await fetch('/loggedUser', { credentials: 'include' }).then(res => res.json());
-
-            data.messages.forEach(msg => {
-                const msgDiv = document.createElement('div');
-                msgDiv.classList.add('message');
-
-                const authorType = getAuthorType(msg.authorType);
-                const updatedAt = msg.edited ? ` (updated at ${new Date(msg.dateEdited).toLocaleString()})` : '';
-
-                msgDiv.innerHTML = `
-                    <p><strong>${msg.author} (${authorType})${updatedAt}:</strong></p>
-                    <p>${msg.message}</p>
-                `;
-
-                if (user.name === msg.author) {
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.textContent = 'Delete';
-                    deleteBtn.onclick = () => deleteMessage(msg._id);
-
-                    const updateBtn = document.createElement('button');
-                    updateBtn.textContent = 'Update';
-                    updateBtn.onclick = () => updateMessage(msg._id);
-
-                    msgDiv.appendChild(deleteBtn);
-                    msgDiv.appendChild(updateBtn);
-                }
-
-                messageList.appendChild(msgDiv);
-            });
-        } else {
+        if (!response.ok) {
             const result = await response.json();
-            console.error("Failed to fetch messages:", result.error || "Unknown server error.");
-            alert("Failed to fetch messages: " + (result.error || "Unknown error."));
+            throw new Error(result.error || "Unknown error.");
         }
+
+        const data = await response.json();
+        const messageList = document.getElementById('messageList');
+        messageList.innerHTML = '';
+
+        const user = await fetch('/loggedUser', { credentials: 'include' }).then(res => res.json());
+
+        data.messages.forEach(msg => {
+        const msgDiv = document.createElement('div');
+        msgDiv.classList.add('message');
+
+        const authorType = getAuthorType(msg.authorType);
+        const updatedAt = msg.edited ? ` (updated at ${new Date(msg.dateEdited).toLocaleString()})` : '';
+
+        msgDiv.innerHTML = `
+            <p><strong>${msg.author} (${authorType})${updatedAt}:</strong></p>
+            <p>${msg.message}</p>
+        `;
+
+        if (user.name === msg.author) {
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.onclick = () => deleteMessage(msg._id);
+
+            const updateBtn = document.createElement('button');
+            updateBtn.textContent = 'Update';
+            updateBtn.onclick = () => updateMessage(msg._id);
+
+            msgDiv.appendChild(deleteBtn);
+            msgDiv.appendChild(updateBtn);
+        }
+
+        messageList.appendChild(msgDiv);
+        });
     } catch (error) {
-        console.error('Network error during message retrieval:', error); 
-        alert("Network error. Please try again.");
+        console.error('Error fetching messages:', error);
+        alert("Failed to fetch messages: " + error.message);
     }
 }
 
@@ -173,3 +167,12 @@ function toggleMessages() {
 
 module.exports =  { postMessage, deleteMessage, updateMessage, viewMessages, toggleMessages };
 
+document.addEventListener('DOMContentLoaded', async () => {
+    const isLoggedIn = await checkLoginStatus();
+    if (isLoggedIn) {
+        document.getElementById('messageForm').addEventListener('submit', postMessage);
+        document.querySelector('.refresh-btn').addEventListener('click', viewMessages);
+        document.querySelector('.hide-btn').addEventListener('click', toggleMessages);
+        console.log("Event listeners initialized.");
+    }
+});
