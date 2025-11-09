@@ -276,6 +276,8 @@ exports.register = async function(req, res) {
 
         UserDao.create(userInfo);
         console.log('Successfully registered user.');
+        UserDao.findLogin(userInfo);
+        req.session.user = user;
         res.redirect('/profile.html');
     } else {
         if (existingUsername) {
