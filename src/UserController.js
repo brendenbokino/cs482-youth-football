@@ -216,6 +216,10 @@ exports.User = User;
 
 exports.login = async function(req, res){
     let plogin = req.body.login_id;
+    /**console.log('plogin: ', plogin);
+    console.log('req.body.login_id: ', req.body.login_id);
+    console.log('req.body: ', req.body);**/
+
     let user = await UserDao.findLogin(plogin); 
 
     if (user == null){ //login not found
