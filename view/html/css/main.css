@@ -115,6 +115,20 @@ body {
     margin-bottom: 1rem;
   }
 
+  a {
+      color: #852AD5;
+      text-decoration: none;
+  }
+
+  a:hover {
+      color: #7324be;
+      text-decoration: none;
+  }
+
+  a:visited {
+      color: #852AD5;
+  }
+
   /*
   form {
     display: flex;
