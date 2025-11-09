@@ -135,7 +135,7 @@ mongoose.connection.once('open', () => {
 
 //create storage
 const storage = new GridFsStorage({
-    url: process.env.FILESDB_URI,
+    url: process.env.DB_URI,
     file: (req, file) => {
       return new Promise((resolve, reject) => {
         crypto.randomBytes(16, (err, buf) => {
