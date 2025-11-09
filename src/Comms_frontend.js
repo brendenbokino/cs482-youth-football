@@ -160,3 +160,6 @@ function toggleMessages() {
         hideBtn.textContent = 'View Messages';
     }
 }
+
+module.exports =  { postMessage, deleteMessage, updateMessage, viewMessages, toggleMessages };
+
