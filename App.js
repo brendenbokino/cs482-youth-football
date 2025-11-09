@@ -354,4 +354,8 @@ app.put('/comms/updateMessage/:id', isAuthenticated, async (req, res) => {
   }
 });
 
+app.get('/checkSession', (req, res) => {
+    res.json({ session: req.session });
+});
+
 exports.app = app;

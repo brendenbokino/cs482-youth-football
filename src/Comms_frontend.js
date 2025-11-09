@@ -8,7 +8,17 @@ function getAuthorType(permission) {
 }
 
 async function checkLoginStatus() {
-    return true; 
+    try {
+        const response = await fetch('/loggedUser', { credentials: 'include' });
+        if (response.status === 401) {
+            window.location.href = 'login.html';
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error('Error checking login status:', error);
+        return false;
+    }
 }
 
 async function postMessage() {
@@ -25,19 +35,19 @@ async function postMessage() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ message: messageBody }),
-            credentials: 'include', 
+            //credentials: 'include', 
         });
 
         if (response.ok) {
             document.getElementById("confirmationMessage").style.display = "block";
-            setTimeout(() => {
-                document.getElementById("confirmationMessage").style.display = "none";
-            }, 3000);
+            //setTimeout(() => {
+            //    document.getElementById("confirmationMessage").style.display = "none";
+            //}, 3000);
             document.getElementById("messageForm").reset();
-            viewMessages();
+            //viewMessages();
         } else {
             const result = await response.json();
-            console.error("Post failed:", result.error || "Unknown server error.");
+            //console.error("Post failed:", result.error || "Unknown server error.");
             alert("Failed to post message: " + (result.error || "Unknown error."));
         }
     } catch (error) {
