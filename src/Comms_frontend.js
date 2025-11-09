@@ -1,4 +1,4 @@
-// Script from comms.html. Tried to move it into its own file with necessary changes, but could not figure out how to get it to work from here.
+// Script from comms.html. Tried to move it into its own file with necessary changes.
 
 function getAuthorType(permission) {
     switch (permission) {

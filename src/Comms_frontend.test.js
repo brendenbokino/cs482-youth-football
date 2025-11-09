@@ -43,6 +43,44 @@ const {
     });
   });
   
+  describe('postMessage', () => {
+    test('alerts if message is empty', async () => {
+      document.getElementById('messageBody').value = '  ';
+      const e = { preventDefault: jest.fn() };
+      await postMessage(e);
+      expect(alert).toHaveBeenCalledWith('Message cannot be empty.');
+    });
   
-
+    test('successful post shows confirmation and resets form', async () => {
+      document.getElementById('messageBody').value = 'Hello';
+      fetch.mockResolvedValueOnce({ ok: true }); 
+      fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ messages: [] }) }); 
+      const e = { preventDefault: jest.fn() };
+  
+      await postMessage(e);
+  
+      const confirmation = document.getElementById('confirmationMessage');
+      expect(confirmation.style.display).toBe('block');
+    });
+  
+    test('failed post alerts with error message', async () => {
+      document.getElementById('messageBody').value = 'test';
+      fetch.mockResolvedValueOnce({
+        ok: false,
+        json: async () => ({ error: 'Failure' }),
+      });
+      const e = { preventDefault: jest.fn() };
+      await postMessage(e);
+      expect(alert).toHaveBeenCalledWith(expect.stringContaining('Failure'));
+    });
+  
+    test('network error triggers alert', async () => {
+      document.getElementById('messageBody').value = 'test';
+      fetch.mockRejectedValueOnce(new Error('Network fail'));
+      const e = { preventDefault: jest.fn() };
+      await postMessage(e);
+      expect(alert).toHaveBeenCalledWith('Network error. Please try again.');
+    });
+  });
+  
   
