@@ -10,11 +10,9 @@ const youthSchema = new mongoose.Schema({
     },
     position: {
         type: String,
-        required: true
     },
     dob: {
         type: Date,
-        required: true
     },
     id_adult: {
         type: mongoose.Schema.Types.ObjectId,
@@ -23,6 +21,11 @@ const youthSchema = new mongoose.Schema({
 });
 
 const youthModel = mongoose.model('users_youths', youthSchema);
+
+exports.findByUserId = async function(userId) {
+    let youth = await youthModel.findOne({id_user: userId});
+    return youth;
+}
 
 exports.findByAdultId = async function(adultId) {
     let youths = await youthModel.find({id_adult: adultId});
