@@ -18,6 +18,7 @@ const Comms = require('./src/Comms');
 const MessageDao = require('./model/MessageDao');
 const { login, register, logout, loggedUser } = require('./src/UserController');
 
+
 app = express()
 
 app.use(session({
@@ -363,6 +364,10 @@ app.put('/comms/updateMessage/:id', isAuthenticated, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Failed to update message", details: err.message });
   }
+});
+
+app.get('/checkSession', (req, res) => {
+    res.json({ session: req.session });
 });
 
 exports.app = app;
