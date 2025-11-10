@@ -1,6 +1,7 @@
 const dbcon = require('./DbConnect');
 const youthDao = require('./YouthDao');
 const userDao = require('./UserDao');
+const { default: expect } = require('expect');
 
 beforeAll(async function(){ 
     await dbcon.connect('test');
@@ -13,12 +14,7 @@ afterAll(async function(){
 });
 
 beforeEach(async function(){ 
-    // Clean up youths before each test
-    let youths = await youthDao.readAllYouth();
-    for (let youth of youths) {
-        await youthDao.del(youth._id);
-    }
-    // Clean up users before each test
+    await youthDao.deleteAll();
     await userDao.deleteAll();
 });
 
@@ -272,8 +268,9 @@ test('Find Youths by User ID', async function(){
     });
 
     
-    let adultYouths = await youthDao.findByUserId(adult._id);
+    let adultYouths = await youthDao.findByUserId(youthUser._id);
     
+    expect(adultYouths).not.toBeNull();
     expect(adultYouths.length).toBe(1);
     expect(adultYouths[0].position).toBe('Safety');
 });
@@ -323,6 +320,7 @@ test('Check if Youth is Under Adult', async function(){
         email: 'youth@test.com',
         permission: 3,
         username: 'youthuser',
+        password: '123456'
     };
     let adult1Data = {
         name: 'Adult 1',

@@ -293,6 +293,7 @@ exports.register = async function(req, res) {
 exports.getUserById = async function(req, res) {
     let userId = req.params.id;
     let adult = false;
+
     if (!req.session || !req.session.user) {
         res.status(403);
         res.send('Forbidden: Not logged in');
@@ -306,7 +307,9 @@ exports.getUserById = async function(req, res) {
         return;
     }
 
-    if (requester._id.toString() != userId.toString()) {
+
+    if (requester._id.toString() !== userId.toString()) {
+        // Different user
         if (requester.permission == 2) {
             adult = true;
         } else if (requester.permission == 4 || requester.permission == 3) {
@@ -317,26 +320,45 @@ exports.getUserById = async function(req, res) {
     }
 
     let user = await UserDao.read(userId);
-    if (adult && user.permission == 3) {
-        let youth = await YouthDao.findByUserId(user._id);
-        if (!youth) {
-            res.status(404);
-            res.send('Youth profile not found');
-            return;
-        }
-        let isUnderAdult = await YouthDao.isYouthUnderAdult(youth._id, requester._id);
-        if (!isUnderAdult) {
+    if (!user) {
+        res.status(404);
+        res.send('User not found');
+        return;
+    }
+
+    if (adult) {
+        if (user.permission == 3) {
+            let youth = await YouthDao.findByUserId(user._id);
+            if (!youth) {
+                res.status(404);
+                res.send('Youth profile not found');
+                return;
+            }
+            let isUnderAdult = await YouthDao.isYouthUnderAdult(youth._id, requester._id);
+            if (!isUnderAdult) {
+                res.status(403);
+                res.send('Forbidden: Not authorized to view this youth');
+                return;
+            }
+        } else {
             res.status(403);
-            res.send('Forbidden: Not authorized to view this youth');
+            res.send('Forbidden: Adults can only their youths profiles and their own');
             return;
         }
     }
+
     res.status(200);
     res.json(user);
-}
+};
 
 exports.promoteToAdult = async function(req, res) {
     let adultId = req.body.promote_adult_id;
+    if (!req.session || !req.session.user) {
+        res.status(401);
+        res.send('Forbidden: Not logged in');
+        return;
+    }
+
     let requester = await UserDao.read(req.session.user._id);
     if (!requester) {
         res.status(404);
@@ -344,7 +366,7 @@ exports.promoteToAdult = async function(req, res) {
         return;
     }
 
-    if (requester.permission != 0 && requester.permission != 1) {
+    if (requester.permission > 1) {
         res.status(403);
         res.send('Forbidden');
         return;
@@ -438,3 +460,5 @@ exports.getYouths = async function(req, res) {
         return;
     }
 }
+
+
