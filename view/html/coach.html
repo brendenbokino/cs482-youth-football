@@ -236,6 +236,48 @@
                 $("#header").load("header.html"); 
                 $("#footer").load("footer.html"); 
             });
-        </script> </body>
+        </script>
+      
+        <script>
+            function showCreateAccount() {
+                document.getElementById('createAccountForm').style.display = 'block';
+                document.getElementById('accountOptions').style.display = 'none';
+            }
+
+            function showAccountOptions() {
+                document.getElementById('createAccountForm').style.display = 'none';
+                document.getElementById('accountOptions').style.display = 'block';
+            }
+
+            function showSection(sectionId) {
+                document.querySelectorAll('.account-section').forEach(section => {
+                    section.style.display = 'none';
+                });
+                document.getElementById(sectionId).style.display = 'block';
+            }
+
+            async function handleFormSubmit(event, route) {
+                event.preventDefault();
+                const form = event.target;
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+                const resultBox = document.getElementById('result');
+                resultBox.style.display = 'block';
+                resultBox.textContent = 'Processing...';
+
+                try {
+                    const res = await fetch(route, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    const json = await res.json();
+                    resultBox.textContent = JSON.stringify(json, null, 2);
+                } catch (err) {
+                resultBox.textContent = 'Error: ' + err.message;
+                }
+            }
+        </script>
+      </body>
 </html>
 
