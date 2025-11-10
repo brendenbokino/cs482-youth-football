@@ -8,6 +8,9 @@ const youthSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         required: true
     },
+    id_team: {
+        type: mongoose.Schema.Types.ObjectId
+    },
     position: {
         type: String,
     },

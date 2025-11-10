@@ -91,6 +91,7 @@ app.post('/promotetoadult', UserController.promoteToAdult);
 
 app.post('/adult/createyouth', UserController.createYouthAccount);
 app.get('/adult/viewyouths', UserController.getYouths);
+app.get('/coach/viewyouths', UserController.getYouths);
 
 //Team Controller Functions
 const TeamController = require('./src/TeamController');

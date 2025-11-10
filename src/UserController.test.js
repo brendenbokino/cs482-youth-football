@@ -8,9 +8,11 @@ jest.mock('mongoose', () => ({
       find: jest.fn(),
       create: jest.fn(),
       updateOne: jest.fn(),
-      deleteOne: jest.fn(),
+      deleteOne: jest.fn() 
     }),
-    Schema: jest.fn(),
+    Schema: class {
+        static Types = { ObjectId: jest.fn() };
+    },
 }));
 
 // I was having errors with stdin so I mocked it with Node's readline
@@ -25,7 +27,10 @@ jest.mock('readline', () => ({
 const UserController = require('./UserController.js');
 const User =  UserController.User
 const UserDao = require('../model/UserDao.js'); 
-const hash = require('../util/Hashing.js')
+const YouthDao = require('../model/YouthDao.js');
+const hash = require('../util/Hashing.js');
+const { default: expect } = require('expect');
+jest.mock('../model/YouthDao.js');
 jest.mock('../model/UserDao.js');
 jest.mock('../util/Hashing.js');
 
@@ -558,6 +563,75 @@ describe("User registration tests.", function() {
         expect(res.redirect).toHaveBeenCalledWith('/profile.html');
 
     })
+});
+
+
+describe("UserController Youth Tests", function() {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test("Create Youth Account: No user session", async function() {
+        let req = { session: { user: null},
+                    body: {} };
+        let res = { status: jest.fn(), send: jest.fn() };
+        UserDao.read.mockResolvedValue(null);
+
+        await UserController.createYouthAccount(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.send).toHaveBeenCalledWith("Forbidden: Not logged in");
+    })
+
+    test("Create Youth Account: Requesting user does not exist", async function() {
+        let req = { session: { user: {_id: 'u1' }},
+                    body: {} };
+        let res = { status: jest.fn(), send: jest.fn() };
+        UserDao.read.mockResolvedValue(null);
+
+        await UserController.createYouthAccount(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.send).toHaveBeenCalledWith("Requesting user not found");
+    })
+
+    test("Create Youth Account: Requester not adult", async function() {
+        let req = { session: { user: {_id: 'u1', permission: 3} },
+                    body: {} };
+        let res = { status: jest.fn(), send: jest.fn() };
+        UserDao.read.mockResolvedValue({ _id: 'u1', permission: 3 });
+        await UserController.createYouthAccount(req, res);
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.send).toHaveBeenCalledWith("Forbidden: Not an adult");
+    })
+    
+    test("Create Youth Account: Successful Creation", async function() {
+        let req = { session: { user: {_id: 'u1', permission: 2} },
+                    body: {
+                        name: 'Youth User',
+                        username: 'youthuser',
+                        password: 'password',
+                    } };
+        let res = { status: jest.fn(), send: jest.fn(), json: jest.fn() };
+        UserDao.read.mockResolvedValue({ _id: 'a1', permission: 2 });
+        UserDao.create.mockResolvedValue({ _id: 'u1', ...req.body });
+        YouthDao.create.mockResolvedValue({ _id: 'y1', id_user: 'u1', id_adult: 'a1' });
+        await UserController.createYouthAccount(req, res);
+        expect(UserDao.create).toHaveBeenCalledWith({
+            name: 'Youth User',
+            username: 'youthuser',
+            password: undefined,
+            permission: 3
+        });
+
+        expect(YouthDao.create).toHaveBeenCalledWith({
+            id_user: 'u1',
+            id_adult: 'a1'
+        });
+
+        expect(res.status).toHaveBeenCalledWith(200);
+    });
+
 });
 
 

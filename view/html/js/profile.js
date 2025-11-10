@@ -1,5 +1,5 @@
-import {USER_PERMISSIONS} from './constants.js' ;
-import {PERM_TO_STRING} from './constants.js' ;
+  const USER_PERMISSIONS = { ADMIN: 0, ADULT: 1, COACH: 2, YOUTH: 3, GUEST: 4 };
+  const PERM_TO_STRING = { 0: 'Admin', 1: 'Adult', 2: 'Coach', 3: 'Youth', 4: 'Guest' };
 
 let active = "accinfo";
 const urlParams = new URLSearchParams(window.location.search);
@@ -178,7 +178,6 @@ async function populateAdultYouthAccounts() {
         return;
     }
 
-    let thead = document.getElementById("adult-viewyouth-thead");
     let tbody = document.getElementById("adult-viewyouth-tbody");
 
     // Create composite youth user data
@@ -219,6 +218,73 @@ async function populateAdultYouthAccounts() {
     }
 }
 
+async function populateCoachYouthAccounts() {
+    let user = await fetchProfileUser();
+    if (user == null) {
+        return;
+    } else if (user.permission != USER_PERMISSIONS.COACH) {
+        return;
+    }
+    let response = await fetch(`/coach/viewyouths`);
+    let youths =  await response.json();
+    if (youths == null || youths.length == 0) {
+        return;
+    }
+
+    let tbody = document.getElementById("coach-viewyouth-tbody");
+    // Create composite youth user data
+    let youth_user_data = [];
+    for (let youth of youths) {
+        let youth_user_resp = await fetch(`/user/${youth.id_user}`);
+        if (!youth_user_resp.ok) {
+            continue;
+        }
+        let youth_user = await youth_user_resp.json();
+        let adult_user_resp = await fetch(`/user/${youth.id_adult}`);
+        if (!adult_user_resp.ok) {
+            continue;
+        }
+        let adult_user = await adult_user_resp.json();
+        //TODO: Handle cases where adult user or youth user might not exist
+        let composite_data = {
+            name: youth_user.name,
+            adult_name: adult_user.name,
+            adult_email: adult_user.email
+        };
+        youth_user_data.push(composite_data);
+    }
+    // Populate table
+    for (let yud of youth_user_data) {
+        let tr = document.createElement("tr");
+        for (let attr of Object.keys(yud)) {
+            let td = document.createElement("td");
+            td.innerText = yud[attr];
+            tr.appendChild(td);
+        }
+        // Add to team button
+        let buttonTd = document.createElement("td");
+        let button = document.createElement("button");
+        button.classList.add("btn", "btn-purple");
+        button.innerText = "Add to Team";
+        buttonTd.appendChild(button);
+        tr.appendChild(buttonTd);
+        tbody.appendChild(tr);
+    }
+}
+
+module.exports = {
+    USER_PERMISSIONS,
+    PERM_TO_STRING,
+    toggleAccInfo,
+    toggleGameStats,
+    toggleActions,
+    setupProfileTabs,
+    populateProfileInfo,
+    populateAdultYouthAccounts,
+    populateCoachYouthAccounts
+};
+
 setupProfileTabs();
 populateProfileInfo();
 populateAdultYouthAccounts();
+populateCoachYouthAccounts();
