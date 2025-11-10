@@ -16,6 +16,7 @@ Permission Levels:
 
 const readline = require('readline');
 const UserDao = require('../model/UserDao');
+const YouthDao = require('../model/YouthDao');
 const hash = require('../util/Hashing');
 
 class User {
@@ -230,7 +231,7 @@ exports.login = async function(req, res){
             console.log('successful login');
 
             req.session.user = user;
-            res.redirect('/profile.html') 
+            res.redirect('/profile') 
 
         } else{ //passwords do not match
             res.redirect('/login.html?error=2') //redirect back to login, NtE error message
@@ -274,11 +275,10 @@ exports.register = async function(req, res) {
             password: hash.hashString(req.body.pass)
         };
 
-        UserDao.create(userInfo);
+        let user = UserDao.create(userInfo);
         console.log('Successfully registered user.');
-        UserDao.findLogin(userInfo);
         req.session.user = user;
-        res.redirect('/profile.html');
+        res.redirect('/profile');
     } else {
         if (existingUsername) {
             console.log('User already exists with username.');
@@ -288,4 +288,92 @@ exports.register = async function(req, res) {
         
         res.redirect('/register.html');
     }
+}
+
+exports.getUserById = async function(req, res) {
+    let userId = req.params.id;
+    let adult = false;
+    let requester = await UserDao.read(req.session.user._id);
+    if (!requester) {
+        res.status(404).send('Requesting user not found');
+        return;
+    }
+
+    if (requester._id.toString() != userId.toString()) {
+        if (requester.permission == 2) {
+            adult = true;
+        } else {
+            res.status(403).send('Forbidden');
+            return;
+        }
+    }
+
+    let user = await UserDao.read(userId);
+    if (adult && user.permission == 3) {
+        const YouthDao = require('../model/YouthDao');
+        const isUnderAdult = await YouthDao.isYouthUnderAdult(userId, requester._id);
+        if (!isUnderAdult) {
+            res.status(403).send('Forbidden');
+            return;
+        }
+    }
+
+    res.status(200).json(user);
+}
+
+exports.promoteToAdult = async function(req, res) {
+    let adultId = req.body.promote_adult_id;
+    let requester = await UserDao.read(req.session.user._id);
+    if (!requester) {
+        res.status(404).send('Promoting user not found');
+        return;
+    }
+
+    if (requester.permission != 0 && requester.permission != 1) {
+        res.status(403).send('Forbidden');
+        return;
+    }
+
+    let user = await UserDao.findLogin(adultId);
+    if (!user) {
+        res.status(404).send('User not found');
+        return;
+    }
+
+    if (user.permission != 4) {
+        res.status(400).send('User is not a guest');
+        return;
+    }
+
+    let updates = { permission: 2 }; // Promote to adult
+    let updatedUser = await UserDao.update(user._id, updates);
+    res.status(200).json(updatedUser);
+
+}
+
+exports.createYouthAccount = async function(req, res) {
+    let requester = await UserDao.read(req.session.user._id);
+    if (!requester) {
+        res.status(404).send('Requesting user not found');
+        return;
+    }
+    if (requester.permission != 2) {
+        res.status(403).send('Forbidden: Not an adult');
+        return;
+    }
+    let youthInfo = {
+        username: req.body.username,
+        name: req.body.name,
+        permission: 3, // Youth
+        password: hash.hashString(req.body.pass)
+    };
+
+    let youthUser = await UserDao.create(youthInfo);
+    let newYouth = {
+        id_user: youthUser._id,
+        id_adult: requester._id
+    };
+
+    let youthProfile = await YouthDao.create(newYouth);
+    res.status(200).json({ youthUser, youthProfile });
 }
