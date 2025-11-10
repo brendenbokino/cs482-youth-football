@@ -59,7 +59,13 @@ exports.deleteAll = async function(){
     await userModel.deleteMany();
 }
 
-exports.findLogin = async function(plogin){
-    let user = await userModel.findOne({email: plogin})
+exports.findLogin = async function(userOrEmail){
+    let user = null;
+    if (userOrEmail.includes('@')){
+        user = await userModel.findOne({email: userOrEmail})
+    } else {
+        user = await userModel.findOne({username: userOrEmail})
+    }
     return user;
 }
+
