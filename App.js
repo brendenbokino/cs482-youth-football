@@ -84,15 +84,26 @@ app.post('/registeruser', UserController.register);
 app.get('/logoutuser', UserController.logout);
 app.get('/loggeduser', UserController.loggedUser);
 
+app.get('/user/:id', UserController.getUserById);
+
+app.post('/promotetoadult', UserController.promoteToAdult);
+
+app.post('/adult/createyouth', UserController.createYouthAccount);
+app.get('/adult/viewyouths', UserController.getYouths);
+
 //Team Controller Functions
 const TeamController = require('./src/TeamController');
 
 //Game Controller Functions
 const GameController = require('./src/GameController');
 
-
-
-
+app.get('/profile', (req, res) => {
+  if (req.session && req.session.user) {
+    res.redirect(`/profile.html?id=${req.session.user._id.toString()}`);
+  } else {
+    res.redirect('/login.html');
+  }
+});
 
 
 app.use(express.static('view/html'));

@@ -221,31 +221,36 @@ body {
     box-shadow: none;
 }
 
-/* Navbar links hover effect */
-.navbar-nav .nav-link {
-    transition: background-color 0.3s ease;
+/* Navbar Link Colors */
+
+/* Navbar */
+.navbar .nav-link {
+    color: #ffffff !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link:focus {
+    color: #e6e0f8 !important;
+    background-color: rgba(255, 255, 255, 0.15);
     border-radius: 6px;
 }
 
-.navbar-nav .nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.15);
+/* Dropdown Menu */
+.dropdown-menu {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
 }
 
-/* Dropdown items hover */
-.dropdown-item {
-    transition: background-color 0.2s ease;
+/* Dropdown items inside menus */
+.dropdown-menu .dropdown-item {
+    color: #3c1361 !important;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.dropdown-item:hover {
+.dropdown-menu .dropdown-item:hover,
+.dropdown-menu .dropdown-item:focus {
     background-color: #e6e0f8;
-    color: #3c1361;
-}
-
-/* Brand logo hover */
-.navbar-brand {
-    transition: opacity 0.3s ease;
-}
-
-.navbar-brand:hover {
-    opacity: 0.9;
+    color: #3c1361 !important;
 }

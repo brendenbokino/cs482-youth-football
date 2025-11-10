@@ -293,6 +293,11 @@ exports.register = async function(req, res) {
 exports.getUserById = async function(req, res) {
     let userId = req.params.id;
     let adult = false;
+    if (!req.session || !req.session.user) {
+        res.status(403).send('Forbidden: Not logged in');
+        return;
+    }
+    
     let requester = await UserDao.read(req.session.user._id);
     if (!requester) {
         res.status(404).send('Requesting user not found');
@@ -303,21 +308,24 @@ exports.getUserById = async function(req, res) {
         if (requester.permission == 2) {
             adult = true;
         } else {
-            res.status(403).send('Forbidden');
+            res.status(403).send('Forbidden: Not authorized to view this user');
             return;
         }
     }
 
     let user = await UserDao.read(userId);
     if (adult && user.permission == 3) {
-        const YouthDao = require('../model/YouthDao');
-        const isUnderAdult = await YouthDao.isYouthUnderAdult(userId, requester._id);
+        let youth = await YouthDao.findByUserId(user._id);
+        if (!youth) {
+            res.status(404).send('Youth profile not found');
+            return;
+        }
+        let isUnderAdult = await YouthDao.isYouthUnderAdult(youth._id, requester._id);
         if (!isUnderAdult) {
-            res.status(403).send('Forbidden');
+            res.status(403).send('Forbidden: Not authorized to view this youth');
             return;
         }
     }
-
     res.status(200).json(user);
 }
 
@@ -376,4 +384,18 @@ exports.createYouthAccount = async function(req, res) {
 
     let youthProfile = await YouthDao.create(newYouth);
     res.status(200).json({ youthUser, youthProfile });
+}
+
+exports.getYouths = async function(req, res) {
+    let requester = await UserDao.read(req.session.user._id);
+    if (!requester) {
+        res.status(404).send('Requesting user not found');
+        return;
+    }
+    if (requester.permission != 2) {
+        res.status(403).send('Forbidden: Not an adult');
+        return;
+    }
+    let youths = await YouthDao.findByAdultId(requester._id);
+    res.status(200).json(youths);
 }
