@@ -268,11 +268,10 @@ test('Find Youths by User ID', async function(){
     });
 
     
-    let adultYouths = await youthDao.findByUserId(youthUser._id);
+    let youth = await youthDao.findByUserId(youthUser._id);
     
-    expect(adultYouths).not.toBeNull();
-    expect(adultYouths.length).toBe(1);
-    expect(adultYouths[0].position).toBe('Safety');
+    expect(youth).not.toBeNull();
+    expect(youth.position).toBe('Safety');
 });
 
 test('Update Youth', async function(){
