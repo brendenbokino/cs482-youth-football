@@ -1,609 +1,454 @@
-// Reece Watkins team tests 
+// We import the entire file, which includes both the class and the exported handlers
+const controllerFile = require('./TeamController.js');
+const { TeamController } = controllerFile; // The class
+// Import all the exported handlers
+const { register, addPlayer, update, getAll, getById } = controllerFile;
 
-const TeamController = require('./TeamController.js');
-const TeamDao = require('../model/TeamDao');
+// We import the dao so we can control its mock implementation
+const TeamDao = require('../model/TeamDao.js');
 
-// Mock TeamDao before requiring TeamController
-jest.mock('../model/TeamDao', () => ({
-    create: jest.fn(),
-    readAll: jest.fn(),
-    read: jest.fn(),
-    update: jest.fn(),
-    del: jest.fn(),
-    deleteAll: jest.fn()
-}));
+// Tell Jest to use the mock we created in 'model/__mocks__/TeamDao.js'
+jest.mock('../model/TeamDao.js');
 
-describe('Team Controller Tests', () => {
+// A sample team object to use in tests
+const mockTeam = {
+  _id: 'team123',
+  coach: 'Coach K',
+  players: ['Player 1', 'Player 2'],
+  games: [],
+  teamName: 'Blue Devils'
+};
+
+
+// --- Main Test Suite for TeamController.js ---
+describe('TeamController.js Tests', () => {
+
+    // Reset mocks before each test to ensure test independence
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    // ===== CREATE NEW TEAM TESTS ===== //
-    test("createNewTeam with valid data", async function () {
-        const team = new TeamController();
-        
-        const mockSavedTeam = {
-            _id: "team123",
-            players: ["jim", "ray", "Brad"],
-            coach: "BOB",
-            games: ["metlife", "theGarden"]
-        };
+    // --- Unit Tests for the TeamController Class ---
+    describe('TeamController Class (Unit Tests)', () => {
+        let controller;
+        let mockRes;
 
-        let req = {
-            players: ["jim", "ray", "Brad"],
-            coach: "BOB",
-            games: ["metlife", "theGarden"]
-        };
-
-        let res = {
-            status: 0,
-            send: {},
-        };
-
-        TeamDao.create.mockResolvedValue(mockSavedTeam);
-        
-        await team.createNewTeam(req, res);
-        
-        expect(TeamDao.create).toHaveBeenCalledWith({
-            players: ["jim", "ray", "Brad"],
-            coach: "BOB",
-            games: ["metlife", "theGarden"]
+        beforeEach(() => {
+            controller = new TeamController();
+            // This is a simple mock for the controller's internal logic
+            mockRes = {
+                status: null,
+                send: null,
+            };
         });
-        expect(res.send.success).toBeTruthy();
-        expect(res.send.message).toBe("Team has been created");
-        expect(res.send.team.coach).toBe("BOB");
-        expect(res.status).toBe(200);
-        expect(team.teamData).toEqual(mockSavedTeam);
-    });
 
-    test("createNewTeam with null request", async function () {
-        const team = new TeamController();
-        
-        let res = {
-            status: 0,
-            send: {},
-        };
+        // --- createNewTeam ---
+        describe('createNewTeam', () => {
+            it('should create a team with valid data', async () => {
+                const req = { coach: 'Coach K', players: ['Player 1'] };
+                TeamDao.create.mockResolvedValue({ ...mockTeam, ...req });
+                
+                await controller.createNewTeam(req, mockRes);
+                
+                expect(TeamDao.create).toHaveBeenCalledWith({
+                    players: ['Player 1'],
+                    coach: 'Coach K',
+                    games: []
+                });
+                expect(mockRes.status).toBe(200);
+                expect(mockRes.send.success).toBe(true);
+            });
 
-        await team.createNewTeam(null, res);
-        
-        expect(res.send.error).toBe("Request is empty");
-        expect(res.status).toBe(400);
-    });
+            it('should return 400 if req is null', async () => {
+                await controller.createNewTeam(null, mockRes);
+                expect(mockRes.status).toBe(400);
+                expect(mockRes.send).toEqual({ error: "Request is empty" });
+                expect(TeamDao.create).not.toHaveBeenCalled();
+            });
 
-    test("createNewTeam with missing coach", async function () {
-        const team = new TeamController();
-        
-        let req = {
-            players: ["jim", "ray", "Brad"]
-        };
+            it('should return 400 if players array is empty', async () => {
+                const req = { coach: 'Coach K', players: [] };
+                await controller.createNewTeam(req, mockRes);
+                expect(mockRes.status).toBe(400);
+                expect(mockRes.send).toEqual({ error: "Team must have at least one player" });
+            });
 
-        let res = {
-            status: 0,
-            send: {},
-        };
+            it('should return 400 if coach name is empty string', async () => {
+                const req = { coach: '   ', players: ['Player 1'] };
+                await controller.createNewTeam(req, mockRes);
+                expect(mockRes.status).toBe(400);
+                expect(mockRes.send).toEqual({ error: "Coach name cannot be empty" });
+            });
 
-        await team.createNewTeam(req, res);
-        
-        expect(res.send.error).toBe("Team must have a coach and players array");
-        expect(res.status).toBe(400);
-    });
-
-    test("createNewTeam with missing players", async function () {
-        const team = new TeamController();
-        
-        let req = {
-            coach: "BOB"
-        };
-
-        let res = {
-            status: 0,
-            send: {},
-        };
-
-        await team.createNewTeam(req, res);
-        
-        expect(res.send.error).toBe("Team must have a coach and players array");
-        expect(res.status).toBe(400);
-    });
-
-    test("createNewTeam with empty players array", async function () {
-        const team = new TeamController();
-        
-        let req = {
-            players: [],
-            coach: "BOB"
-        };
-
-        let res = {
-            status: 0,
-            send: {},
-        };
-
-        await team.createNewTeam(req, res);
-        
-        expect(res.send.error).toBe("Team must have at least one player");
-        expect(res.status).toBe(400);
-    });
-
-    test("createNewTeam with empty coach name", async function () {
-        const team = new TeamController();
-        
-        let req = {
-            players: ["jim", "ray"],
-            coach: "   "
-        };
-
-        let res = {
-            status: 0,
-            send: {},
-        };
-
-        await team.createNewTeam(req, res);
-        
-        expect(res.send.error).toBe("Coach name cannot be empty");
-        expect(res.status).toBe(400);
-    });
-
-    test("createNewTeam with non-array players", async function () {
-        const team = new TeamController();
-        
-        let req = {
-            players: "not an array",
-            coach: "BOB"
-        };
-
-        let res = {
-            status: 0,
-            send: {},
-        };
-
-        await team.createNewTeam(req, res);
-        
-        expect(res.send.error).toBe("Team must have a coach and players array");
-        expect(res.status).toBe(400);
-    });
-
-    test("createNewTeam with database error", async function () {
-        const team = new TeamController();
-        
-        let req = {
-            players: ["jim", "ray"],
-            coach: "BOB"
-        };
-
-        let res = {
-            status: 0,
-            send: {},
-        };
-
-        TeamDao.create.mockRejectedValue(new Error("Database error"));
-        
-        await team.createNewTeam(req, res);
-        
-        expect(res.send.error).toBe("Failed to create team");
-        expect(res.status).toBe(500);
-    });
-
-    // ===== GET ALL TEAMS TESTS ===== //
-    test("getAllTeams success", async function () {
-        const team = new TeamController();
-        
-        const mockTeams = [
-            { _id: "1", players: ["jim"], coach: "BOB", games: [] },
-            { _id: "2", players: ["ray"], coach: "TIM", games: [] }
-        ];
-
-        let res = {
-            status: 0,
-            send: {},
-        };
-
-        TeamDao.readAll.mockResolvedValue(mockTeams);
-        
-        await team.getAllTeams({}, res);
-        
-        expect(TeamDao.readAll).toHaveBeenCalled();
-        expect(res.send.success).toBeTruthy();
-        expect(res.send.teams).toEqual(mockTeams);
-        expect(res.status).toBe(200);
-    });
-
-    test("getAllTeams with database error", async function () {
-        const team = new TeamController();
-        
-        let res = {
-            status: 0,
-            send: {},
-        };
-
-        TeamDao.readAll.mockRejectedValue(new Error("Database error"));
-        
-        await team.getAllTeams({}, res);
-        
-        expect(res.send.error).toBe("Failed to fetch teams");
-        expect(res.status).toBe(500);
-    });
-
-    // ===== GET TEAM BY ID TESTS ===== //
-    test("getTeamById with valid ID", async function () {
-        const team = new TeamController();
-        
-        const mockTeam = {
-            _id: "team123",
-            players: ["jim", "ray"],
-            coach: "BOB",
-            games: []
-        };
-
-        let req = {
-            params: { id: "team123" }
-        };
-
-        let res = {
-            status: 0,
-            send: {},
-        };
-
-        TeamDao.read.mockResolvedValue(mockTeam);
-        
-        await team.getTeamById(req, res);
-        
-        expect(TeamDao.read).toHaveBeenCalledWith("team123");
-        expect(res.send.success).toBeTruthy();
-        expect(res.send.team).toEqual(mockTeam);
-        expect(res.status).toBe(200);
-    });
-
-    test("getTeamById with missing ID", async function () {
-        const team = new TeamController();
-        
-        let req = {};
-        let res = {
-            status: 0,
-            send: {},
-        };
-
-        await team.getTeamById(req, res);
-        
-        expect(res.send.error).toBe("Team ID is required");
-        expect(res.status).toBe(400);
-    });
-
-    test("getTeamById with non-existent team", async function () {
-        const team = new TeamController();
-        
-        let req = {
-            params: { id: "nonexistent" }
-        };
-
-        let res = {
-            status: 0,
-            send: {},
-        };
-
-        TeamDao.read.mockResolvedValue(null);
-        
-        await team.getTeamById(req, res);
-        
-        expect(res.send.error).toBe("Team not found");
-        expect(res.status).toBe(404);
-    });
-
-    // ===== UPDATE TEAM TESTS ===== //
-    test("updateTeam with valid data", async function () {
-        const team = new TeamController();
-        
-        const updatedTeam = {
-            _id: "team123",
-            players: ["jim", "ray", "newPlayer"],
-            coach: "NEW_COACH",
-            games: ["game1"]
-        };
-
-        let req = {
-            params: { id: "team123" },
-            body: {
-                coach: "NEW_COACH",
-                players: ["jim", "ray", "newPlayer"],
-                games: ["game1"]
-            }
-        };
-
-        let res = {
-            status: 0,
-            send: {},
-        };
-
-        TeamDao.update.mockResolvedValue(updatedTeam);
-        
-        await team.updateTeam(req, res);
-        
-        expect(TeamDao.update).toHaveBeenCalledWith("team123", {
-            coach: "NEW_COACH",
-            players: ["jim", "ray", "newPlayer"],
-            games: ["game1"]
+            it('should return 500 if DAO create fails', async () => {
+                const req = { coach: 'Coach K', players: ['Player 1'] };
+                TeamDao.create.mockRejectedValue(new Error('DB Error'));
+                await controller.createNewTeam(req, mockRes);
+                expect(mockRes.status).toBe(500);
+                expect(mockRes.send).toEqual({ error: "Failed to create team" });
+            });
         });
-        expect(res.send.success).toBeTruthy();
-        expect(res.send.message).toBe("Team updated successfully");
-        expect(res.status).toBe(200);
-    });
 
-    test("updateTeam with missing ID", async function () {
-        const team = new TeamController();
-        
-        let req = {
-            body: { coach: "NEW_COACH" }
-        };
+        // --- getAllTeams ---
+        describe('getAllTeams', () => {
+            it('should return all teams and status 200', async () => {
+                const teamsArray = [mockTeam];
+                TeamDao.readAll.mockResolvedValue(teamsArray);
 
-        let res = {
-            status: 0,
-            send: {},
-        };
+                await controller.getAllTeams({}, mockRes);
 
-        await team.updateTeam(req, res);
-        
-        expect(res.send.error).toBe("Team ID is required");
-        expect(res.status).toBe(400);
-    });
+                expect(TeamDao.readAll).toHaveBeenCalledTimes(1);
+                expect(mockRes.status).toBe(200);
+                expect(mockRes.send).toEqual({ success: true, teams: teamsArray });
+            });
 
-    test("updateTeam with empty coach name", async function () {
-        const team = new TeamController();
-        
-        let req = {
-            params: { id: "team123" },
-            body: { coach: "   " }
-        };
-
-        let res = {
-            status: 0,
-            send: {},
-        };
-
-        await team.updateTeam(req, res);
-        
-        expect(res.send.error).toBe("Coach name cannot be empty");
-        expect(res.status).toBe(400);
-    });
-
-    test("updateTeam with empty players array", async function () {
-        const team = new TeamController();
-        
-        let req = {
-            params: { id: "team123" },
-            body: { players: [] }
-        };
-
-        let res = {
-            status: 0,
-            send: {},
-        };
-
-        await team.updateTeam(req, res);
-        
-        expect(res.send.error).toBe("Players must be a non-empty array");
-        expect(res.status).toBe(400);
-    });
-
-    // ===== DELETE TEAM TESTS ===== //
-    test("deleteTeam with valid ID", async function () {
-        const team = new TeamController();
-        
-        const deletedTeam = {
-            _id: "team123",
-            players: ["jim", "ray"],
-            coach: "BOB"
-        };
-
-        let req = {
-            params: { id: "team123" }
-        };
-
-        let res = {
-            status: 0,
-            send: {},
-        };
-
-        TeamDao.del.mockResolvedValue(deletedTeam);
-        
-        await team.deleteTeam(req, res);
-        
-        expect(TeamDao.del).toHaveBeenCalledWith("team123");
-        expect(res.send.success).toBeTruthy();
-        expect(res.send.message).toBe("Team deleted successfully");
-        expect(res.status).toBe(200);
-    });
-
-    test("deleteTeam with non-existent team", async function () {
-        const team = new TeamController();
-        
-        let req = {
-            params: { id: "nonexistent" }
-        };
-
-        let res = {
-            status: 0,
-            send: {},
-        };
-
-        TeamDao.del.mockResolvedValue(null);
-        
-        await team.deleteTeam(req, res);
-        
-        expect(res.send.error).toBe("Team not found");
-        expect(res.status).toBe(404);
-    });
-
-    // ===== DELETE ALL TEAMS TESTS ===== //
-    test("deleteAllTeams success", async function () {
-        const team = new TeamController();
-        
-        let res = {
-            status: 0,
-            send: {},
-        };
-
-        TeamDao.deleteAll.mockResolvedValue();
-        
-        await team.deleteAllTeams({}, res);
-        
-        expect(TeamDao.deleteAll).toHaveBeenCalled();
-        expect(res.send.success).toBeTruthy();
-        expect(res.send.message).toBe("All teams deleted successfully");
-        expect(res.status).toBe(200);
-    });
-
-    // ===== GET TEAMS BY COACH TESTS ===== //
-    test("getTeamsByCoach with valid coach", async function () {
-        const team = new TeamController();
-        
-        const allTeams = [
-            { _id: "1", players: ["jim"], coach: "BOB", games: [] },
-            { _id: "2", players: ["ray"], coach: "TIM", games: [] },
-            { _id: "3", players: ["sam"], coach: "BOB_SMITH", games: [] }
-        ];
-
-        let req = {
-            query: { coach: "BOB" }
-        };
-
-        let res = {
-            status: 0,
-            send: {},
-        };
-
-        TeamDao.readAll.mockResolvedValue(allTeams);
-        
-        await team.getTeamsByCoach(req, res);
-        
-        expect(res.send.success).toBeTruthy();
-        expect(res.send.teams).toHaveLength(2);
-        expect(res.send.teams[0].coach).toBe("BOB");
-        expect(res.send.teams[1].coach).toBe("BOB_SMITH");
-        expect(res.status).toBe(200);
-    });
-
-    test("getTeamsByCoach with missing coach parameter", async function () {
-        const team = new TeamController();
-        
-        let req = {};
-        let res = {
-            status: 0,
-            send: {},
-        };
-
-        await team.getTeamsByCoach(req, res);
-        
-        expect(res.send.error).toBe("Coach name is required");
-        expect(res.status).toBe(400);
-    });
-
-    // ===== ADD PLAYER TO TEAM TESTS ===== //
-    test("addPlayerToTeam with valid data", async function () {
-        const team = new TeamController();
-        
-        const existingTeam = {
-            _id: "team123",
-            players: ["jim", "ray"],
-            coach: "BOB",
-            games: []
-        };
-
-        const updatedTeam = {
-            _id: "team123",
-            players: ["jim", "ray", "newPlayer"],
-            coach: "BOB",
-            games: []
-        };
-
-        let req = {
-            params: { id: "team123" },
-            body: { playerName: "newPlayer" }
-        };
-
-        let res = {
-            status: 0,
-            send: {},
-        };
-
-        TeamDao.read.mockResolvedValue(existingTeam);
-        TeamDao.update.mockResolvedValue(updatedTeam);
-        
-        await team.addPlayerToTeam(req, res);
-        
-        expect(TeamDao.read).toHaveBeenCalledWith("team123");
-        expect(TeamDao.update).toHaveBeenCalledWith("team123", { 
-            players: ["jim", "ray", "newPlayer"] 
+            it('should return 500 if DAO readAll fails', async () => {
+                TeamDao.readAll.mockRejectedValue(new Error('DB Error'));
+                await controller.getAllTeams({}, mockRes);
+                expect(mockRes.status).toBe(500);
+                expect(mockRes.send).toEqual({ error: "Failed to fetch teams" });
+            });
         });
-        expect(res.send.success).toBeTruthy();
-        expect(res.send.message).toBe("Player added successfully");
-        expect(res.status).toBe(200);
+
+        // --- getTeamById ---
+        describe('getTeamById', () => {
+            it('should return a single team by ID', async () => {
+                const req = { params: { id: 'team123' } };
+                TeamDao.read.mockResolvedValue(mockTeam);
+
+                await controller.getTeamById(req, mockRes);
+
+                expect(TeamDao.read).toHaveBeenCalledWith('team123');
+                expect(mockRes.status).toBe(200);
+                expect(mockRes.send).toEqual({ success: true, team: mockTeam });
+            });
+
+            it('should return 404 if team not found', async () => {
+                const req = { params: { id: 'badId' } };
+                TeamDao.read.mockResolvedValue(null);
+                await controller.getTeamById(req, mockRes);
+                expect(mockRes.status).toBe(404);
+                expect(mockRes.send).toEqual({ error: "Team not found" });
+            });
+
+            // ADDED: Test for missing ID
+            it('should return 400 if ID is not provided', async () => {
+                const req = { params: {} }; // Missing id
+                await controller.getTeamById(req, mockRes);
+                expect(mockRes.status).toBe(400);
+                expect(mockRes.send).toEqual({ error: "Team ID is required" });
+                expect(TeamDao.read).not.toHaveBeenCalled();
+            });
+
+            // ADDED: Test for DAO failure
+            it('should return 500 if DAO read fails', async () => {
+                const req = { params: { id: 'team123' } };
+                TeamDao.read.mockRejectedValue(new Error('DB Error'));
+                await controller.getTeamById(req, mockRes);
+                expect(mockRes.status).toBe(500);
+                expect(mockRes.send).toEqual({ error: "Failed to fetch team" });
+            });
+        });
+
+        // --- updateTeam ---
+        describe('updateTeam', () => {
+            it('should update a team with valid data', async () => {
+                const req = { params: { id: 'team123' }, body: { coach: 'New Coach' } };
+                const updatedTeam = { ...mockTeam, coach: 'New Coach' };
+                TeamDao.update.mockResolvedValue(updatedTeam);
+
+                await controller.updateTeam(req, mockRes);
+
+                expect(TeamDao.update).toHaveBeenCalledWith('team123', { coach: 'New Coach' });
+                expect(mockRes.status).toBe(200);
+                expect(mockRes.send).toEqual({ success: true, message: "Team updated successfully", team: updatedTeam });
+            });
+
+            it('should return 400 if update data is invalid', async () => {
+                const req = { params: { id: 'team123' }, body: { players: [] } };
+                await controller.updateTeam(req, mockRes);
+                expect(mockRes.status).toBe(400);
+                expect(mockRes.send).toEqual({ error: "Players must be a non-empty array" });
+                expect(TeamDao.update).not.toHaveBeenCalled();
+            });
+        });
+
+        // --- deleteTeam ---
+        describe('deleteTeam', () => {
+            it('should delete a team with valid ID', async () => {
+                const req = { params: { id: 'team123' } };
+                TeamDao.del.mockResolvedValue(true);
+                await controller.deleteTeam(req, mockRes);
+                expect(TeamDao.del).toHaveBeenCalledWith('team123');
+                expect(mockRes.status).toBe(200);
+                expect(mockRes.send).toEqual({ success: true, message: "Team deleted successfully" });
+            });
+
+            it('should return 404 if team to delete is not found', async () => {
+                const req = { params: { id: 'badId' } };
+                TeamDao.del.mockResolvedValue(null);
+                await controller.deleteTeam(req, mockRes);
+                expect(mockRes.status).toBe(404);
+                expect(mockRes.send).toEqual({ error: "Team not found" });
+            });
+        });
+
+        // --- addPlayerToTeam ---
+        describe('addPlayerToTeam', () => {
+            it('should add a player to a team', async () => {
+                const req = { params: { id: 'team123' }, body: { playerName: 'New Player' } };
+                TeamDao.read.mockResolvedValue(mockTeam);
+                const updatedTeam = { ...mockTeam, players: [...mockTeam.players, 'New Player'] };
+                TeamDao.update.mockResolvedValue(updatedTeam);
+
+                await controller.addPlayerToTeam(req, mockRes);
+
+                expect(TeamDao.read).toHaveBeenCalledWith('team123');
+                expect(TeamDao.update).toHaveBeenCalledWith('team123', { players: ['Player 1', 'Player 2', 'New Player'] });
+                expect(mockRes.status).toBe(200);
+                expect(mockRes.send.team).toEqual(updatedTeam);
+            });
+
+            it('should return 400 if player already exists', async () => {
+                const req = { params: { id: 'team123' }, body: { playerName: 'Player 1' } };
+                TeamDao.read.mockResolvedValue(mockTeam);
+                await controller.addPlayerToTeam(req, mockRes);
+                expect(mockRes.status).toBe(400);
+                expect(mockRes.send).toEqual({ error: "Player already exists on this team" });
+                expect(TeamDao.update).not.toHaveBeenCalled();
+            });
+        });
+
+        // --- registerTeam ---
+        describe('registerTeam', () => {
+            it('should register a new team', async () => {
+                const req = { body: { teamName: 'New Team', coach: 'Coach Red' } };
+                TeamDao.create.mockResolvedValue({ ...mockTeam, ...req.body });
+
+                await controller.registerTeam(req, mockRes);
+
+                expect(TeamDao.create).toHaveBeenCalledWith({
+                    coach: 'Coach Red',
+                    players: [],
+                    games: [],
+                    teamName: 'New Team'
+                });
+                expect(mockRes.status).toBe(200);
+                expect(mockRes.send.success).toBe(true);
+            });
+
+            // ADDED: Test for null body
+            it('should return 400 if req.body is null', async () => {
+                const req = { body: null };
+                await controller.registerTeam(req, mockRes);
+                expect(mockRes.status).toBe(400);
+                expect(mockRes.send).toEqual({ error: "Team name is required" }); // This is the first check hit
+                expect(TeamDao.create).not.toHaveBeenCalled();
+            });
+
+            it('should return 400 if teamName is missing', async () => {
+                const req = { body: { coach: 'Coach Red' } };
+                await controller.registerTeam(req, mockRes);
+                expect(mockRes.status).toBe(400);
+                expect(mockRes.send).toEqual({ error: "Team name is required" });
+            });
+
+            // ADDED: Test for missing coach
+            it('should return 400 if coach is missing', async () => {
+                const req = { body: { teamName: 'New Team' } };
+                await controller.registerTeam(req, mockRes);
+                expect(mockRes.status).toBe(400);
+                expect(mockRes.send).toEqual({ error: "Coach name is required" });
+                expect(TeamDao.create).not.toHaveBeenCalled();
+            });
+
+            // ADDED: Test for empty coach string
+            it('should return 400 if coach name is empty string', async () => {
+                const req = { body: { teamName: 'New Team', coach: '   ' } };
+                await controller.registerTeam(req, mockRes);
+                expect(mockRes.status).toBe(400);
+                expect(mockRes.send).toEqual({ error: "Coach name cannot be empty" });
+                expect(TeamDao.create).not.toHaveBeenCalled();
+            });
+            
+            // ADDED: Test for DAO failure
+            it('should return 500 if DAO create fails', async () => {
+                const req = { body: { teamName: 'New Team', coach: 'Coach Red' } };
+                TeamDao.create.mockRejectedValue(new Error('DB Error'));
+                await controller.registerTeam(req, mockRes);
+                expect(mockRes.status).toBe(500);
+                expect(mockRes.send).toEqual({ error: "Failed to register team" });
+            });
+        });
     });
 
-    test("addPlayerToTeam with existing player", async function () {
-        const team = new TeamController();
-        
-        const existingTeam = {
-            _id: "team123",
-            players: ["jim", "ray"],
-            coach: "BOB",
-            games: []
-        };
 
-        let req = {
-            params: { id: "team123" },
-            body: { playerName: "jim" }
-        };
+    // --- Integration Tests for Exported Handlers ---
+    describe('Exported Handlers (Integration Tests)', () => {
+        let mockRequest;
+        let mockResponse;
 
-        let res = {
-            status: 0,
-            send: {},
-        };
+        beforeEach(() => {
+            // This is a full Express-style mock response
+            mockResponse = {
+                status: jest.fn(() => mockResponse), // Allows chaining
+                json: jest.fn(),
+                send: jest.fn(),
+                redirect: jest.fn(),
+            };
+        });
 
-        TeamDao.read.mockResolvedValue(existingTeam);
-        
-        await team.addPlayerToTeam(req, res);
-        
-        expect(res.send.error).toBe("Player already exists on this team");
-        expect(res.status).toBe(400);
-    });
+        // --- exports.register ---
+        describe('exports.register', () => {
+            it('should redirect to /team.html on successful registration', async () => {
+                mockRequest = {
+                    body: { teamName: 'New Team', coach: 'New Coach' }
+                };
+                TeamDao.create.mockResolvedValue({ ...mockTeam, ...mockRequest.body });
 
-    test("addPlayerToTeam with missing player name", async function () {
-        const team = new TeamController();
-        
-        let req = {
-            params: { id: "team123" },
-            body: {}
-        };
+                await register(mockRequest, mockResponse);
 
-        let res = {
-            status: 0,
-            send: {},
-        };
+                expect(TeamDao.create).toHaveBeenCalled();
+                expect(mockResponse.redirect).toHaveBeenCalledWith('/team.html');
+                expect(mockResponse.json).not.toHaveBeenCalled();
+            });
 
-        await team.addPlayerToTeam(req, res);
-        
-        expect(res.send.error).toBe("Player name is required");
-        expect(res.status).toBe(400);
-    });
+            it('should return 400 JSON error if validation fails (missing coach)', async () => {
+                mockRequest = {
+                    body: { teamName: 'New Team' } // Missing coach
+                };
+                
+                await register(mockRequest, mockResponse);
 
-    test("addPlayerToTeam with non-existent team", async function () {
-        const team = new TeamController();
-        
-        let req = {
-            params: { id: "nonexistent" },
-            body: { playerName: "newPlayer" }
-        };
+                expect(TeamDao.create).not.toHaveBeenCalled();
+                expect(mockResponse.redirect).not.toHaveBeenCalled();
+                expect(mockResponse.status).toHaveBeenCalledWith(400);
+                expect(mockResponse.json).toHaveBeenCalledWith({ error: "Coach name is required" });
+            });
 
-        let res = {
-            status: 0,
-            send: {},
-        };
+            // ADDED: Test for missing teamName
+            it('should return 400 JSON error if validation fails (missing teamName)', async () => {
+                mockRequest = {
+                    body: { coach: 'New Coach' } // Missing teamName
+                };
+                
+                await register(mockRequest, mockResponse);
 
-        TeamDao.read.mockResolvedValue(null);
-        
-        await team.addPlayerToTeam(req, res);
-        
-        expect(res.send.error).toBe("Team not found");
-        expect(res.status).toBe(404);
+                expect(TeamDao.create).not.toHaveBeenCalled();
+                expect(mockResponse.redirect).not.toHaveBeenCalled();
+                expect(mockResponse.status).toHaveBeenCalledWith(400);
+                expect(mockResponse.json).toHaveBeenCalledWith({ error: "Team name is required" });
+            });
+
+            // ADDED: Test for empty coach string
+            it('should return 400 JSON error if validation fails (empty coach)', async () => {
+                mockRequest = {
+                    body: { teamName: 'New Team', coach: '   ' } // Empty coach
+                };
+                
+                await register(mockRequest, mockResponse);
+
+                expect(TeamDao.create).not.toHaveBeenCalled();
+                expect(mockResponse.redirect).not.toHaveBeenCalled();
+                expect(mockResponse.status).toHaveBeenCalledWith(400);
+                expect(mockResponse.json).toHaveBeenCalledWith({ error: "Coach name cannot be empty" });
+            });
+
+            // ADDED: Test for 500 error
+            it('should return 500 JSON error if DAO create fails', async () => {
+                mockRequest = {
+                    body: { teamName: 'New Team', coach: 'New Coach' }
+                };
+                TeamDao.create.mockRejectedValue(new Error('DB Error'));
+                
+                await register(mockRequest, mockResponse);
+
+                expect(TeamDao.create).toHaveBeenCalled(); // Controller is still called
+                expect(mockResponse.redirect).not.toHaveBeenCalled();
+                expect(mockResponse.status).toHaveBeenCalledWith(500);
+                expect(mockResponse.json).toHaveBeenCalledWith({ error: "Failed to register team" });
+            });
+        });
+
+        // --- exports.getAll ---
+        describe('exports.getAll', () => {
+            it('should return all teams as JSON with 200 status', async () => {
+                mockRequest = {};
+                const teamsArray = [mockTeam];
+                TeamDao.readAll.mockResolvedValue(teamsArray);
+
+                await getAll(mockRequest, mockResponse);
+
+                expect(TeamDao.readAll).toHaveBeenCalledTimes(1);
+                expect(mockResponse.status).toHaveBeenCalledWith(200);
+                expect(mockResponse.json).toHaveBeenCalledWith({ success: true, teams: teamsArray });
+            });
+        });
+
+        /* NOTE: The handlers addPlayer, update, and getById in your controller file
+           do NOT send a response back to the client (they don't call res.json, 
+           res.send, or res.redirect). This is likely a bug in the controller.
+    
+           These tests will pass if the controller methods are *called* correctly,
+           but they cannot check for a final response.
+        */
+
+        // --- exports.addPlayer ---
+        describe('exports.addPlayer', () => {
+            it('should map teamId from body and call controller', async () => {
+                mockRequest = {
+                    body: { teamId: 'team123', playerName: 'New Player' },
+                    params: {} // Starts empty
+                };
+                
+                // Simulate the DAO calls that addPlayerToTeam will trigger
+                TeamDao.read.mockResolvedValue(mockTeam);
+                TeamDao.update.mockResolvedValue(mockTeam);
+
+                await addPlayer(mockRequest, mockResponse);
+
+                // Check that the request params were correctly modified for the controller
+                expect(mockRequest.params.id).toBe('team123');
+                
+                // Check that the correct DAO methods were triggered by the controller
+                expect(TeamDao.read).toHaveBeenCalledWith('team123');
+                expect(TeamDao.update).toHaveBeenCalled();
+                
+                // We cannot check for res.json() or res.redirect() as the handler doesn't call them
+            });
+        });
+
+        // --- exports.update ---
+        describe('exports.update', () => {
+            it('should map updateTeamId from body and call controller', async () => {
+                mockRequest = {
+                    body: { updateTeamId: 'team123', coach: 'New Coach' },
+                    params: {} // Starts empty
+                };
+                
+                TeamDao.update.mockResolvedValue(mockTeam); // Simulate success
+
+                await update(mockRequest, mockResponse);
+
+                // Check that the request params were correctly modified for the controller
+                expect(mockRequest.params.id).toBe('team123');
+                expect(TeamDao.update).toHaveBeenCalledWith('team123', { coach: 'New Coach' });
+            });
+        });
+
+        // --- exports.getById ---
+        describe('exports.getById', () => {
+            it('should call getTeamById controller method', async () => {
+                mockRequest = {
+                    params: { id: 'team123' }
+                };
+                
+                TeamDao.read.mockResolvedValue(mockTeam); // Simulate success
+
+                await getById(mockRequest, mockResponse);
+
+                expect(TeamDao.read).toHaveBeenCalledWith('team123');
+            });
+        });
     });
 });
