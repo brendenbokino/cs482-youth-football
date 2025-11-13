@@ -369,6 +369,27 @@ app.put('/comms/updateMessage/:id', isAuthenticated, async (req, res) => {
   }
 });
 
+app.post('/comms/addReply/:id', isAuthenticated, async (req, res) => {
+    const { id } = req.params;
+    const { message } = req.body;
+    const user = req.session.user;
+
+    try {
+        const reply = {
+            email: user.email,
+            message,
+        };
+        const updatedMessage = await MessageDao.addReply(id, reply);
+        if (updatedMessage) {
+            res.status(200).json({ success: true, updatedMessage });
+        } else {
+            res.status(404).json({ error: "Message not found." });
+        }
+    } catch (err) {
+        res.status(500).json({ error: "Failed to add reply", details: err.message });
+    }
+});
+
 app.get('/checkSession', (req, res) => {
     res.json({ session: req.session });
 });
