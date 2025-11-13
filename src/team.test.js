@@ -16,6 +16,7 @@ const mockTeam = {
   coach: 'Coach K',
   players: ['Player 1', 'Player 2'],
   games: [],
+  record: [1,1],
   teamName: 'Blue Devils'
 };
 
@@ -53,7 +54,8 @@ describe('TeamController.js Tests', () => {
                 expect(TeamDao.create).toHaveBeenCalledWith({
                     players: ['Player 1'],
                     coach: 'Coach K',
-                    games: []
+                    games: [],
+                    record: [0,0]
                 });
                 expect(mockRes.status).toBe(200);
                 expect(mockRes.send.success).toBe(true);
