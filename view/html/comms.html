@@ -147,6 +147,41 @@
             .message p {
               margin: 0.4em 0;
             }
+
+            .message button {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                border: none;
+                padding: 6px 10px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 0.9rem;
+                transition: background-color 0.3s;
+                margin-right: 8px; 
+            }
+
+            .delete-btn {
+                background-color: #dc2626;
+                color: white;
+            }
+
+            .delete-btn:hover {
+                background-color: #b91c1c;
+            }
+
+            .update-btn {
+                background-color: #16a34a;
+                color: white;
+            }
+
+            .update-btn:hover {
+                background-color: #15803d;
+            }
+
+            .message button i {
+                font-size: 1rem;
+            }
         
             footer {
               text-align: center;
@@ -313,11 +348,13 @@
 
                             if (user.name === msg.author) {
                                 const deleteBtn = document.createElement('button');
-                                deleteBtn.textContent = 'Delete';
+                                deleteBtn.classList.add('delete-btn');
+                                deleteBtn.innerHTML = `<i class="bi bi-trash"></i> Delete`;
                                 deleteBtn.onclick = () => deleteMessage(msg._id);
 
                                 const updateBtn = document.createElement('button');
-                                updateBtn.textContent = 'Update';
+                                updateBtn.classList.add('update-btn');
+                                updateBtn.innerHTML = `<i class="bi bi-pencil"></i> Update`;
                                 updateBtn.onclick = () => updateMessage(msg._id);
 
                                 msgDiv.appendChild(deleteBtn);
