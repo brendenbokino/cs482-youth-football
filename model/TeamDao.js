@@ -6,6 +6,7 @@ const teamSchema = new mongoose.Schema({
     players: Array,
     coach: String,
     games: Array,
+    record: Array, //[wins, losses]
     _id: String
 });
 
