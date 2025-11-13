@@ -8,9 +8,11 @@ jest.mock('mongoose', () => ({
       find: jest.fn(),
       create: jest.fn(),
       updateOne: jest.fn(),
-      deleteOne: jest.fn(),
+      deleteOne: jest.fn() 
     }),
-    Schema: jest.fn(),
+    Schema: class {
+        static Types = { ObjectId: jest.fn() };
+    },
 }));
 
 // I was having errors with stdin so I mocked it with Node's readline
@@ -25,7 +27,10 @@ jest.mock('readline', () => ({
 const UserController = require('./UserController.js');
 const User =  UserController.User
 const UserDao = require('../model/UserDao.js'); 
-const hash = require('../util/Hashing.js')
+const YouthDao = require('../model/YouthDao.js');
+const hash = require('../util/Hashing.js');
+const { default: expect } = require('expect');
+jest.mock('../model/YouthDao.js');
 jest.mock('../model/UserDao.js');
 jest.mock('../util/Hashing.js');
 
@@ -558,6 +563,352 @@ describe("User registration tests.", function() {
         expect(res.redirect).toHaveBeenCalledWith('/profile.html');
 
     })
+});
+
+
+describe("UserController Youth Tests", function() {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test("Create Youth Account: No user session", async function() {
+        let req = { session: { user: null},
+                    body: {} };
+        let res = { status: jest.fn(), send: jest.fn() };
+        UserDao.read.mockResolvedValue(null);
+
+        await UserController.createYouthAccount(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.send).toHaveBeenCalledWith("Forbidden: Not logged in");
+    })
+
+    test("Create Youth Account: Requesting user does not exist", async function() {
+        let req = { session: { user: {_id: 'u1' }},
+                    body: {} };
+        let res = { status: jest.fn(), send: jest.fn() };
+        UserDao.read.mockResolvedValue(null);
+
+        await UserController.createYouthAccount(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.send).toHaveBeenCalledWith("Requesting user not found");
+    })
+
+    test("Create Youth Account: Requester not adult", async function() {
+        let req = { session: { user: {_id: 'u1', permission: 3} },
+                    body: {} };
+        let res = { status: jest.fn(), send: jest.fn() };
+        UserDao.read.mockResolvedValue({ _id: 'u1', permission: 3 });
+        await UserController.createYouthAccount(req, res);
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.send).toHaveBeenCalledWith("Forbidden: Not an adult");
+    })
+    
+    test("Create Youth Account: Successful Creation", async function() {
+        let req = { session: { user: {_id: 'u1', permission: 2} },
+                    body: {
+                        name: 'Youth User',
+                        username: 'youthuser',
+                        password: 'password',
+                    } };
+        let res = { status: jest.fn(), send: jest.fn(), json: jest.fn() };
+        UserDao.read.mockResolvedValue({ _id: 'a1', permission: 2 });
+        UserDao.create.mockResolvedValue({ _id: 'u1', ...req.body });
+        YouthDao.create.mockResolvedValue({ _id: 'y1', id_user: 'u1', id_adult: 'a1' });
+        await UserController.createYouthAccount(req, res);
+        expect(UserDao.create).toHaveBeenCalledWith({
+            name: 'Youth User',
+            username: 'youthuser',
+            password: undefined,
+            permission: 3
+        });
+
+        expect(YouthDao.create).toHaveBeenCalledWith({
+            id_user: 'u1',
+            id_adult: 'a1'
+        });
+
+        expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+});
+
+
+describe("UserController getUserById Tests", function() {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test("getUserById: Not logged in", async function() {
+        const req = { session: {}, params: { id: 'u1' } };
+        const res = { status: jest.fn(), send: jest.fn() };
+
+        await UserController.getUserById(req, res);
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.send).toHaveBeenCalledWith("Forbidden: Not logged in");
+    });
+
+    test("getUserById: Requesting user not found", async function() {
+        const req = { session: { user: { _id: 'a1' } }, params: { id: 'u2' } };
+        const res = { status: jest.fn(), send: jest.fn() };
+
+        UserDao.read.mockResolvedValueOnce(null);
+
+        await UserController.getUserById(req, res);
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.send).toHaveBeenCalledWith("Requesting user not found");
+    });
+
+    test("getUserById: Target user not found", async function() {
+        const req = { session: { user: { _id: 'a1' } }, params: { id: 'u2' } };
+        const res = { status: jest.fn(), send: jest.fn() };
+
+        UserDao.read
+            .mockResolvedValueOnce({ _id: 'a1', permission: 2 }) // requester
+            .mockResolvedValueOnce(null); // target user
+
+        await UserController.getUserById(req, res);
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.send).toHaveBeenCalledWith("User not found");
+    });
+
+    test("getUserById: Youth trying to view another user (forbidden)", async function() {
+        const req = { session: { user: { _id: 'y1' } }, params: { id: 'u2' } };
+        const res = { status: jest.fn(), send: jest.fn() };
+
+        UserDao.read
+            .mockResolvedValueOnce({ _id: 'y1', permission: 3 }) // requester = youth
+            .mockResolvedValueOnce({ _id: 'u2', permission: 3 }); // target youth
+
+        await UserController.getUserById(req, res);
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.send).toHaveBeenCalledWith("Forbidden: Not authorized to view this user");
+    });
+
+    test("getUserById: Guest trying to view another user (forbidden)", async function() {
+        const req = { session: { user: { _id: 'g1' } }, params: { id: 'u2' } };
+        const res = { status: jest.fn(), send: jest.fn() };
+
+        UserDao.read
+            .mockResolvedValueOnce({ _id: 'g1', permission: 4 }) // guest
+            .mockResolvedValueOnce({ _id: 'u2', permission: 3 });
+
+        await UserController.getUserById(req, res);
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.send).toHaveBeenCalledWith("Forbidden: Not authorized to view this user");
+    });
+
+    test("getUserById: Adult viewing unrelated youth (forbidden)", async function() {
+        const req = { session: { user: { _id: 'a1' } }, params: { id: 'u2' } };
+        const res = { status: jest.fn(), send: jest.fn() };
+
+        UserDao.read
+            .mockResolvedValueOnce({ _id: 'a1', permission: 2 }) // requester = adult
+            .mockResolvedValueOnce({ _id: 'u2', permission: 3 }); // target youth
+
+        YouthDao.findByUserId.mockResolvedValue({ _id: 'y1' });
+        YouthDao.isYouthUnderAdult.mockResolvedValue(false);
+
+        await UserController.getUserById(req, res);
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.send).toHaveBeenCalledWith("Forbidden: Not authorized to view this youth");
+    });
+
+    test("getUserById: Adult viewing youth under them (success)", async function() {
+        const req = { session: { user: { _id: 'a1' } }, params: { id: 'u2' } };
+        const res = { status: jest.fn(), send: jest.fn(), json: jest.fn() };
+
+        UserDao.read
+            .mockResolvedValueOnce({ _id: 'a1', permission: 2 })
+            .mockResolvedValueOnce({ _id: 'u2', permission: 3 });
+
+        YouthDao.findByUserId.mockResolvedValue({ _id: 'y1' });
+        YouthDao.isYouthUnderAdult.mockResolvedValue(true);
+
+        await UserController.getUserById(req, res);
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({ _id: 'u2', permission: 3 });
+    });
+
+    test("getUserById: Adult trying to view another adult (forbidden)", async function() {
+        const req = { session: { user: { _id: 'a1' } }, params: { id: 'a2' } };
+        const res = { status: jest.fn(), send: jest.fn(), json: jest.fn() };
+
+        UserDao.read
+            .mockResolvedValueOnce({ _id: 'a1', permission: 2 }) // requester = adult
+            .mockResolvedValueOnce({ _id: 'a2', permission: 2 }); // target = adult
+
+        await UserController.getUserById(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.send).toHaveBeenCalledWith("Forbidden: Adults can only their youths profiles and their own");
+    });
+
+    test("getUserById: Requesting own profile (any role, success)", async function() {
+        const req = { session: { user: { _id: 'u1', permission: 3 } }, params: { id: 'u1' } };
+        const res = { status: jest.fn(), send: jest.fn(), json: jest.fn() };
+
+        UserDao.read
+            .mockResolvedValueOnce({ _id: 'u1', permission: 3 })
+            .mockResolvedValueOnce({ _id: 'u1', permission: 3 });
+
+        await UserController.getUserById(req, res);
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({ _id: 'u1', permission: 3 });
+    });
+});
+
+
+describe("UserController promoteToAdult Tests", function() {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test("promoteToAdult: Not logged in", async function() {
+        let req = { body: { promote_adult_id: 'u2' }, session: { } };
+        let res = { status: jest.fn(), send: jest.fn() };
+
+        UserDao.read.mockResolvedValue(null);
+
+        await UserController.promoteToAdult(req, res);
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.send).toHaveBeenCalledWith("Forbidden: Not logged in");
+    });
+
+    test("promoteToAdult: Requester not admin or adult (forbidden)", async function() {
+        let req = { body: { promote_adult_id: 'u2' }, session: { user: { _id: 'a1' } } };
+        let res = { status: jest.fn(), send: jest.fn() };
+
+        UserDao.read.mockResolvedValue({ _id: 'a1', permission: 3 }); // not admin/adult
+
+        await UserController.promoteToAdult(req, res);
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.send).toHaveBeenCalledWith("Forbidden");
+    });
+
+    test("promoteToAdult: Target user not found", async function() {
+        let req = { body: { promote_adult_id: 'u2' }, session: { user: { _id: 'a1' } } };
+        let res = { status: jest.fn(), send: jest.fn() };
+
+        UserDao.read.mockResolvedValueOnce({ _id: 'a1', permission: 1 }); // admin
+        UserDao.findLogin.mockResolvedValue(null);
+
+        await UserController.promoteToAdult(req, res);
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.send).toHaveBeenCalledWith("User not found");
+    });
+
+    test("promoteToAdult: Target user not guest", async function() {
+        let req = { body: { promote_adult_id: 'u2' }, session: { user: { _id: 'a1' } } };
+        let res = { status: jest.fn(), send: jest.fn() };
+
+        UserDao.read.mockResolvedValue({ _id: 'a1', permission: 1 }); // admin
+        UserDao.findLogin.mockResolvedValue({ _id: 'u2', permission: 3 }); // not guest
+
+        await UserController.promoteToAdult(req, res);
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.send).toHaveBeenCalledWith("User is not a guest");
+    });
+
+    test("promoteToAdult: Successful promotion", async function() {
+        let req = { body: { promote_adult_id: 'u2' }, session: { user: { _id: 'a1' } } };
+        let res = { status: jest.fn(), send: jest.fn(), json: jest.fn() };
+
+        UserDao.read.mockResolvedValue({ _id: 'a1', permission: 0 }); // admin
+        UserDao.findLogin.mockResolvedValue({ _id: 'u2', permission: 4 }); // guest
+        UserDao.update.mockResolvedValue({ _id: 'u2', permission: 2 });
+
+        await UserController.promoteToAdult(req, res);
+        expect(UserDao.update).toHaveBeenCalledWith('u2', { permission: 2 });
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({ _id: 'u2', permission: 2 });
+    });
+});
+
+describe("UserController getYouths Tests", function() {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test("getYouths: No user session", async function() {
+        const req = { session: { user: null } };
+        const res = { status: jest.fn(), send: jest.fn() };
+
+        await UserController.getYouths(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.send).toHaveBeenCalledWith("Forbidden: Not logged in");
+    });
+
+    test("getYouths: Requesting user not found", async function() {
+        const req = { session: { user: { _id: 'u1' } } };
+        const res = { status: jest.fn(), send: jest.fn() };
+
+        UserDao.read.mockResolvedValue(null);
+
+        await UserController.getYouths(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.send).toHaveBeenCalledWith("Requesting user not found");
+    });
+
+    test("getYouths: Adult requests their youths (success)", async function() {
+        const req = { session: { user: { _id: 'adult1' } } };
+        const res = { status: jest.fn(), send: jest.fn(), json: jest.fn() };
+
+        const mockYouthList = [
+            { _id: 'y1', id_adult: 'adult1' },
+            { _id: 'y2', id_adult: 'adult1' },
+        ];
+
+        UserDao.read.mockResolvedValue({ _id: 'adult1', permission: 2 });
+        YouthDao.findByAdultId.mockResolvedValue(mockYouthList);
+
+        await UserController.getYouths(req, res);
+
+        expect(YouthDao.findByAdultId).toHaveBeenCalledWith('adult1');
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith(mockYouthList);
+    });
+
+    test("getYouths: Coach requests all youths (success, filters noTeamYouth)", async function() {
+        const req = { session: { user: { _id: 'coach1' } } };
+        const res = { status: jest.fn(), send: jest.fn(), json: jest.fn() };
+
+        const allYouths = [
+            { _id: 'y1', id_team: 't1' },
+            { _id: 'y2', id_team: null },
+            { _id: 'y3', id_team: undefined },
+        ];
+
+        UserDao.read.mockResolvedValue({ _id: 'coach1', permission: 1 });
+        YouthDao.readAllYouth.mockResolvedValue(allYouths);
+
+        await UserController.getYouths(req, res);
+
+        // Only the ones with no team should be returned
+        const expected = [
+            { _id: 'y2', id_team: null },
+            { _id: 'y3', id_team: undefined },
+        ];
+
+        expect(YouthDao.readAllYouth).toHaveBeenCalled();
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith(expected);
+    });
+
+    test("getYouths: Unauthorized role (guest/youth)", async function() {
+        const req = { session: { user: { _id: 'guest1' } } };
+        const res = { status: jest.fn(), send: jest.fn() };
+
+        UserDao.read.mockResolvedValue({ _id: 'guest1', permission: 4 });
+
+        await UserController.getYouths(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.send).toHaveBeenCalledWith("Forbidden: Not an adult or coach");
+    });
 });
 
 

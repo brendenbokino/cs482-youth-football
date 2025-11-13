@@ -70,7 +70,20 @@ test('Read All', async function(){
     expect(lstUsers[0].email).toBe("test1@test.com"); // 1st user login is test1 
 });
 
-test('Find Login user', async function(){
+test('Find Login username', async function(){
+    let newdata = {name:'Test',email:'test@test.com',
+                password:'123456',permission:1,username: 'tester',
+                phone: '1234567890'};
+    let created = await dao.create(newdata); // create a new user
+
+    let logged = await dao.findLogin(newdata.username);
+
+    expect(logged).not.toBeNull();
+    expect(logged._id).toEqual(created._id);
+    expect(logged.email).toEqual(created.email);
+});
+
+test('Find Login email', async function(){
     let newdata = {name:'Test',email:'test@test.com',
                 password:'123456',permission:1,username: 'tester',
                 phone: '1234567890'};

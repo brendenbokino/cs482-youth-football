@@ -6,7 +6,7 @@ const teamSchema = new mongoose.Schema({
     players: Array,
     coach: String,
     games: Array,
-    _id : String
+    _id:Stirng
 });
 
 const teamModel = mongoose.model('teams', teamSchema);

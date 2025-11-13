@@ -6,6 +6,11 @@
         <meta name="keywords" content="football, youth league, sports">
         <title>Loyal Order of Youth League Athletes</title>
         <link href="./css/popup.css" rel="stylesheet" type="text/css">
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+        <!-- Bootrap Icons for the Icons -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
         <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="crossorigin="anonymous"></script>
 
         <style>
@@ -192,25 +197,7 @@
             }
 
             async function checkLoginStatus() {
-                // session-based login not working
-                // try {
-                //     const response = await fetch('/comms/viewMessages', { credentials: 'include' });
-                //     if (response.status === 401) {
-                //         window.location.href = 'login.html';
-                //         return false;
-                //     }
-                //     const data = await response.json();
-                //     if (!data.loggedIn) {
-                //         window.location.href = 'login.html';
-                //         return false;
-                //     }
-                //     return true;
-                // } catch (error) {
-                //     console.error('Network error during login status check:', error);
-                //     window.location.href = 'login.html';
-                //     return false;
-                // }
-                return true; // Allow access without session checks
+                return true; 
             }
 
             async function postMessage() {
@@ -302,11 +289,11 @@
                         credentials: 'include', 
                     });
 
-                    console.log("Response status:", response.status); // Log response status
+                    console.log("Response status:", response.status); 
 
                     if (response.ok) {
                         const data = await response.json();
-                        console.log("Fetched messages:", data); // Log fetched messages
+                        console.log("Fetched messages:", data); 
                         const messageList = document.getElementById('messageList');
                         messageList.innerHTML = '';
 
@@ -345,7 +332,7 @@
                         alert("Failed to fetch messages: " + (result.error || "Unknown error."));
                     }
                 } catch (error) {
-                    console.error('Network error during message retrieval:', error); // Log network error
+                    console.error('Network error during message retrieval:', error); 
                     alert("Network error. Please try again.");
                 }
             }
@@ -354,7 +341,7 @@
                 const messageList = document.getElementById('messageList');
                 const hideBtn = document.querySelector('.hide-btn');
 
-                if (messageList.style.display === 'none' ){ //|| messageList.style.display === '') {
+                if (messageList.style.display === 'none' ){ 
                     messageList.style.display = 'block';
                     hideBtn.textContent = 'Hide Messages';
                 } else {
@@ -365,4 +352,3 @@
         </script>
     </body>
 </html>
-

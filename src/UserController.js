@@ -16,6 +16,7 @@ Permission Levels:
 
 const readline = require('readline');
 const UserDao = require('../model/UserDao');
+const YouthDao = require('../model/YouthDao');
 const hash = require('../util/Hashing');
 
 class User {
@@ -216,6 +217,10 @@ exports.User = User;
 
 exports.login = async function(req, res){
     let plogin = req.body.login_id;
+    /**console.log('plogin: ', plogin);
+    console.log('req.body.login_id: ', req.body.login_id);
+    console.log('req.body: ', req.body);**/
+
     let user = await UserDao.findLogin(plogin); 
 
     if (user == null){ //login not found
@@ -226,7 +231,7 @@ exports.login = async function(req, res){
             console.log('successful login');
 
             req.session.user = user;
-            res.redirect('/profile.html') 
+            res.redirect('/profile') 
 
         } else{ //passwords do not match
             res.redirect('/login.html?error=2') //redirect back to login, NtE error message
@@ -270,9 +275,10 @@ exports.register = async function(req, res) {
             password: hash.hashString(req.body.pass)
         };
 
-        UserDao.create(userInfo);
+        let user = UserDao.create(userInfo);
         console.log('Successfully registered user.');
-        res.redirect('/profile.html');
+        req.session.user = user;
+        res.redirect('/profile');
     } else {
         if (existingUsername) {
             console.log('User already exists with username.');
@@ -283,3 +289,176 @@ exports.register = async function(req, res) {
         res.redirect('/register.html');
     }
 }
+
+exports.getUserById = async function(req, res) {
+    let userId = req.params.id;
+    let adult = false;
+
+    if (!req.session || !req.session.user) {
+        res.status(403);
+        res.send('Forbidden: Not logged in');
+        return;
+    }
+
+    let requester = await UserDao.read(req.session.user._id);
+    if (!requester) {
+        res.status(404);
+        res.send('Requesting user not found');
+        return;
+    }
+
+
+    if (requester._id.toString() !== userId.toString()) {
+        // Different user
+        if (requester.permission == 2) {
+            adult = true;
+        } else if (requester.permission == 4 || requester.permission == 3) {
+            res.status(403);
+            res.send('Forbidden: Not authorized to view this user');
+            return;
+        }
+    }
+
+    let user = await UserDao.read(userId);
+    if (!user) {
+        res.status(404);
+        res.send('User not found');
+        return;
+    }
+
+    if (adult) {
+        if (user.permission == 3) {
+            let youth = await YouthDao.findByUserId(user._id);
+            if (!youth) {
+                res.status(404);
+                res.send('Youth profile not found');
+                return;
+            }
+            let isUnderAdult = await YouthDao.isYouthUnderAdult(youth._id, requester._id);
+            if (!isUnderAdult) {
+                res.status(403);
+                res.send('Forbidden: Not authorized to view this youth');
+                return;
+            }
+        } else {
+            res.status(403);
+            res.send('Forbidden: Adults can only their youths profiles and their own');
+            return;
+        }
+    }
+
+    res.status(200);
+    res.json(user);
+};
+
+exports.promoteToAdult = async function(req, res) {
+    let adultId = req.body.promote_adult_id;
+    if (!req.session || !req.session.user) {
+        res.status(401);
+        res.send('Forbidden: Not logged in');
+        return;
+    }
+
+    let requester = await UserDao.read(req.session.user._id);
+    if (!requester) {
+        res.status(404);
+        res.send('Promoting user not found');
+        return;
+    }
+
+    if (requester.permission > 1) {
+        res.status(403);
+        res.send('Forbidden');
+        return;
+    }
+
+    let user = await UserDao.findLogin(adultId);
+    if (!user) {
+        res.status(404);
+        res.send('User not found');
+        return;
+    }
+
+    if (user.permission != 4) {
+        res.status(400);
+        res.send('User is not a guest');
+        return;
+    }
+
+    let updates = { permission: 2 }; // Promote to adult
+    let updatedUser = await UserDao.update(user._id, updates);
+    res.status(200);
+    res.json(updatedUser);
+
+}
+
+exports.createYouthAccount = async function(req, res) {
+    if (!req.session || !req.session.user) {
+        res.status(403);
+        res.send('Forbidden: Not logged in');
+        return;
+    }
+    let requester = await UserDao.read(req.session.user._id);
+    if (!requester) {
+        res.status(404);
+        res.send('Requesting user not found');
+        return;
+    }
+    if (requester.permission != 2) {
+        res.status(403);
+        res.send('Forbidden: Not an adult');
+        return;
+    }
+    let youthInfo = {
+        username: req.body.username,
+        name: req.body.name,
+        permission: 3, // Youth
+        password: hash.hashString(req.body.pass)
+    };
+
+    let youthUser = await UserDao.create(youthInfo);
+    let newYouth = {
+        id_user: youthUser._id,
+        id_adult: requester._id
+    };
+
+    let youthProfile = await YouthDao.create(newYouth);
+    res.status(200);
+    res.json({ youthUser, youthProfile });
+}
+
+exports.getYouths = async function(req, res) {
+    if (!req.session || !req.session.user) {
+        res.status(403);
+        res.send('Forbidden: Not logged in');
+        return;
+    }
+
+    let requester = await UserDao.read(req.session.user._id);
+    if (!requester) {
+        res.status(404);
+        res.send('Requesting user not found');
+        return;
+    }
+    if (requester.permission == 2) {
+        let youths = await YouthDao.findByAdultId(requester._id);
+        res.status(200);
+        res.json(youths);    
+    } else if (requester.permission == 1) {
+        let youths = await YouthDao.readAllYouth();
+        let noTeamYouth = [];
+        for (youth of youths) {
+            if (youth.id_team == null) {
+                noTeamYouth.push(youth);
+            }
+        }
+        res.status(200);
+        res.json(noTeamYouth);
+    } else {
+        res.status(403);
+        res.send('Forbidden: Not an adult or coach');
+        return;
+    }
+}
+
+

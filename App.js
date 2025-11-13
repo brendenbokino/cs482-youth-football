@@ -18,6 +18,7 @@ const Comms = require('./src/Comms');
 const MessageDao = require('./model/MessageDao');
 const { login, register, logout, loggedUser } = require('./src/UserController');
 
+
 app = express()
 
 app.use(session({
@@ -84,15 +85,27 @@ app.post('/registeruser', UserController.register);
 app.get('/logoutuser', UserController.logout);
 app.get('/loggeduser', UserController.loggedUser);
 
+app.get('/user/:id', UserController.getUserById);
+
+app.post('/promotetoadult', UserController.promoteToAdult);
+
+app.post('/adult/createyouth', UserController.createYouthAccount);
+app.get('/adult/viewyouths', UserController.getYouths);
+app.get('/coach/viewyouths', UserController.getYouths);
+
 //Team Controller Functions
 const TeamController = require('./src/TeamController');
 
 //Game Controller Functions
 const GameController = require('./src/GameController');
 
-
-
-
+app.get('/profile', (req, res) => {
+  if (req.session && req.session.user) {
+    res.redirect(`/profile.html?id=${req.session.user._id.toString()}`);
+  } else {
+    res.redirect('/login.html');
+  }
+});
 
 
 app.use(express.static('view/html'));
@@ -137,7 +150,7 @@ mongoose.connection.once('open', () => {
 
 //create storage
 const storage = new GridFsStorage({
-    url: process.env.FILESDB_URI,
+    url: process.env.DB_URI,
     file: (req, file) => {
       return new Promise((resolve, reject) => {
         crypto.randomBytes(16, (err, buf) => {
@@ -354,6 +367,10 @@ app.put('/comms/updateMessage/:id', isAuthenticated, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Failed to update message", details: err.message });
   }
+});
+
+app.get('/checkSession', (req, res) => {
+    res.json({ session: req.session });
 });
 
 exports.app = app;

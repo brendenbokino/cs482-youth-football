@@ -5,38 +5,73 @@
         <meta charset="utf-8">
         <meta name="keywords" content="football, youth league, sports">
         <title>Loyal Order of Youth League Athletes</title>
-        <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="crossorigin="anonymous"></script>
-    </head>
+        <link href="./css/main.css" rel="stylesheet" type="text/css">
+        
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+        <!-- Bootrap Icons for the Icons -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+        </head>
 
-    <script>
-        $(function(){
-          $("#header").load("header.html"); 
-          $("#footer").load("footer.html"); 
-        });
-      </script> 
-  
     <body>
         <div id="header"></div>
-
         <main>
-            <form method="post" action="registeruser">
-                <label for="email">Email:</label><br>
-                <input type="text" id="email" name="email"><br>
-                <label for="username">Username:</label><br>
-                <input type="text" id="username" name="username"><br>
-                <label for="name">First and Last name:</label><br>
-                <input type="text" id="name" name="name"><br>
-                <label for="phone">Phone number:</label><br>
-                <input type="text" id="phone" name="phone"><br>
-                <label for="pass">Password:</label><br>
-                <input type="password" id="pass" name="pass"><br>
-                <label for="confirm_pass">Confirm password:</label><br>
-                <input type="password" id="confirm_pass" name="confirm_pass"><br><br>
-                <input type="submit" value="Submit">
-            </form>
+            <div class="container pt-5 pb-5">
+                <div class="row justify-content-center align-items-center">
+                    <div class="col-8">
+                        <h2 class="text-center mb-4">Register</h2>
+                        <form method="post" action="registeruser">
+                            <div class="form-floating mb-3">
+                                <input type="email" class="form-control" id="email" name="email" placeholder="placeholder">
+                                <label for="email">Email</label>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="username" name="username" placeholder="placeholder">
+                                <label for="username">Username</label>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="name" name="name" placeholder="placeholder">
+                                <label for="name">First and Last Name</label>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input type="tel" class="form-control" id="phone" name="phone" placeholder="placeholder">
+                                <label for="phone">Phone Number</label>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" id="pass" name="pass" placeholder="placeholder">
+                                <label for="pass">Password</label>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" id="confirm_pass" name="confirm_pass" placeholder="placeholder">
+                                <label for="confirm_pass">Confirm Password</label>
+                            </div>
+
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-purple">
+                                    Register
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <div id="footer"></div>
+            <!-- JQuery JS -->
+        <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+        <!-- Bootstrap Bundle JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+        <script> 
+            $(function(){
+                $("#header").load("header.html"); 
+                $("#footer").load("footer.html"); 
+            });
+        </script>
     </body>
 </html>
 

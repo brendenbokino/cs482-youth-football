@@ -1,0 +1,180 @@
+// Script from comms.html. Tried to move it into its own file with necessary changes.
+
+function getAuthorType(permission) {
+    switch (permission) {
+        case 1: return 'Coach';
+        case 2: return 'Parent';
+        case 3: return 'Player';
+        default: return 'User';
+    }
+}
+
+async function checkLoginStatus() {
+    try {
+        const response = await fetch('/loggedUser', { credentials: 'include' }).then(res => res.json());
+        if (response.status === 401) {
+            window.location.href = '../view/htmllogin.html';
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error('Error checking login status:', error);
+        return false;
+    }
+}
+
+async function postMessage(event) {
+    event.preventDefault();
+  
+    const messageBody = document.getElementById('messageBody').value.trim();
+    if (!messageBody) {
+      alert("Message cannot be empty.");
+      return;
+    }
+  
+    try {
+      const response = await fetch('/comms/postMessage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: messageBody }),
+        credentials: 'include',
+      });
+  
+      if (response.ok) {
+        const confirmation = document.getElementById("confirmationMessage");
+        confirmation.style.display = "block";
+        setTimeout(() => confirmation.style.display = "none", 3000);
+        document.getElementById("messageForm").reset();
+        await viewMessages();
+      } else {
+        const result = await response.json();
+        alert("Failed to post message: " + (result.error || "Unknown error."));
+      }
+    } catch (error) {
+      console.error('Network error during post:', error);
+      alert("Network error. Please try again.");
+    }
+}
+
+async function deleteMessage(messageId) {
+    try {
+        const response = await fetch(`/comms/deleteMessage/${messageId}`, {
+            method: 'DELETE',
+            credentials: 'include',
+        });
+
+        if (response.ok) {
+            alert("Message deleted successfully.");
+            viewMessages();
+        } else {
+            const result = await response.json();
+            alert("Failed to delete message: " + (result.error || "Unknown error."));
+        }
+    } catch (error) {
+        console.error('Network error during delete:', error);
+        alert("Network error. Please try again.");
+    }
+}
+
+async function updateMessage(messageId) {
+    const newMessage = prompt("Enter the updated message:");
+    if (!newMessage) return;
+
+    try {
+        const response = await fetch(`/comms/updateMessage/${messageId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message: newMessage }),
+            credentials: 'include',
+        });
+
+        if (response.ok) {
+            alert("Message updated successfully.");
+            viewMessages();
+        } else {
+            const result = await response.json();
+            alert("Failed to update message: " + (result.error || "Unknown error."));
+        }
+    } catch (error) {
+        console.error('Network error during update:', error);
+        alert("Network error. Please try again.");
+    }
+}
+
+async function viewMessages() {
+    try {
+        const response = await fetch('/comms/viewMessages', {
+            method: 'GET',
+            credentials: 'include', 
+        });
+
+        if (!response.ok) {
+            const result = await response.json();
+            throw new Error(result.error || "Unknown error.");
+        }
+
+        const data = await response.json();
+        const messageList = document.getElementById('messageList');
+        messageList.innerHTML = '';
+
+        const user = await fetch('/loggedUser', { credentials: 'include' }).then(res => res.json());
+
+        data.messages.forEach(msg => {
+        const msgDiv = document.createElement('div');
+        msgDiv.classList.add('message');
+
+        const authorType = getAuthorType(msg.authorType);
+        const updatedAt = msg.edited ? ` (updated at ${new Date(msg.dateEdited).toLocaleString()})` : '';
+
+        msgDiv.innerHTML = `
+            <p><strong>${msg.author} (${authorType})${updatedAt}:</strong></p>
+            <p>${msg.message}</p>
+        `;
+
+        if (user.name === msg.author) {
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.onclick = () => deleteMessage(msg._id);
+
+            const updateBtn = document.createElement('button');
+            updateBtn.textContent = 'Update';
+            updateBtn.onclick = () => updateMessage(msg._id);
+
+            msgDiv.appendChild(deleteBtn);
+            msgDiv.appendChild(updateBtn);
+        }
+
+        messageList.appendChild(msgDiv);
+        });
+    } catch (error) {
+        console.error('Error fetching messages:', error);
+        alert("Failed to fetch messages: " + error.message);
+    }
+}
+
+function toggleMessages() {
+    const messageList = document.getElementById('messageList');
+    const hideBtn = document.querySelector('.hide-btn');
+
+    if (messageList.style.display === 'none') {
+        messageList.style.display = 'block';
+        hideBtn.textContent = 'Hide Messages';
+    } else {
+        messageList.style.display = 'none';
+        hideBtn.textContent = 'View Messages';
+    }
+}
+
+module.exports =  { postMessage, deleteMessage, updateMessage, viewMessages, toggleMessages };
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const isLoggedIn = await checkLoginStatus();
+    if (isLoggedIn) {
+        document.getElementById('messageForm').addEventListener('submit', postMessage);
+        document.querySelector('.refresh-btn').addEventListener('click', viewMessages);
+        document.querySelector('.hide-btn').addEventListener('click', toggleMessages);
+        console.log("Event listeners initialized.");
+    }
+});

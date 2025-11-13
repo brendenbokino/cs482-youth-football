@@ -2,7 +2,7 @@
 const gameDao = require('../model/GameDao.js');
 
 
-
+// must add ids for game and teams that was causing the errors 
 
 class GameController {
     constructor() { 
@@ -71,7 +71,8 @@ class GameController {
                     team2: req.team2,
                     date: req.date,
                     location: req.location,
-                    link: req.link
+                    link: req.link,
+                    _id: req.id
                 };
                 let game = await gameDao.update(req.id, updateData);
                 if (game) {
@@ -120,7 +121,8 @@ exports.create = async function(req, res) {
         team2: req.body.team2,
         date: req.body.date,
         location: req.body.location,
-        link: req.body.link
+        link: req.body.link,
+        _id: req.body._id
     } : null;
     const mockRes = { status: null, send: null };
     await controller.createNewGame(mockReq, mockRes);
