@@ -563,9 +563,11 @@
                     })
                 });
 
-                const data = await response.json();
+                const data = await response;
+                // Error updating team: The string did not match the expected pattern.
 
-                if (data.success) {
+
+                if (data.status == 200) {
                     showSuccess('Team updated successfully!');
                     closeTeamPopup();
                     await loadTeams();

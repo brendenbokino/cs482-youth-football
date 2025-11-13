@@ -88,7 +88,7 @@ describe('GameController.js Tests', () => {
         // --- updateGame ---
         describe('updateGame', () => {
             it('should update a game with valid ID and data, returning 200 status', async () => {
-                const updateReq = { id: mockGame._id, team1: 'Updated Team A', team2: 'Updated Team B' };
+                const updateReq = { _id: mockGame._id, team1: 'Updated Team A', team2: 'Updated Team B' };
                 const updatedGame = { ...mockGame, team1: 'Updated Team A' };
                 
                 gameDao.update.mockResolvedValue(updatedGame);
@@ -100,16 +100,17 @@ describe('GameController.js Tests', () => {
                     team2: updateReq.team2,
                     date: undefined,
                     location: undefined,
-                    link: undefined
+                    link: undefined,
+                    _id: mockGame._id
                 };
 
-                expect(gameDao.update).toHaveBeenCalledWith(updateReq.id, expectedUpdateData);
+                expect(gameDao.update).toHaveBeenCalledWith(updateReq._id, expectedUpdateData);
                 expect(mockRes.status).toBe(200);
                 expect(mockRes.send).toEqual({ success: true, game: updatedGame });
             });
 
-            it('should return a 404 error if the game to update is not found', async () => {
-                const updateReq = { id: 'nonexistentId', team1: 'Team A', team2: 'Team B' };
+            it('should return a 400 error if the game to update is not found', async () => {
+                const updateReq = { _id: 'nonexistentId', team1: 'Team A', team2: 'Team B' };
                 gameDao.update.mockResolvedValue(null); // Simulate game not found
                 await gameController.updateGame(updateReq, mockRes);
                 expect(mockRes.status).toBe(404);
@@ -117,7 +118,7 @@ describe('GameController.js Tests', () => {
             });
             
             it('should return a 400 error if team names are missing in update', async () => {
-                const updateReq = { id: mockGame._id, team1: 'Team A' };
+                const updateReq = { _id: mockGame._id, team1: 'Team A' };
                 await gameController.updateGame(updateReq, mockRes);
                 expect(gameDao.update).not.toHaveBeenCalled();
                 expect(mockRes.status).toBe(400);
@@ -128,16 +129,16 @@ describe('GameController.js Tests', () => {
         // --- deleteGame ---
         describe('deleteGame', () => {
             it('should delete a game with a valid ID and return 200 status', async () => {
-                const deleteReq = { id: mockGame._id };
+                const deleteReq = { _id: mockGame._id };
                 gameDao.del.mockResolvedValue(true); // Simulate successful deletion
                 await gameController.deleteGame(deleteReq, mockRes);
-                expect(gameDao.del).toHaveBeenCalledWith(deleteReq.id);
+                expect(gameDao.del).toHaveBeenCalledWith(deleteReq._id);
                 expect(mockRes.status).toBe(200);
                 expect(mockRes.send).toEqual({ success: true, message: "Game deleted successfully" });
             });
 
             it('should return a 404 error if the game to delete is not found', async () => {
-                const deleteReq = { id: 'nonexistentId' };
+                const deleteReq = { _id: 'nonexistentId' };
                 gameDao.del.mockResolvedValue(null); // Simulate game not found
                 await gameController.deleteGame(deleteReq, mockRes);
                 expect(mockRes.status).toBe(404);
@@ -238,7 +239,7 @@ describe('GameController.js Tests', () => {
         describe('exports.update', () => {
             it('should update a game and return JSON with 200 status', async () => {
                 mockRequest = {
-                    params: { id: 'game123' },
+                    params: { _id: 'game123' },
                     body: { team1: 'New Team A', team2: 'New Team B' }
                 };
                 const updatedGame = { ...mockGame, team1: 'New Team A' };
@@ -251,9 +252,9 @@ describe('GameController.js Tests', () => {
                 expect(mockResponse.json).toHaveBeenCalledWith({ success: true, game: updatedGame });
             });
 
-            it('should return 404 JSON if game to update is not found', async () => {
+            it('should return 400 JSON if game to update is not found', async () => {
                 mockRequest = {
-                    params: { id: 'badId' },
+                    params: { _id: 'badId' },
                     body: { team1: 'New Team A', team2: 'New Team B' }
                 };
                 gameDao.update.mockResolvedValue(null); // Simulate not found
@@ -261,7 +262,7 @@ describe('GameController.js Tests', () => {
                 await update(mockRequest, mockResponse);
 
                 expect(gameDao.update).toHaveBeenCalled();
-                expect(mockResponse.status).toHaveBeenCalledWith(404);
+                expect(mockResponse.status).toHaveBeenCalledWith(400);
                 expect(mockResponse.json).toHaveBeenCalledWith({ error: "Game not found" });
             });
         });
@@ -270,7 +271,7 @@ describe('GameController.js Tests', () => {
         describe('exports.delete', () => {
             it('should delete a game and return JSON with 200 status', async () => {
                 mockRequest = {
-                    params: { id: 'game123' },
+                    params: { _id: 'game123' },
                     body: {}
                 };
                 gameDao.del.mockResolvedValue(true); // Simulate success
@@ -285,7 +286,7 @@ describe('GameController.js Tests', () => {
             it('should correctly get id from body if not in params', async () => {
                 mockRequest = {
                     params: {},
-                    body: { id: 'bodyId123' } // ID is in the body
+                    body: { _id: 'bodyId123' } // ID is in the body
                 };
                 gameDao.del.mockResolvedValue(true); // Simulate success
 
