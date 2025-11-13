@@ -1,5 +1,4 @@
-  const USER_PERMISSIONS = { ADMIN: 0, ADULT: 1, COACH: 2, YOUTH: 3, GUEST: 4 };
-  const PERM_TO_STRING = { 0: 'Admin', 1: 'Adult', 2: 'Coach', 3: 'Youth', 4: 'Guest' };
+import { USER_PERMISSIONS, PERM_TO_STRING } from './constants.js';
 
 let active = "accinfo";
 const urlParams = new URLSearchParams(window.location.search);
@@ -271,18 +270,6 @@ async function populateCoachYouthAccounts() {
         tbody.appendChild(tr);
     }
 }
-
-module.exports = {
-    USER_PERMISSIONS,
-    PERM_TO_STRING,
-    toggleAccInfo,
-    toggleGameStats,
-    toggleActions,
-    setupProfileTabs,
-    populateProfileInfo,
-    populateAdultYouthAccounts,
-    populateCoachYouthAccounts
-};
 
 setupProfileTabs();
 populateProfileInfo();

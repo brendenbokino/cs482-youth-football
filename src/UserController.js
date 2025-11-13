@@ -308,6 +308,7 @@ exports.getUserById = async function(req, res) {
     }
 
 
+
     if (requester._id.toString() !== userId.toString()) {
         // Different user
         if (requester.permission == 2) {
@@ -334,7 +335,8 @@ exports.getUserById = async function(req, res) {
                 res.send('Youth profile not found');
                 return;
             }
-            let isUnderAdult = await YouthDao.isYouthUnderAdult(youth._id, requester._id);
+
+            let isUnderAdult = youth.id_adult.toString() === requester._id.toString();
             if (!isUnderAdult) {
                 res.status(403);
                 res.send('Forbidden: Not authorized to view this youth');
@@ -424,7 +426,7 @@ exports.createYouthAccount = async function(req, res) {
 
     let youthProfile = await YouthDao.create(newYouth);
     res.status(200);
-    res.json({ youthUser, youthProfile });
+    res.send('Youth account created successfully, nagivate to profile to view.');
 }
 
 exports.getYouths = async function(req, res) {

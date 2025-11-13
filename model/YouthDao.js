@@ -26,7 +26,7 @@ const youthSchema = new mongoose.Schema({
 const youthModel = mongoose.model('users_youths', youthSchema);
 
 exports.findByUserId = async function(userId) {
-    let youth = await youthModel.find({id_user: userId});
+    let youth = await youthModel.findOne({id_user: userId});
     return youth;
 }
 
