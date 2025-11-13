@@ -179,8 +179,36 @@
                 background-color: #15803d;
             }
 
+            .reply-btn {
+                background-color: #3b82f6;
+                color: white;
+            }
+
+            .reply-btn:hover {
+                background-color: #2563eb;
+            }
+
             .message button i {
                 font-size: 1rem;
+            }
+
+            .replies {
+                margin-top: 10px;
+                padding-left: 20px;
+                border-left: 2px solid #e0d7ff;
+            }
+
+            .reply {
+                background-color: #f1f5f9;
+                border: 1px solid #e0e7ff;
+                padding: 8px 10px;
+                border-radius: 6px;
+                margin-bottom: 8px;
+            }
+
+            .reply-date {
+                font-size: 0.8rem;
+                color: #6b7280;
             }
         
             footer {
@@ -319,6 +347,32 @@
                 }
             }
 
+            async function replyToMessage(messageId) {
+                const replyMessage = prompt("Enter your reply:");
+                if (!replyMessage) return;
+
+                try {
+                    const response = await fetch(`/comms/addReply/${messageId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message: replyMessage }),
+                        credentials: 'include',
+                    });
+
+                    if (response.ok) {
+                        viewMessages();
+                    } else {
+                        const result = await response.json();
+                        alert("Failed to add reply: " + (result.error || "Unknown error."));
+                    }
+                } catch (error) {
+                    console.error('Network error during reply:', error);
+                    alert("Network error. Please try again.");
+                }
+            }
+
             async function viewMessages() {
                 try {
                     const response = await fetch('/comms/viewMessages', {
@@ -361,6 +415,27 @@
 
                                 msgDiv.appendChild(deleteBtn);
                                 msgDiv.appendChild(updateBtn);
+                            }
+
+                            const replyBtn = document.createElement('button');
+                            replyBtn.classList.add('reply-btn');
+                            replyBtn.innerHTML = `<i class="bi bi-reply"></i>`;
+                            replyBtn.onclick = () => replyToMessage(msg._id);
+                            msgDiv.appendChild(replyBtn);
+
+                            if (msg.replies && msg.replies.length > 0) {
+                                const repliesDiv = document.createElement('div');
+                                repliesDiv.classList.add('replies');
+                                msg.replies.forEach(reply => {
+                                    const replyDiv = document.createElement('div');
+                                    replyDiv.classList.add('reply');
+                                    replyDiv.innerHTML = `
+                                        <p><strong>${reply.email}:</strong> ${reply.message}</p>
+                                        <p class="reply-date">${new Date(reply.date).toLocaleString()}</p>
+                                    `;
+                                    repliesDiv.appendChild(replyDiv);
+                                });
+                                msgDiv.appendChild(repliesDiv);
                             }
 
                             messageList.appendChild(msgDiv);

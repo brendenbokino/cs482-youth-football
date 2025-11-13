@@ -35,7 +35,7 @@ module.exports = {
   async addReply(id, reply) {
       const msg = await messageModel.findById(id);
       if (!msg) return null;
-      msg.replies.push(reply);
+      msg.replies.push({ ...reply, date: new Date() });
       await msg.save();
       return msg;
   },
