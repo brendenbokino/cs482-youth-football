@@ -131,39 +131,68 @@ async function replyToMessage(messageId) {
 
 async function uploadPhoto() {
     const photoInput = document.getElementById('photoInput');
-    const messageBody = document.getElementById('messageBody').value;
-    
-    if (!photoInput.files.length || !messageBody) {
-        alert("Please select a photo.");
+    const messageBody = document.getElementById('messageBody').value.trim();
+
+    if (!photoInput.files.length) {
+        alert("Please select a photo to upload.");
         return;
     }
 
     try {
         const formData = new FormData();
         formData.append('photo', photoInput.files[0]);
-        formData.append('message', messageBody);
+        formData.append('message', messageBody); // Optional message
 
         const response = await fetch('/comms/uploadPhoto', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: formData,
-            credentials: 'include', 
+            credentials: 'include',
         });
 
         if (response.ok) {
+            alert("Photo uploaded successfully.");
             viewMessages();
         } else {
             const result = await response.json();
-            console.error("Post failed:", result.error || "Unknown server error.");
-            alert("Failed to post message: " + (result.error || "Unknown error."));
+            alert("Failed to upload photo: " + (result.error || "Unknown error."));
         }
     } catch (error) {
-        console.error('Network error during post:', error);
+        console.error('Error uploading photo:', error);
         alert("Network error. Please try again.");
     }
-    
+}
+
+async function uploadVideo() {
+    const videoInput = document.getElementById('videoInput');
+    const messageBody = document.getElementById('messageBody').value.trim();
+
+    if (!videoInput.files.length) {
+        alert("Please select a video to upload.");
+        return;
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('video', videoInput.files[0]);
+        formData.append('message', messageBody); // Optional message
+
+        const response = await fetch('/comms/uploadVideo', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include',
+        });
+
+        if (response.ok) {
+            alert("Video uploaded successfully.");
+            viewMessages();
+        } else {
+            const result = await response.json();
+            alert("Failed to upload video: " + (result.error || "Unknown error."));
+        }
+    } catch (error) {
+        console.error('Error uploading video:', error);
+        alert("Network error. Please try again.");
+    }
 }
 
 async function viewMessages() {
@@ -201,6 +230,14 @@ async function viewMessages() {
                     photo.alt = "Attached photo";
                     photo.style.maxWidth = "100%";
                     msgDiv.appendChild(photo);
+                }
+
+                if (msg.video) {
+                    const video = document.createElement('video');
+                    video.src = msg.video;
+                    video.controls = true;
+                    video.style.maxWidth = "100%";
+                    msgDiv.appendChild(video);
                 }
 
                 if (user.name === msg.author) {
@@ -272,5 +309,6 @@ window.deleteMessage = deleteMessage;
 window.updateMessage = updateMessage;
 window.replyToMessage = replyToMessage;
 window.uploadPhoto = uploadPhoto;
+window.uploadVideo = uploadVideo;
 window.viewMessages = viewMessages;
 window.toggleMessages = toggleMessages;

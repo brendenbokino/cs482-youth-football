@@ -8,7 +8,7 @@ const {
     updateMessage,
     viewMessages,
     toggleMessages
-  } = require('./Comms_frontend');
+  } = require('./comms_frontend');
   
   global.fetch = jest.fn();
   global.alert = jest.fn();
