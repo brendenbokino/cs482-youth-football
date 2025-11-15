@@ -120,7 +120,7 @@ app.post('/teamregister', TeamController.register,(req, res) => {
 
 app.get('/teams', TeamController.getAll);
 
-app.get('/teamsid', TeamController.getById);
+app.get('/teams/:id', TeamController.getById);
 app.post('/teamsupdate', TeamController.update);
 app.post('/teamsaddplayer', TeamController.addPlayer);
 
