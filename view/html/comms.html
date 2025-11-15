@@ -242,6 +242,12 @@
                 <button type="submit">Send Message</button>
             </form>
 
+            <form id="photoUploadForm" enctype="multipart/form-data">
+                <label for="photoInput">Upload Photo</label>
+                <input type="file" id="photoInput" name="photo" accept="image/*">
+                <button type="button" onclick="uploadPhoto()">Upload Photo</button>
+            </form>
+
             <p id="confirmationMessage" style="display: none; color: green;">Message sent successfully!</p>
             <button class="refresh-btn" onclick="viewMessages()">View Messages</button>
             <button class="hide-btn" onclick="toggleMessages()">Hide Messages</button>
@@ -260,7 +266,18 @@
             }
 
             async function checkLoginStatus() {
-                return true; 
+                try {
+                    const response = await fetch('/loggedUser', { credentials: 'include' }).then(res => res.json());
+                    if (response.status === 401) {
+                        window.location.href = '../view/html/login.html';
+                        return false;
+                    }
+                    return true;
+                } catch (error) {
+                    console.error('Error checking login status:', error);
+                    return false;
+                }
+                //return true; 
             }
 
             async function postMessage() {
@@ -373,6 +390,43 @@
                 }
             }
 
+            async function uploadPhoto() {
+                const photoInput = document.getElementById('photoInput');
+                const messageBody = document.getElementById('messageBody').value;
+                
+                if (!photoInput.files.length || !messageBody) {
+                    alert("Please select a photo.");
+                    return;
+                }
+
+                try {
+                    const formData = new FormData();
+                    formData.append('photo', photoInput.files[0]);
+                    formData.append('message', messageBody);
+
+                    const response = await fetch('/comms/uploadPhoto', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: formData,
+                        credentials: 'include', 
+                    });
+
+                    if (response.ok) {
+                        viewMessages();
+                    } else {
+                        const result = await response.json();
+                        console.error("Post failed:", result.error || "Unknown server error.");
+                        alert("Failed to post message: " + (result.error || "Unknown error."));
+                    }
+                } catch (error) {
+                    console.error('Network error during post:', error);
+                    alert("Network error. Please try again.");
+                }
+                
+            }
+
             async function viewMessages() {
                 try {
                     const response = await fetch('/comms/viewMessages', {
@@ -401,6 +455,14 @@
                                 <p><strong>${msg.author} (${authorType})${updatedAt}:</strong></p>
                                 <p>${msg.message}</p>
                             `;
+
+                            if (msg.photo) {
+                                const photo = document.createElement('img');
+                                photo.src = msg.photo;
+                                photo.alt = "Attached photo";
+                                photo.style.maxWidth = "100%";
+                                msgDiv.appendChild(photo);
+                            }
 
                             if (user.name === msg.author) {
                                 const deleteBtn = document.createElement('button');
