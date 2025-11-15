@@ -40,6 +40,14 @@ module.exports = {
       return msg;
   },
 
+  async addPhoto(id, photoUrl) {
+      const msg = await messageModel.findById(id);
+      if (!msg) return null;
+      msg.photo = photoUrl;
+      await msg.save();
+      return msg;
+  },
+
   async delete(id) {
       return await messageModel.findByIdAndDelete(id);
   },

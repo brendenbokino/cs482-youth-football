@@ -390,6 +390,22 @@ app.post('/comms/addReply/:id', isAuthenticated, async (req, res) => {
     }
 });
 
+app.post('/comms/uploadPhoto', isAuthenticated, upload.single('photo'), async (req, res) => {
+  const { messageId } = req.body;
+
+  try {
+    const photoUrl = `/image/${req.file.filename}`;
+    const updatedMessage = await MessageDao.addPhoto(messageId, photoUrl);
+    if (updatedMessage) {
+      res.status(200).json({ success: true, updatedMessage });
+    } else {
+      res.status(404).json({ error: "Message not found." });
+    }
+  } catch (err) {
+    res.status(500).json({ error: "Failed to upload photo", details: err.message });
+  }
+});
+
 app.get('/checkSession', (req, res) => {
     res.json({ session: req.session });
 });
