@@ -7,14 +7,15 @@ const replySchema = new mongoose.Schema({
 });
 
 const messageSchema = new mongoose.Schema({
-  message: { type: String, required: true },
+  message: { type: String, default: "" }, // Allow empty messages
   author: { type: String, required: true },
-  authorType: { type: Number, required: true }, 
+  authorType: { type: Number, required: true },
+  photo: { type: String }, // Optional photo URL
+  video: { type: String }, // Optional video URL
   edited: { type: Boolean, default: false },
   dateCreated: { type: Date, default: Date.now },
   dateEdited: { type: Date },
-  messageEdited: { type: String },
-  replies: [replySchema]
+  replies: [replySchema],
 });
 
 const messageModel = mongoose.model('Message', messageSchema);
@@ -36,6 +37,14 @@ module.exports = {
       const msg = await messageModel.findById(id);
       if (!msg) return null;
       msg.replies.push({ ...reply, date: new Date() });
+      await msg.save();
+      return msg;
+  },
+
+  async addPhoto(id, photoUrl) {
+      const msg = await messageModel.findById(id);
+      if (!msg) return null;
+      msg.photo = photoUrl;
       await msg.save();
       return msg;
   },
