@@ -8,6 +8,8 @@ const gameSchema = new mongoose.Schema({
     location: String,
     link: String,
     _id: String
+
+    
 });
 
 const gameModel = mongoose.model('game', gameSchema);

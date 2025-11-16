@@ -75,9 +75,74 @@ class TeamController {
         }
     }
 
-    // Update team
+    // Update team old 
+    // async updateTeam (req, res) {
+    //     try {
+    //         if (!req.params || !req.params._id) {
+    //             res.status = 400;
+    //             res.send = { error: "Team ID is required" };
+    //             return;
+    //         }
+
+    //         if (!req.body) {
+    //             res.status = 400;
+    //             res.send = { error: "Update data is required" };
+    //             return;
+    //         }
+
+    //         // Validate update data
+    //         const updateData = {};
+    //         if (req.body.coach !== undefined) {
+    //             if (req.body.coach.trim() === "") {
+    //                 res.status = 400;
+    //                 res.send = { error: "Coach name cannot be empty" };
+    //                 return;
+    //             }
+    //             updateData.coach = req.body.coach.trim();
+    //         }
+
+    //         if (req.body.players !== undefined) {
+    //             if (!Array.isArray(req.body.players) || req.body.players.length === 0) {
+    //                 res.status = 400;
+    //                 res.send = { error: "Players must be a non-empty array" };
+    //                 return;
+    //             }
+    //             updateData.players = req.body.players;
+    //         }
+
+    //         if (req.body.games !== undefined) {
+    //             if (!Array.isArray(req.body.games)) {
+    //                 res.status = 400;
+    //                 res.send = { error: "Games must be an array" };
+    //                 return;
+    //             }
+    //             updateData.games = req.body.games;
+    //         }
+
+    //         let team = await TeamDao.update(req.params._id, updateData);
+            
+    //         if (!team) {
+    //             res.status = 404;
+    //             res.send = { error: "Team not found" };
+    //             return;
+    //         }
+
+    //         res.status = 200;
+    //         res.send = { success: true, message: "Team updated successfully", team: team };
+    //     } catch (error) {
+    //         res.status = 500;
+    //         res.send = { error: "Failed to update team" };
+    //     }
+    // }
+
+
+
+// Fixed updateTeam method in TeamController
     async updateTeam (req, res) {
         try {
+            console.log('Update request params:', req.params); // Debug log
+            console.log('Update request body:', req.body); // Debug log
+            
             if (!req.params || !req.params._id) {
                 res.status = 400;
                 res.send = { error: "Team ID is required" };
@@ -92,21 +157,23 @@ class TeamController {
 
             // Validate update data
             const updateData = {};
+            
             if (req.body.coach !== undefined) {
-                if (req.body.coach.trim() === "") {
+                if (typeof req.body.coach === 'string' && req.body.coach.trim() === "") {
                     res.status = 400;
                     res.send = { error: "Coach name cannot be empty" };
                     return;
                 }
-                updateData.coach = req.body.coach.trim();
+                updateData.coach = typeof req.body.coach === 'string' ? req.body.coach.trim() : req.body.coach;
             }
 
             if (req.body.players !== undefined) {
-                if (!Array.isArray(req.body.players) || req.body.players.length === 0) {
+                if (!Array.isArray(req.body.players)) {
                     res.status = 400;
-                    res.send = { error: "Players must be a non-empty array" };
+                    res.send = { error: "Players must be an array" };
                     return;
                 }
+                // Allow empty array for players (team might not have players yet)
                 updateData.players = req.body.players;
             }
 
@@ -119,21 +186,31 @@ class TeamController {
                 updateData.games = req.body.games;
             }
 
-            updateData.updatedAt = new Date().toISOString();
+            if (req.body.teamName !== undefined) {
+                updateData.teamName = req.body.teamName;
+            }
+
+            console.log('Attempting to update team:', req.params._id); // Debug log
+            console.log('Update data:', updateData); // Debug log
 
             let team = await TeamDao.update(req.params._id, updateData);
             
             if (!team) {
+                console.log('Team not found for ID:', req.params._id); // Debug log
                 res.status = 404;
                 res.send = { error: "Team not found" };
                 return;
             }
 
+            // Convert Mongoose document to plain object for JSON serialization
+            const teamObject = team.toObject ? team.toObject() : team;
+            
             res.status = 200;
-            res.send = { success: true, message: "Team updated successfully", team: team };
+            res.send = { success: true, message: "Team updated successfully", team: teamObject };
         } catch (error) {
+            console.error('Error in updateTeam:', error); // Debug log
             res.status = 500;
-            res.send = { error: "Failed to update team" };
+            res.send = { error: "Failed to update team: " + error.message };
         }
     }
 
@@ -196,50 +273,51 @@ class TeamController {
         }
     }
 
-    // Add player to team
-    async addPlayerToTeam (req, res) {
-        try {
-            if (!req.params || !req.params._id) {
-                res.status = 400;
-                res.send = { error: "Team ID is required" };
-                return;
-            }
+    // Add player to team (old)
+    // async addPlayerToTeam (req, res) {
+    //     try {
+    //         if (!req.params || !req.params._id) {
+    //             res.status = 400;
+    //             res.send = { error: "Team ID is required" };
+    //             return;
+    //         }
 
-            if (!req.body || !req.body.playerName) {
-                res.status = 400;
-                res.send = { error: "Player name is required" };
-                return;
-            }
+    //         if (!req.body || !req.body.playerName) {
+    //             res.status = 400;
+    //             res.send = { error: "Player ID is required" };
+    //             return;
+    //         }
 
-            let team = await TeamDao.read(req.params._id);
-            if (!team) {
-                res.status = 404;
-                res.send = { error: "Team not found" };
-                return;
-            }
+    //         let team = await TeamDao.read(req.params._id);
+    //         if (!team) {
+    //             res.status = 404;
+    //             res.send = { error: "Team not found" };
+    //             return;
+    //         }
 
-            // Check if player already exists
-            if (team.players.includes(req.playerName)) {
-                res.status = 400;
-                res.send = { error: "Player already exists on this team" };
-                return;
-            }
+    //         // Check if player already exists
+    //         // this should be a full user object so we should do a check by id
+    //         if (team.players.includes(req.player._id)) {
+    //             res.status = 400;
+    //             res.send = { error: "Player already exists on this team" };
+    //             return;
+    //         }
 
-            team.players.push(req.playerName);
-            let updatedTeam = await TeamDao.update(req._id, { 
-                players: team.players,
-                updatedAt: new Date().toISOString()
-            });
+    //         team.players.push(req.playerName);
+    //         let updatedTeam = await TeamDao.update(req._id, { 
+    //             players: team.players,
+    //             updatedAt: new Date().toISOString()
+    //         });
 
-            res.status = 200;
-            res.send = { success: true, message: "Player added successfully", team: updatedTeam };
-        } catch (error) {
-            res.status = 500;
-            res.send = {error: "Failed to add player to team" };
-        }
-    }
+    //         res.status = 200;
+    //         res.send = { success: true, message: "Player added successfully", team: updatedTeam };
+    //     } catch (error) {
+    //         res.status = 500;
+    //         res.send = {error: "Failed to add player to team" };
+    //     }
+    // }
 
-    // Register a new team
+    // Fix for registerTeam method
     async registerTeam(req, res) {
         try {
             // Validate required fields
@@ -255,8 +333,8 @@ class TeamController {
                 return;
             }
 
-            // Validate coach is not empty string
-            if (req.body.coach.trim() === "") {
+            // FIX: Changed from req.body.coach to req.coach
+            if (req.coach.trim() === "") {
                 res.status = 400;
                 res.send = { error: "Coach name cannot be empty" };
                 return;
@@ -267,8 +345,8 @@ class TeamController {
                 _id: this.generateId(),
                 coach: req.coach.trim(),
                 players: req.players || [],
-                games: req.body.games || [],
-                teamName: req.body.teamName.trim(),
+                games: req.games || [],  // FIX: Changed from req.body.games
+                teamName: req.teamName.trim(),  // FIX: Changed from req.body.teamName
                 createdAt: new Date().toISOString()
             };
 
@@ -284,16 +362,113 @@ class TeamController {
         }
     }
 
-    // Get team by ID
-    async getTeamById (req, res) {
+    // Fix for addPlayerToTeam method
+    async addPlayerToTeam (req, res) {
         try {
-            if (!req.params || !req.params.id) {
+            if (!req.params || !req.params._id) {
                 res.status = 400;
                 res.send = { error: "Team ID is required" };
                 return;
             }
 
-            let team = await TeamDao.read(req.params.id);
+            if (!req.body || !req.body.playerName) {
+                res.status = 400;
+                res.send = { error: "Player name is required" };  // FIX: Changed error message
+                return;
+            }
+
+            let team = await TeamDao.read(req.params._id);
+            if (!team) {
+                res.status = 404;
+                res.send = { error: "Team not found" };
+                return;
+            }
+
+            // Check if player already exists
+            const playerToAdd = req.body.playerName;
+            const playerId = typeof playerToAdd === 'object' ? playerToAdd._id : playerToAdd;
+            
+            const existingPlayerIds = team.players.map(p => 
+                typeof p === 'object' ? p._id : p
+            );
+            
+            if (existingPlayerIds.includes(playerId)) {
+                res.status = 400;
+                res.send = { error: "Player already exists on this team" };
+                return;
+            }
+
+            team.players.push(playerToAdd);
+            
+            // FIX: Changed from req._id to req.params._id
+            let updatedTeam = await TeamDao.update(req.params._id, { 
+                players: team.players,
+                updatedAt: new Date().toISOString()
+            });
+
+            res.status = 200;
+            res.send = { success: true, message: "Player added successfully", team: updatedTeam };
+        } catch (error) {
+            res.status = 500;
+            res.send = {error: "Failed to add player to team" };
+        }
+    }
+
+    // // Register a new team
+    // async registerTeam(req, res) {
+    //     try {
+    //         // Validate required fields
+    //         if (!req.teamName) {
+    //             res.status = 400;
+    //             res.send = { error: "Team name is required" };
+    //             return;
+    //         }
+
+    //         if (!req.coach) {
+    //             res.status = 400;
+    //             res.send = { error: "Coach name is required" };
+    //             return;
+    //         }
+
+    //         // Validate coach is not empty string
+    //         if (req.body.coach.trim() === "") {
+    //             res.status = 400;
+    //             res.send = { error: "Coach name cannot be empty" };
+    //             return;
+    //         }
+
+    //         // Set up initial team structure with unique ID
+    //         const teamPayload = {
+    //             _id: this.generateId(),
+    //             coach: req.coach.trim(),
+    //             players: req.players || [],
+    //             games: req.body.games || [],
+    //             teamName: req.body.teamName.trim(),
+    //             createdAt: new Date().toISOString()
+    //         };
+
+    //         let team = await TeamDao.create(teamPayload);
+    //         this.teamData = team;
+
+    //         res.status = 200;
+    //         res.send = { success: true, message: "Team has been registered", team: team };
+
+    //     } catch (error) {
+    //         res.status = 500;
+    //         res.send = { error: "Failed to register team" };
+    //     }
+    // }
+
+    // Get team by ID
+    async getTeamById (req, res) {
+        try {
+            if (!req.params || !req.params._id) {
+                res.status = 400;
+                res.send = { error: "Team ID is required" };
+                return;
+            }
+
+            let team = await TeamDao.read(req.params._id);
             
             if (!team) {
                 res.status = 404;
@@ -349,17 +524,39 @@ exports.addPlayer = async function (req, res) {
     }
 }
 
+// old 
+// exports.update = async function (req, res) {
+//     // Handle form data - get updateTeamId from body
+//     req.params = req.params || {};
+//     req.params._id = req.body.updateTeamId;
+    
+//     const team = new TeamController();
+//     const mockRes = { status: null, send: null };
+//     await team.updateTeam(req, mockRes);
+    
+//     if (mockRes.status == 200) {
+//         return res.redirect('/team.html');
+//     } else {
+//         return res.status(mockRes.status || 500).json(mockRes.send || { error: 'Unknown error' });
+//     }
+// }
+
+    // Fixed exports.update function
 exports.update = async function (req, res) {
-    // Handle form data - get updateTeamId from body
+    // Handle JSON data - map updateTeamId from body to params
     req.params = req.params || {};
     req.params._id = req.body.updateTeamId;
+    
+    // Keep the body data intact for updateTeam to use
+    // The body should have: coach, players, games, etc.
     
     const team = new TeamController();
     const mockRes = { status: null, send: null };
     await team.updateTeam(req, mockRes);
     
+    // For JSON requests, return JSON response (not redirect)
     if (mockRes.status == 200) {
-        return res.redirect('/team.html');
+        return res.status(200).json(mockRes.send);
     } else {
         return res.status(mockRes.status || 500).json(mockRes.send || { error: 'Unknown error' });
     }
