@@ -120,7 +120,7 @@ app.post('/teamregister', TeamController.register,(req, res) => {
 
 app.get('/teams', TeamController.getAll);
 
-app.get('/teamsid', TeamController.getById);
+app.get('/teams/:id', TeamController.getById);
 app.post('/teamsupdate', TeamController.update);
 app.post('/teamsaddplayer', TeamController.addPlayer);
 
@@ -388,6 +388,42 @@ app.post('/comms/addReply/:id', isAuthenticated, async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: "Failed to add reply", details: err.message });
     }
+});
+
+app.post('/comms/uploadPhoto', isAuthenticated, upload.single('photo'), async (req, res) => {
+  const { message } = req.body;
+  const user = req.session.user;
+
+  try {
+    const photoUrl = `/image/${req.file.filename}`;
+    const newMessage = await MessageDao.create({
+      message: message || "", // Allow empty message
+      author: user.name,
+      authorType: user.permission,
+      photo: photoUrl,
+    });
+    res.status(200).json({ success: true, newMessage });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to upload photo", details: err.message });
+  }
+});
+
+app.post('/comms/uploadVideo', isAuthenticated, upload.single('video'), async (req, res) => {
+  const { message } = req.body;
+  const user = req.session.user;
+
+  try {
+    const videoUrl = `/video/${req.file.filename}`;
+    const newMessage = await MessageDao.create({
+      message: message || "", // Allow empty message
+      author: user.name,
+      authorType: user.permission,
+      video: videoUrl,
+    });
+    res.status(200).json({ success: true, newMessage });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to upload video", details: err.message });
+  }
 });
 
 app.get('/checkSession', (req, res) => {

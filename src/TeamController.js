@@ -47,6 +47,7 @@ class TeamController {
                 players: req.players,
                 coach: req.coach.trim(),
                 games: req.games || [],
+                record: [0,0],
                 createdAt: new Date().toISOString()
             };
 
@@ -184,6 +185,15 @@ class TeamController {
                     return;
                 }
                 updateData.games = req.body.games;
+            }
+
+            if (req.body.record !== undefined) {
+                if (!Array.isArray(req.body.players) || req.body.players.length !== 2) {
+                    res.status = 400;
+                    res.send = { error: "Record must be array with length 2 (wins & losses)" };
+                    return;
+                }
+                updateData.record = req.body.record;
             }
 
             if (req.body.teamName !== undefined) {

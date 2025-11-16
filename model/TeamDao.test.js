@@ -12,9 +12,9 @@ jest.mock('./TeamDao', () => ({
 
 // Mock Data
 const teamId = 'team123';
-const teamData = { coach: 'Test Coach', players: ['Player 1'], teamName: 'Bears', games: [] };
-const updatedTeamData = { coach: 'New Coach', players: ['Player 1', 'Player 2'], teamName: 'Bears', games: [] };
-const teamList = [teamData, { coach: 'Other Coach', players: [], teamName: 'Lions', games: [] }];
+const teamData = { coach: 'Test Coach', players: ['Player 1'], teamName: 'Bears', games: [], record: [0,0]};
+const updatedTeamData = { coach: 'New Coach', players: ['Player 1', 'Player 2'], teamName: 'Bears', games: [], record: [1,0]};
+const teamList = [teamData, { coach: 'Other Coach', players: [], teamName: 'Lions', games: [], record: [0,1]}];
 
 describe('TeamDAO Mock Tests', () => {
     // Clears the mock history (how many times it was called, with what arguments)

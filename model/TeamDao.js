@@ -32,6 +32,10 @@ const teamSchema = new mongoose.Schema({
         type: Array,
         default: []
     },
+    records: {
+        type: Array, //[wins, losses]
+        default: []
+    },
     createdAt: {
         type: String
     },
