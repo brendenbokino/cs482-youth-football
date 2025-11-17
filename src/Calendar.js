@@ -29,7 +29,46 @@ try {
     console.log('FullCalendar modules not available - requires browser bundling');
 }
 
+async function loadGameChats(gameId) {
+    try {
+        const res = await fetch(`/gameChat/${gameId}`);
+        const data = await res.json();
+        const chatMessages = document.getElementById('chatMessages');
+        chatMessages.innerHTML = '';
 
+        data.chats.forEach(chat => {
+            const chatDiv = document.createElement('div');
+            chatDiv.innerHTML = `<strong>${chat.author}:</strong> ${chat.message}`;
+            chatMessages.appendChild(chatDiv);
+        });
+    } catch (error) {
+        console.error('Error loading game chats:', error);
+    }
+}
+
+document.getElementById('chatForm').onsubmit = async function (e) {
+    e.preventDefault();
+    const chatMessage = document.getElementById('chatMessage').value.trim();
+    if (!chatMessage) return;
+
+    try {
+        const res = await fetch(`/gameChat/${currentGameId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: chatMessage }),
+        });
+
+        if (res.ok) {
+            document.getElementById('chatMessage').value = '';
+            loadGameChats(currentGameId);
+        } else {
+            const result = await res.json();
+            alert(result.error || "Failed to send message.");
+        }
+    } catch (error) {
+        console.error('Error sending chat message:', error);
+    }
+}
 
 class CalendarManager {
     
@@ -79,6 +118,21 @@ class CalendarManager {
     // You can add other utility methods here, like getGames()
     getGames() {
         return this.games;
+    }
+}
+
+function showGameDetails(game) {
+    const now = new Date();
+    const gameStart = new Date(game.date);
+    const gameEnd = new Date(game.date);
+    gameEnd.setHours(gameEnd.getHours() + 2);
+
+    const liveGameChat = document.getElementById('liveGameChat');
+    if (now >= gameStart && now <= gameEnd) {
+        liveGameChat.style.display = 'block';
+        loadGameChats(game._id);
+    } else {
+        liveGameChat.style.display = 'none';
     }
 }
 

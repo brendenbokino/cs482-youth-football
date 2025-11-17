@@ -111,6 +111,16 @@
                         </form>
                     </div>
 
+                    <!-- live game chat -->
+                    <div id="liveGameChat" style="display: none;">
+                        <h3>Live Game Chat</h3>
+                        <div id="chatMessages" style="border: 1px solid #ddd; padding: 10px; max-height: 200px; overflow-y: auto;"></div>
+                        <form id="chatForm" style="margin-top: 10px;">
+                            <textarea id="chatMessage" rows="2" placeholder="Type your message..." style="width: 100%;"></textarea>
+                            <button type="submit" style="margin-top: 5px;">Send</button>
+                        </form>
+                    </div>
+
                     <!-- Action Buttons -->
                     <div class="action-buttons" id="actionButtons">
                         <button class="btn btn-primary" id="editGameBtn">Edit Game</button>
@@ -359,3 +369,4 @@
             });
         </script> </body>
 </html>
+``` 
