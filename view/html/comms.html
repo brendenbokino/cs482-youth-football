@@ -235,23 +235,20 @@
 
         <main>
             <h2>Team Communications</h2>
-            <form id="messageForm" onsubmit="event.preventDefault(); postMessage();">
-                <label for="messageBody">Message</label>
-                <textarea id="messageBody" name="messageBody" rows="4" required></textarea>
+            <form id="messageForm" onsubmit="event.preventDefault(); postMessage();" style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; gap: 10px; align-items: flex-start;">
+                    <textarea id="messageBody" name="messageBody" rows="4" placeholder="Type your message here..." style="flex: 1;" required></textarea>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <label for="photoInput">Upload Photo</label>
+                        <input type="file" id="photoInput" name="photo" accept="image/*">
+                        <button type="button" onclick="uploadPhoto()">Upload Photo</button>
 
-                <button type="submit">Send Message</button>
-            </form>
-
-            <form id="photoUploadForm" enctype="multipart/form-data">
-                <label for="photoInput">Upload Photo</label>
-                <input type="file" id="photoInput" name="photo" accept="image/*">
-                <button type="button" onclick="uploadPhoto()">Upload Photo</button>
-            </form>
-
-            <form id="videoUploadForm" enctype="multipart/form-data">
-                <label for="videoInput">Upload Video</label>
-                <input type="file" id="videoInput" name="video" accept="video/*">
-                <button type="button" onclick="uploadVideo()">Upload Video</button>
+                        <label for="videoInput">Upload Video</label>
+                        <input type="file" id="videoInput" name="video" accept="video/*">
+                        <button type="button" onclick="uploadVideo()">Upload Video</button>
+                    </div>
+                </div>
+                <button type="submit">Post Message</button>
             </form>
 
             <p id="confirmationMessage" style="display: none; color: green;">Message sent successfully!</p>
