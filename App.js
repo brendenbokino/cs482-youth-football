@@ -17,7 +17,8 @@ const UserDao = require('./model/UserDao');
 const Comms = require('./src/Comms'); 
 const MessageDao = require('./model/MessageDao');
 const { login, register, logout, loggedUser } = require('./src/UserController');
-
+const GameChatDao = require('./model/GameChatDao');
+const GameDao = require('./model/GameDao'); 
 
 app = express()
 
@@ -423,6 +424,50 @@ app.post('/comms/uploadVideo', isAuthenticated, upload.single('video'), async (r
     res.status(200).json({ success: true, newMessage });
   } catch (err) {
     res.status(500).json({ error: "Failed to upload video", details: err.message });
+  }
+});
+
+app.post('/gameChat/:gameId', isAuthenticated, async (req, res) => {
+  const { gameId } = req.params;
+  const { message } = req.body;
+  const user = req.session.user;
+
+  try {
+    const game = await GameDao.findById(gameId);
+    if (!game) {
+      return res.status(404).json({ error: "Game not found." });
+    }
+
+    const now = new Date();
+    const gameStart = new Date(game.date);
+    const gameEnd = new Date(game.date);
+    gameEnd.setHours(gameEnd.getHours() + 2); // keeping the games at 2 hours, no OT
+
+    if (now < gameStart || now > gameEnd) {
+      return res.status(403).json({ error: "Chat is only allowed during the game." });
+    }
+
+    const newChat = await GameChatDao.create({
+      gameId,
+      message,
+      author: user.name,
+      authorType: user.permission,
+    });
+
+    res.status(200).json({ success: true, newChat });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to post chat message", details: err.message });
+  }
+});
+
+app.get('/gameChat/:gameId', isAuthenticated, async (req, res) => {
+  const { gameId } = req.params;
+
+  try {
+    const chats = await GameChatDao.readByGameId(gameId);
+    res.json({ chats });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch game chats", details: err.message });
   }
 });
 
