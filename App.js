@@ -471,6 +471,67 @@ app.get('/gameChat/:gameId', isAuthenticated, async (req, res) => {
   }
 });
 
+const ReviewDao = require('./model/ReviewDao')
+
+app.post('/teams/postReview', isAuthenticated, async (req, res) => {
+  const { review } = req.body;
+  const user = req.session.user;
+
+  try {
+    const newReview = await ReviewDao.create({
+      message,
+      author: user.name,
+      authorType: user.permission,
+    });
+    res.status(200).json({ success: true, newReview });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to post review", details: err.message });
+  }
+});
+
+app.get('/teams/viewReviews', isAuthenticated, async (req, res) => {
+  try {
+    const reviews = await ReviewDao.readAll();
+    res.json({ reviews });
+  } catch (err) {
+    console.error("Error fetching reviews:", err); 
+    res.status(500).json({ error: "Failed to fetch reviews", details: err.message });
+  }
+});
+
+app.delete('/teams/deleteReview/:id', isAuthenticated, async (req, res) => {
+  const { id } = req.params;
+  const user = req.session.user;
+
+  try {
+    const isAuthor = await ReviewDao.isAuthor(id, user.name);
+    if (!isAuthor) {
+      return res.status(403).json({ error: "You are not authorized to delete this review." });
+    }
+    await ReviewDaoDao.delete(id);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete review", details: err.message });
+  }
+});
+
+app.put('/teams/updateReview/:id', isAuthenticated, async (req, res) => {
+  const { id } = req.params;
+  const { review } = req.body;
+  const user = req.session.user;
+
+  try {
+    const isAuthor = await ReviewDaoDao.isAuthor(id, user.name);
+    if (!isAuthor) {
+      return res.status(403).json({ error: "You are not authorized to update this review." });
+    }
+    const updatedReview = await ReviewDao.update(id, { review });
+    res.status(200).json({ success: true, updatedReview });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update review", details: err.message });
+  }
+});
+
 app.get('/checkSession', (req, res) => {
     res.json({ session: req.session });
 });
