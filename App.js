@@ -171,21 +171,33 @@ const storage = new GridFsStorage({
 
 const upload = multer({ storage });
 
-app.get('/photos.html', (req, res) =>{
+app.get('/photos/images', (req, res) =>{
   const cursor = bucket.find({});
-  const files = cursor.toArray();
-  if (!files || files.length == 0){
-    res.render('/photos.html', {files: false})
-  } else{
-    files.map(file => {
-      if (file.contentType === 'image/jpeg' || file.contentType === 'image/png'){
-        file.isImage = true;
+  let files;
+  cursor.toArray()
+    .then(function(files){
+      if (!files || files.length == 0){
+        //res.render('/photos.html', {files: false})
+        res.json(files)
       } else{
-        file.isImage = false;
+        for (const file of files){
+          if (file.contentType === 'image/jpeg' || file.contentType === 'image/png'){
+            file.isImage = true;
+          } else{
+            file.isImage = false;
+          }
+        }
+        /**files.map(file => {
+          if (file.contentType === 'image/jpeg' || file.contentType === 'image/png'){
+            file.isImage = true;
+          } else{
+            file.isImage = false;
+          }
+        });**/
+        //res.render('/photos.html', {files: files})
+        res.json(files)
       }
-    });
-    res.render('/photos.html', {files: files})
-  }
+    })
 })
 
 //upload file to db
