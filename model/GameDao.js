@@ -7,6 +7,8 @@ const gameSchema = new mongoose.Schema({
     date: Date, /// date type to make sorting easier 
     location: String,
     link: String,
+    startTime: Date,
+    endTime: Date,
     _id: String
 
     

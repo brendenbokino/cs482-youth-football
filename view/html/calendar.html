@@ -40,6 +40,12 @@
                     <label for="date">Date</label><br>
                     <input type="date" id="date" name="date" required style="width: 100%; padding: 8px; margin: 6px 0;"><br>
 
+                    <label for="startTime">Start Time</label><br>
+                    <input type="time" id="startTime" name="startTime" required style="width: 100%; padding: 8px; margin: 6px 0;"><br>
+
+                    <label for="endTime">End Time</label><br>
+                    <input type="time" id="endTime" name="endTime" required style="width: 100%; padding: 8px; margin: 6px 0;"><br>
+
                     <label for="location">Location</label><br>
                     <input type="text" id="location" name="location" required style="width: 100%; padding: 8px; margin: 6px 0;"><br>
 
@@ -74,6 +80,12 @@
                             <strong>Date:</strong> <span id="popup-date"></span>
                         </div>
                         <div class="game-info-item">
+                            <strong>Start Time:</strong> <span id="popup-startTime"></span>
+                        </div>
+                        <div class="game-info-item">
+                            <strong>End Time:</strong> <span id="popup-endTime"></span>
+                        </div>
+                        <div class="game-info-item">
                             <strong>Location:</strong> <span id="popup-location"></span>
                         </div>
                         <div class="game-info-item" id="popup-link-container" style="display: none;">
@@ -97,6 +109,12 @@
 
                             <label for="edit-date">Date</label>
                             <input type="date" id="edit-date" required style="width: 100%; padding: 8px; margin: 6px 0; box-sizing: border-box;"><br>
+
+                            <label for="edit-startTime">Start Time</label>
+                            <input type="time" id="edit-startTime" required style="width: 100%; padding: 8px; margin: 6px 0; box-sizing: border-box;"><br>
+
+                            <label for="edit-endTime">End Time</label>
+                            <input type="time" id="edit-endTime" required style="width: 100%; padding: 8px; margin: 6px 0; box-sizing: border-box;"><br>
 
                             <label for="edit-location">Location</label>
                             <input type="text" id="edit-location" required style="width: 100%; padding: 8px; margin: 6px 0; box-sizing: border-box;"><br>
@@ -232,6 +250,10 @@
                 
                 document.getElementById('edit-location').value = game.location || '';
                 document.getElementById('edit-link').value = game.link || '';
+
+                // Show chat feature
+                const liveGameChat = document.getElementById('liveGameChat');
+                liveGameChat.style.display = 'block';
 
                 // Show popup
                 popup.style.display = 'block';
@@ -369,4 +391,3 @@
             });
         </script> </body>
 </html>
-``` 
