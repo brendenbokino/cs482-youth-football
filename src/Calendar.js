@@ -123,17 +123,19 @@ class CalendarManager {
 
 function showGameDetails(game) {
     const now = new Date();
-    const gameStart = new Date(game.date);
-    const gameEnd = new Date(game.date);
-    gameEnd.setHours(gameEnd.getHours() + 2);
+    const gameStart = new Date(game.startTime);
+    const gameEnd = new Date(game.endTime);
 
     const liveGameChat = document.getElementById('liveGameChat');
     if (now >= gameStart && now <= gameEnd) {
         liveGameChat.style.display = 'block';
-        loadGameChats(game._id);
+        document.getElementById('chatForm').style.display = 'block';
     } else {
-        liveGameChat.style.display = 'none';
+        liveGameChat.style.display = 'block';
+        document.getElementById('chatForm').style.display = 'none';
     }
+
+    loadGameChats(game._id);
 }
 
 module.exports = CalendarManager; // Export the class for use elsewhere
