@@ -46,7 +46,10 @@ class CalendarManager {
                 extendedProps: {
                     location: game.location,
                     team1: game.team1,
-                    team2: game.team2
+                    team2: game.team2,
+                    startTime: game.startTime,
+                    endTime: game.endTime,
+                    link: game.link
                 }
             }));
 

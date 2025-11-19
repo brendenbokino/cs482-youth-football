@@ -17,7 +17,8 @@ const UserDao = require('./model/UserDao');
 const Comms = require('./src/Comms'); 
 const MessageDao = require('./model/MessageDao');
 const { login, register, logout, loggedUser } = require('./src/UserController');
-
+const GameChatDao = require('./model/GameChatDao');
+const GameDao = require('./model/GameDao'); 
 
 app = express()
 
@@ -176,27 +177,39 @@ const storage = new GridFsStorage({
 
 const upload = multer({ storage });
 
-app.get('/photos.html', (req, res) =>{
+app.get('/photos/images', (req, res) =>{
   const cursor = bucket.find({});
-  const files = cursor.toArray();
-  if (!files || files.length == 0){
-    res.render('/photos.html', {files: false})
-  } else{
-    files.map(file => {
-      if (file.contentType === 'image/jpeg' || file.contentType === 'image/png'){
-        file.isImage = true;
+  let files;
+  cursor.toArray()
+    .then(function(files){
+      if (!files || files.length == 0){
+        //res.render('/photos.html', {files: false})
+        res.json(files)
       } else{
-        file.isImage = false;
+        for (const file of files){
+          if (file.contentType === 'image/jpeg' || file.contentType === 'image/png'){
+            file.isImage = true;
+          } else{
+            file.isImage = false;
+          }
+        }
+        /**files.map(file => {
+          if (file.contentType === 'image/jpeg' || file.contentType === 'image/png'){
+            file.isImage = true;
+          } else{
+            file.isImage = false;
+          }
+        });**/
+        //res.render('/photos.html', {files: files})
+        res.json(files)
       }
-    });
-    res.render('/photos.html', {files: files})
-  }
+    })
 })
 
 //upload file to db
 app.post('/upload', upload.single('file'), (req, res) => {
   //res.json({file: req.file});
-  res.redirect('/')
+  res.redirect('/photos.html')
 });
 
 // display all files in JSON
@@ -247,15 +260,25 @@ app.get("/image/:filename", async (req, res) => {
   }
 });
 
+const { ObjectId } = require('mongoose')
 // delete file NEED TO UPDATE FROM GRIDFS TO GRIDFSBUCKET
-/**app.delete('/files/:id', (req, res) => {
-  gfs.remove({_id: req.params.id, root: 'uploads'}, (err, gridStore) => {
-    if (err) {
-      return res.status(404).json({err: err})
-    }
-    res.redirect('/')
-  })
-})**/
+app.post('/files/:filename', async (req, res) => {
+  let file;
+  try {
+    const cursor = bucket.find({filename: req.params.filename});
+    file = await cursor.next();
+    //res.json(file);
+} catch (err) {
+    //clres.json({err: 'file doesnt exist'})
+    res.redirect('/photos.html')
+}
+  if (file){
+    //res.json({err: 'file doesnt exist'})
+    //res.redirect('/photos.html')
+  }
+  await bucket.delete(file._id);
+  res.redirect('/photos.html')
+});
 
 
 // coach account routes
@@ -429,6 +452,111 @@ app.post('/comms/uploadVideo', isAuthenticated, upload.single('video'), async (r
     res.status(200).json({ success: true, newMessage });
   } catch (err) {
     res.status(500).json({ error: "Failed to upload video", details: err.message });
+  }
+});
+
+app.post('/gameChat/:gameId', isAuthenticated, async (req, res) => {
+  const { gameId } = req.params;
+  const { message } = req.body;
+  const user = req.session.user;
+
+  try {
+    const game = await GameDao.findById(gameId);
+    if (!game) {
+      return res.status(404).json({ error: "Game not found." });
+    }
+
+    const now = new Date();
+    const gameStart = new Date(game.date);
+    const gameEnd = new Date(game.date);
+    gameEnd.setHours(gameEnd.getHours() + 2); // keeping the games at 2 hours, no OT
+
+    if (now < gameStart || now > gameEnd) {
+      return res.status(403).json({ error: "Chat is only allowed during the game." });
+    }
+
+    const newChat = await GameChatDao.create({
+      gameId,
+      message,
+      author: user.name,
+      authorType: user.permission,
+    });
+
+    res.status(200).json({ success: true, newChat });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to post chat message", details: err.message });
+  }
+});
+
+app.get('/gameChat/:gameId', isAuthenticated, async (req, res) => {
+  const { gameId } = req.params;
+
+  try {
+    const chats = await GameChatDao.readByGameId(gameId);
+    res.json({ chats });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch game chats", details: err.message });
+  }
+});
+
+const ReviewDao = require('./model/ReviewDao')
+
+app.post('/teams/postReview', isAuthenticated, async (req, res) => {
+  const { review } = req.body;
+  const user = req.session.user;
+
+  try {
+    const newReview = await ReviewDao.create({
+      message,
+      author: user.name,
+      authorType: user.permission,
+    });
+    res.status(200).json({ success: true, newReview });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to post review", details: err.message });
+  }
+});
+
+app.get('/teams/viewReviews', isAuthenticated, async (req, res) => {
+  try {
+    const reviews = await ReviewDao.readAll();
+    res.json({ reviews });
+  } catch (err) {
+    console.error("Error fetching reviews:", err); 
+    res.status(500).json({ error: "Failed to fetch reviews", details: err.message });
+  }
+});
+
+app.delete('/teams/deleteReview/:id', isAuthenticated, async (req, res) => {
+  const { id } = req.params;
+  const user = req.session.user;
+
+  try {
+    const isAuthor = await ReviewDao.isAuthor(id, user.name);
+    if (!isAuthor) {
+      return res.status(403).json({ error: "You are not authorized to delete this review." });
+    }
+    await ReviewDaoDao.delete(id);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete review", details: err.message });
+  }
+});
+
+app.put('/teams/updateReview/:id', isAuthenticated, async (req, res) => {
+  const { id } = req.params;
+  const { review } = req.body;
+  const user = req.session.user;
+
+  try {
+    const isAuthor = await ReviewDaoDao.isAuthor(id, user.name);
+    if (!isAuthor) {
+      return res.status(403).json({ error: "You are not authorized to update this review." });
+    }
+    const updatedReview = await ReviewDao.update(id, { review });
+    res.status(200).json({ success: true, updatedReview });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update review", details: err.message });
   }
 });
 

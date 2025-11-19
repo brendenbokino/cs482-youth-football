@@ -72,6 +72,8 @@ class GameController {
                     date: req.date,
                     location: req.location,
                     link: req.link,
+                    startTime: req.startTime,
+                    endTime: req.endTime,
                     _id: req.id
                 };
                 let game = await gameDao.update(req.id, updateData);
@@ -227,6 +229,8 @@ exports.create = async function(req, res) {
         date: req.body.date,
         location: req.body.location,
         link: req.body.link,
+        startTime: req.body.startTime,
+        endTime: req.body.endTime,
         _id: req.body._id
     } : null;
     const mockRes = { status: null, send: null };
@@ -261,6 +265,8 @@ exports.update = async function(req, res) {
         team2: req.body.team2,
         date: req.body.date,
         location: req.body.location,
+        startTime: req.body.startTime,
+        endTime: req.body.endTime,
         link: req.body.link
     } : null;
     const mockRes = { status: null, send: null };

@@ -150,6 +150,7 @@ async function uploadPhoto() {
         });
 
         if (response.ok) {
+            document.getElementById("messageForm").reset();
             alert("Photo uploaded successfully.");
             viewMessages();
         } else {
@@ -183,6 +184,7 @@ async function uploadVideo() {
         });
 
         if (response.ok) {
+            document.getElementById("messageForm").reset();
             alert("Video uploaded successfully.");
             viewMessages();
         } else {
@@ -202,11 +204,8 @@ async function viewMessages() {
             credentials: 'include', 
         });
 
-        console.log("Response status:", response.status); 
-
         if (response.ok) {
             const data = await response.json();
-            console.log("Fetched messages:", data); 
             const messageList = document.getElementById('messageList');
             messageList.innerHTML = '';
 
@@ -221,7 +220,7 @@ async function viewMessages() {
 
                 msgDiv.innerHTML = `
                     <p><strong>${msg.author} (${authorType})${updatedAt}:</strong></p>
-                    <p>${msg.message}</p>
+                    <p>${msg.message || ''}</p>
                 `;
 
                 if (msg.photo) {
@@ -280,7 +279,6 @@ async function viewMessages() {
             });
         } else {
             const result = await response.json();
-            console.error("Failed to fetch messages:", result.error || "Unknown server error.");
             alert("Failed to fetch messages: " + (result.error || "Unknown error."));
         }
     } catch (error) {

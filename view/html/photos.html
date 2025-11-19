@@ -10,12 +10,21 @@
         <!-- Bootrap Icons for the Icons -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">        
         <link href="./css/main.css" rel="stylesheet" type="text/css">
+        <style>
+            img {
+                max-width: 100%; /* Image will not exceed 100% of its container's width */
+                height: auto; /* Height adjusts proportionally to maintain aspect ratio */
+                display: block; /* Removes extra space below the image */
+            }
+        </style>
+        
+
         </head>
 
     <body>
         <div id="header"></div>
 
-            <main id="id">
+            <main>
                 <div>
                     <h1>Mongo File Uploads</h1>
                     <form action="/upload" method="POST" enctype="multipart/form-data">
@@ -25,24 +34,46 @@
                         </div>
                         <input type="submit" value="submit" class="btn btn-primary btn-block">
                     </form>
+                    <div id="imageList" class="img"></div>
                     <hr>
                     <script>
+                        async function showImages() {
+                            const response = await fetch('/photos/images');
+                            const files = await response.json();
+
+                            const imageList = document.getElementById('imageList')
                         if (files){
-                            document.getElementById("id").innerHTML +=
-                            files.forEach(function(file) {
-                                '<div class="card card-body mb-3">';
+                            
+                            for (let file of files) {
+            
+                                
+                                imageList.innerHTML += '<div class="card card-body mb-3">';
                                 if (file.isImage) {
-                                    document.getElementById("id").innerHTML +=
-                                    '<img src="image/${file.filename}" alt="">';
+                                    imageList.innerHTML +=
+                                    `<img src="http://localhost:3000/image/${file.filename}" alt="" />`;
                                 }else{
-                                    document.getElementById("id").innerHTML +=
-                                    '${file.filename}';
+                                    imageList.innerHTML +=
+                                    `${file.filename}`;
                                 }
-                            })
+                                imageList.innerHTML += '<\div>'
+                                imageList.innerHTML += `
+                                <form method="POST" action="/files/${file.filename}" method="DELETE"> 
+                                    <button class="btn btn-danger bnt-block mt-4">
+                                        Delete
+                                    </button>
+                                </form>`
+                                /**imageList.innerHTML += `<form action="/files/delete" method="POST">
+                                    <input type="hidden" name="${file._id}" value="${file._id}}">
+                                    <button class="btn btn-danger btn-block mt-4">Delete</button>
+                                </form>`**/
+
+                            }
                         } else{
-                            document.getElementById("id").innerHTML += 
+                            imageList.innerHTML += 
                             '<p>No files to show</p>';
                         }
+                        }
+                        showImages();
                     </script>
                 </div>
             </main>

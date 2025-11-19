@@ -7,11 +7,11 @@ const replySchema = new mongoose.Schema({
 });
 
 const messageSchema = new mongoose.Schema({
-  message: { type: String, default: "" }, // Allow empty messages
+  message: { type: String, default: "" }, 
   author: { type: String, required: true },
   authorType: { type: Number, required: true },
-  photo: { type: String }, // Optional photo URL
-  video: { type: String }, // Optional video URL
+  photo: { type: String }, 
+  video: { type: String }, 
   edited: { type: Boolean, default: false },
   dateCreated: { type: Date, default: Date.now },
   dateEdited: { type: Date },

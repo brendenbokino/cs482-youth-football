@@ -7,6 +7,9 @@ const gameSchema = new mongoose.Schema({
     date: Date, /// date type to make sorting easier 
     location: String,
     link: String,
+    startTime: Date,
+    endTime: Date,
+    
     team1Score: {
         type: Number,
         default: 0
