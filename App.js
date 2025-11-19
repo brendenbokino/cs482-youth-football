@@ -448,7 +448,7 @@ app.post('/comms/uploadVideo', isAuthenticated, upload.single('video'), async (r
     res.status(500).json({ error: "Failed to upload video", details: err.message });
   }
 });
-
+/*
 app.post('/gameChat/:gameId', isAuthenticated, async (req, res) => {
   const { gameId } = req.params;
   const { message } = req.body;
@@ -491,7 +491,7 @@ app.get('/gameChat/:gameId', isAuthenticated, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch game chats", details: err.message });
   }
-});
+});*/
 
 const ReviewDao = require('./model/ReviewDao')
 
@@ -563,20 +563,21 @@ app.post('/calendar/postMessage', isAuthenticated, async (req, res) => {
   const user = req.session.user;
 
   try {
-    const newMessage = await MessageDao.create({
+    const newMessage = await GameChatDao.create({
       message,
       author: user.name,
       authorType: user.permission,
     });
     res.status(200).json({ success: true, newMessage });
   } catch (err) {
+    console.error("Error posting message:", err); // Log the error
     res.status(500).json({ error: "Failed to post message", details: err.message });
   }
 });
 
 app.get('/calendar/viewMessages', isAuthenticated, async (req, res) => {
   try {
-    const messages = await MessageDao.readAll();
+    const messages = await GameChatDao.readAll();
     res.json({ messages });
   } catch (err) {
     console.error("Error fetching messages:", err); 
@@ -589,11 +590,11 @@ app.delete('/calendar/deleteMessage/:id', isAuthenticated, async (req, res) => {
   const user = req.session.user;
 
   try {
-    const isAuthor = await MessageDao.isAuthor(id, user.name);
+    const isAuthor = await GameChatDao.isAuthor(id, user.name);
     if (!isAuthor) {
       return res.status(403).json({ error: "You are not authorized to delete this message." });
     }
-    await MessageDao.delete(id);
+    await GameChatDao.delete(id);
     res.status(200).json({ success: true });
   } catch (err) {
     res.status(500).json({ error: "Failed to delete message", details: err.message });
@@ -606,11 +607,11 @@ app.put('/calendar/updateMessage/:id', isAuthenticated, async (req, res) => {
   const user = req.session.user;
 
   try {
-    const isAuthor = await MessageDao.isAuthor(id, user.name);
+    const isAuthor = await GameChatDao.isAuthor(id, user.name);
     if (!isAuthor) {
       return res.status(403).json({ error: "You are not authorized to update this message." });
     }
-    const updatedMessage = await MessageDao.update(id, { message });
+    const updatedMessage = await GameChatDao.update(id, { message });
     res.status(200).json({ success: true, updatedMessage });
   } catch (err) {
     res.status(500).json({ error: "Failed to update message", details: err.message });
@@ -627,7 +628,7 @@ app.post('/calendar/addReply/:id', isAuthenticated, async (req, res) => {
             email: user.email,
             message,
         };
-        const updatedMessage = await MessageDao.addReply(id, reply);
+        const updatedMessage = await GameChatDao.addReply(id, reply);
         if (updatedMessage) {
             res.status(200).json({ success: true, updatedMessage });
         } else {
@@ -644,7 +645,7 @@ app.post('/calendar/uploadPhoto', isAuthenticated, upload.single('photo'), async
 
   try {
     const photoUrl = `/image/${req.file.filename}`;
-    const newMessage = await MessageDao.create({
+    const newMessage = await GameChatDao.create({
       message: message || "", 
       author: user.name,
       authorType: user.permission,
@@ -662,7 +663,7 @@ app.post('/calendar/uploadVideo', isAuthenticated, upload.single('video'), async
 
   try {
     const videoUrl = `/video/${req.file.filename}`;
-    const newMessage = await MessageDao.create({
+    const newMessage = await GameChatDao.create({
       message: message || "", 
       author: user.name,
       authorType: user.permission,

@@ -3,9 +3,9 @@
 // Loren Kim
 
 const express = require("express");
-const MessageDao = require('../model/GameChatDao');
+const GameChatDao = require('../model/GameChatDao');
 
-class Comms {
+class GameChat {
     constructor() {
         this.currentUser = null;
     }
@@ -16,7 +16,7 @@ class Comms {
             return;
         }
 
-        const messages = await MessageDao.readAll();
+        const messages = await GameChatDao.readAll();
         if (!messages.length) {
             console.log("No messages.");
             return;

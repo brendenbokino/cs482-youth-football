@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const gameDao = require('./GameDao');
 
 const replySchema = new mongoose.Schema({
   email: { type: String, required: true },
@@ -24,19 +23,28 @@ const gameChatModel = mongoose.model('GameChat', gameChatSchema);
 
 module.exports = {
   async create(data) {
-      return await messageModel.create(data);
+    // adding message to debug why post isnt working
+    try {
+        console.log("Creating message in database:", data); 
+        const result = await gameChatModel.create(data);
+        console.log("Message created successfully:", result); 
+        return result;
+    } catch (err) {
+        console.error("Error creating message in database:", err); 
+        throw err; 
+    }
   },
 
   async readAll() {
-      return await messageModel.find().sort({ date: -1 }).lean();
+      return await gameChatModel.find().sort({ date: -1 }).lean();
   },
 
   async findById(id) {
-      return await messageModel.findById(id);
+      return await gameChatModel.findById(id);
   },
 
   async addReply(id, reply) {
-      const msg = await messageModel.findById(id);
+      const msg = await gameChatModel.findById(id);
       if (!msg) return null;
       msg.replies.push({ ...reply, date: new Date() });
       await msg.save();
@@ -44,7 +52,7 @@ module.exports = {
   },
 
   async addPhoto(id, photoUrl) {
-      const msg = await messageModel.findById(id);
+      const msg = await gameChatModel.findById(id);
       if (!msg) return null;
       msg.photo = photoUrl;
       await msg.save();
@@ -52,18 +60,18 @@ module.exports = {
   },
 
   async delete(id) {
-      return await messageModel.findByIdAndDelete(id);
+      return await gameChatModel.findByIdAndDelete(id);
   },
 
   async isAuthor(messageId, userName) {
-      const message = await messageModel.findById(messageId);
+      const message = await gameChatModel.findById(messageId);
       return message && message.author === userName;
   },
 
   async update(id, updates) {
       updates.edited = true;
       updates.dateEdited = new Date();
-      return await messageModel.findByIdAndUpdate(id, updates, { new: true });
+      return await gameChatModel.findByIdAndUpdate(id, updates, { new: true });
   },
 
   async createForGame(gameId, data) {
