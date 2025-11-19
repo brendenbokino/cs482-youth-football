@@ -203,7 +203,7 @@ app.get('/photos/images', (req, res) =>{
 //upload file to db
 app.post('/upload', upload.single('file'), (req, res) => {
   //res.json({file: req.file});
-  res.redirect('/')
+  res.redirect('/photos.html')
 });
 
 // display all files in JSON
