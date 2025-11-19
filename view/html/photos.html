@@ -43,14 +43,16 @@
 
                             const imageList = document.getElementById('imageList')
                         if (files){
+                            
                             for (let file of files) {
+            
                                 
                                 imageList.innerHTML += '<div class="card card-body mb-3">';
                                 if (file.isImage) {
-                                    imageList.innerHTML =
-                                    `<img src="http://localhost:3000/image/${file.filename}" alt="">`;
+                                    imageList.innerHTML +=
+                                    `<img src="http://localhost:3000/image/${file.filename}" alt="" />`;
                                 }else{
-                                    imageList.innerHTML =
+                                    imageList.innerHTML +=
                                     `${file.filename}`;
                                 }
                                 imageList.innerHTML += '<\div>'
