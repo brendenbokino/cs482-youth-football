@@ -911,6 +911,290 @@ describe("UserController getYouths Tests", function() {
     });
 });
 
+describe("UserController addYouthStat Tests", function() {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test("addYouthStat: No user session", async function() {
+        const req = { 
+            session: {}, 
+            body: { userId: 'u1', statType: 'touchdown', value: 1, gameId: 'g1' } 
+        };
+        const res = { status: jest.fn(), json: jest.fn() };
+
+        await UserController.addYouthStat(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.json).toHaveBeenCalledWith({ error: "Unauthorized. Admin access required." });
+    });
+
+    test("addYouthStat: User not admin (coach)", async function() {
+        const req = { 
+            session: { user: { _id: 'c1', permission: 1 } }, 
+            body: { userId: 'u1', statType: 'touchdown', value: 1, gameId: 'g1' } 
+        };
+        const res = { status: jest.fn(), json: jest.fn() };
+
+        await UserController.addYouthStat(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.json).toHaveBeenCalledWith({ error: "Unauthorized. Admin access required." });
+    });
+
+    test("addYouthStat: User not admin (adult)", async function() {
+        const req = { 
+            session: { user: { _id: 'a1', permission: 2 } }, 
+            body: { userId: 'u1', statType: 'touchdown', value: 1, gameId: 'g1' } 
+        };
+        const res = { status: jest.fn(), json: jest.fn() };
+
+        await UserController.addYouthStat(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.json).toHaveBeenCalledWith({ error: "Unauthorized. Admin access required." });
+    });
+
+    test("addYouthStat: Missing userId", async function() {
+        const req = { 
+            session: { user: { _id: 'admin1', permission: 0 } }, 
+            body: { statType: 'touchdown', value: 1, gameId: 'g1' } 
+        };
+        const res = { status: jest.fn(), json: jest.fn() };
+
+        await UserController.addYouthStat(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ error: "userId, statType, value, and gameId are required" });
+    });
+
+    test("addYouthStat: Missing statType", async function() {
+        const req = { 
+            session: { user: { _id: 'admin1', permission: 0 } }, 
+            body: { userId: 'u1', value: 1, gameId: 'g1' } 
+        };
+        const res = { status: jest.fn(), json: jest.fn() };
+
+        await UserController.addYouthStat(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ error: "userId, statType, value, and gameId are required" });
+    });
+
+    test("addYouthStat: Missing value", async function() {
+        const req = { 
+            session: { user: { _id: 'admin1', permission: 0 } }, 
+            body: { userId: 'u1', statType: 'touchdown', gameId: 'g1' } 
+        };
+        const res = { status: jest.fn(), json: jest.fn() };
+
+        await UserController.addYouthStat(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ error: "userId, statType, value, and gameId are required" });
+    });
+
+    test("addYouthStat: Missing gameId", async function() {
+        const req = { 
+            session: { user: { _id: 'admin1', permission: 0 } }, 
+            body: { userId: 'u1', statType: 'touchdown', value: 1 } 
+        };
+        const res = { status: jest.fn(), json: jest.fn() };
+
+        await UserController.addYouthStat(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ error: "userId, statType, value, and gameId are required" });
+    });
+
+    test("addYouthStat: Youth not found for userId", async function() {
+        const req = { 
+            session: { user: { _id: 'admin1', permission: 0 } }, 
+            body: { userId: 'u1', statType: 'touchdown', value: 1, gameId: 'g1' } 
+        };
+        const res = { status: jest.fn(), json: jest.fn() };
+
+        YouthDao.findByUserId.mockResolvedValue(null);
+
+        await UserController.addYouthStat(req, res);
+
+        expect(YouthDao.findByUserId).toHaveBeenCalledWith('u1');
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.json).toHaveBeenCalledWith({ error: "Youth not found for this user" });
+    });
+
+    test("addYouthStat: Successful stat addition (new stats array)", async function() {
+        const req = { 
+            session: { user: { _id: 'admin1', permission: 0 } }, 
+            body: { userId: 'u1', statType: 'touchdown', value: 2, gameId: 'g1' } 
+        };
+        const res = { status: jest.fn(), json: jest.fn() };
+
+        const mockYouth = { 
+            _id: 'y1', 
+            id_user: 'u1', 
+            id_adult: 'a1',
+            stats: null // No existing stats
+        };
+        const updatedYouth = {
+            _id: 'y1',
+            id_user: 'u1',
+            id_adult: 'a1',
+            stats: [
+                { type: 'touchdown', value: 2, game: 'g1' }
+            ]
+        };
+
+        YouthDao.findByUserId.mockResolvedValue(mockYouth);
+        YouthDao.update.mockResolvedValue(updatedYouth);
+
+        await UserController.addYouthStat(req, res);
+
+        expect(YouthDao.findByUserId).toHaveBeenCalledWith('u1');
+        expect(YouthDao.update).toHaveBeenCalledWith('y1', {
+            stats: [{ type: 'touchdown', value: 2, game: 'g1' }]
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({ success: true, youth: updatedYouth });
+    });
+
+    test("addYouthStat: Successful stat addition (existing stats array)", async function() {
+        const req = { 
+            session: { user: { _id: 'admin1', permission: 0 } }, 
+            body: { userId: 'u1', statType: 'tackle', value: 5, gameId: 'g1' } 
+        };
+        const res = { status: jest.fn(), json: jest.fn() };
+
+        const existingStat = { type: 'touchdown', value: 2, game: 'g1' };
+        const mockYouth = { 
+            _id: 'y1', 
+            id_user: 'u1', 
+            id_adult: 'a1',
+            stats: [existingStat]
+        };
+        const updatedYouth = {
+            _id: 'y1',
+            id_user: 'u1',
+            id_adult: 'a1',
+            stats: [
+                existingStat,
+                { type: 'tackle', value: 5, game: 'g1' }
+            ]
+        };
+
+        YouthDao.findByUserId.mockResolvedValue(mockYouth);
+        YouthDao.update.mockResolvedValue(updatedYouth);
+
+        await UserController.addYouthStat(req, res);
+
+        expect(YouthDao.findByUserId).toHaveBeenCalledWith('u1');
+        expect(YouthDao.update).toHaveBeenCalledWith('y1', {
+            stats: [
+                existingStat,
+                { type: 'tackle', value: 5, game: 'g1' }
+            ]
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({ success: true, youth: updatedYouth });
+    });
+
+    test("addYouthStat: Value as string converted to int", async function() {
+        const req = { 
+            session: { user: { _id: 'admin1', permission: 0 } }, 
+            body: { userId: 'u1', statType: 'touchdown', value: '10', gameId: 'g1' } 
+        };
+        const res = { status: jest.fn(), json: jest.fn() };
+
+        const mockYouth = { 
+            _id: 'y1', 
+            id_user: 'u1', 
+            id_adult: 'a1',
+            stats: []
+        };
+        const updatedYouth = {
+            _id: 'y1',
+            stats: [{ type: 'touchdown', value: 10, game: 'g1' }]
+        };
+
+        YouthDao.findByUserId.mockResolvedValue(mockYouth);
+        YouthDao.update.mockResolvedValue(updatedYouth);
+
+        await UserController.addYouthStat(req, res);
+
+        expect(YouthDao.update).toHaveBeenCalledWith('y1', {
+            stats: [{ type: 'touchdown', value: 10, game: 'g1' }]
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    test("addYouthStat: Invalid value defaults to 0", async function() {
+        const req = { 
+            session: { user: { _id: 'admin1', permission: 0 } }, 
+            body: { userId: 'u1', statType: 'touchdown', value: 'invalid', gameId: 'g1' } 
+        };
+        const res = { status: jest.fn(), json: jest.fn() };
+
+        const mockYouth = { 
+            _id: 'y1', 
+            id_user: 'u1', 
+            id_adult: 'a1',
+            stats: []
+        };
+        const updatedYouth = {
+            _id: 'y1',
+            stats: [{ type: 'touchdown', value: 0, game: 'g1' }]
+        };
+
+        YouthDao.findByUserId.mockResolvedValue(mockYouth);
+        YouthDao.update.mockResolvedValue(updatedYouth);
+
+        await UserController.addYouthStat(req, res);
+
+        expect(YouthDao.update).toHaveBeenCalledWith('y1', {
+            stats: [{ type: 'touchdown', value: 0, game: 'g1' }]
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    test("addYouthStat: Failed to update youth", async function() {
+        const req = { 
+            session: { user: { _id: 'admin1', permission: 0 } }, 
+            body: { userId: 'u1', statType: 'touchdown', value: 1, gameId: 'g1' } 
+        };
+        const res = { status: jest.fn(), json: jest.fn() };
+
+        const mockYouth = { 
+            _id: 'y1', 
+            id_user: 'u1', 
+            id_adult: 'a1',
+            stats: []
+        };
+
+        YouthDao.findByUserId.mockResolvedValue(mockYouth);
+        YouthDao.update.mockResolvedValue(null);
+
+        await UserController.addYouthStat(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({ error: "Failed to update youth stats" });
+    });
+
+    test("addYouthStat: Error during database operation", async function() {
+        const req = { 
+            session: { user: { _id: 'admin1', permission: 0 } }, 
+            body: { userId: 'u1', statType: 'touchdown', value: 1, gameId: 'g1' } 
+        };
+        const res = { status: jest.fn(), json: jest.fn() };
+
+        YouthDao.findByUserId.mockRejectedValue(new Error('Database connection error'));
+
+        await UserController.addYouthStat(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({ error: "Failed to add stat: Database connection error" });
+    });
+});
+
 
 
 // last Jest tests I tried to write but couldn't get working properly

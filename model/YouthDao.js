@@ -14,6 +14,9 @@ const youthSchema = new mongoose.Schema({
     position: {
         type: String,
     },
+    stats: {
+        type: Array,
+    },
     dob: {
         type: Date,
     },

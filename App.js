@@ -92,6 +92,7 @@ app.post('/promotetoadult', UserController.promoteToAdult);
 app.post('/adult/createyouth', UserController.createYouthAccount);
 app.get('/adult/viewyouths', UserController.getYouths);
 app.get('/coach/viewyouths', UserController.getYouths);
+app.post('/youth/addstat', isAuthenticated, UserController.addYouthStat);
 
 //Team Controller Functions
 const TeamController = require('./src/TeamController');
@@ -130,8 +131,13 @@ app.post('/teamsaddplayer', TeamController.addPlayer);
 app.post('/gameCreate', GameController.create);
 
 app.get('/games', GameController.getAll);
+app.get('/games/:id', GameController.getById);
 app.put('/games/:id', GameController.update);
 app.delete('/games/:id', GameController.delete);
+
+// Game score and stats routes (admin only)
+app.put('/games/:id/score', isAuthenticated, GameController.updateScore);
+app.post('/games/:id/stats', isAuthenticated, GameController.addPlayerStat);
 
 
 //FILE STORAGE

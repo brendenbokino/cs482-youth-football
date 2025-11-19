@@ -1,108 +1,214 @@
 const TeamDao = require('./TeamDao');
+const mongoose = require('mongoose');
 
+// 1. Mock Mongoose completely
+jest.mock('mongoose', () => {
+    const mockedModel = {
+        create: jest.fn(),
+        findOne: jest.fn(),
+        findOneAndUpdate: jest.fn(),
+        findOneAndDelete: jest.fn(),
+        find: jest.fn(),
+        deleteMany: jest.fn(),
+        hydrate: jest.fn((doc) => doc), // Mock hydrate to just return the doc
+        // Mock the native collection property used in your specific logic
+        collection: {
+            findOne: jest.fn(),
+            findOneAndUpdate: jest.fn(),
+            findOneAndDelete: jest.fn()
+        }
+    };
+    
+    return {
+        Schema: jest.fn(),
+        model: jest.fn(() => mockedModel),
+        Types: {
+            ObjectId: {
+                isValid: jest.fn(() => true), // Always say IDs are valid for tests
+                // Mock the constructor
+                prototype: {} 
+            }
+        },
+        // Make sure new mongoose.Types.ObjectId returns something manageable
+        // We use a factory function here for the constructor
+    };
+});
 
-jest.mock('./TeamDao', () => ({
-    create: jest.fn(),
-    readAll: jest.fn(),
-    read: jest.fn(),
-    update: jest.fn(),
-    del: jest.fn(),
-    deleteAll: jest.fn()
-}));
+// Helper to get the mocked model instance
+const mockTeamModel = mongoose.model(); 
 
 // Mock Data
-const teamId = 'team123';
-const teamData = { coach: 'Test Coach', players: ['Player 1'], teamName: 'Bears', games: [], record: [0,0]};
-const updatedTeamData = { coach: 'New Coach', players: ['Player 1', 'Player 2'], teamName: 'Bears', games: [], record: [1,0]};
-const teamList = [teamData, { coach: 'Other Coach', players: [], teamName: 'Lions', games: [], record: [0,1]}];
+const standardId = 'team_bears_2024'; // A custom string ID
+const hexId = '507f1f77bcf86cd799439011'; // A valid 24-char Hex ID
+const teamData = { _id: standardId, coach: 'Test Coach', teamName: 'Bears', players: [] };
 
-describe('TeamDAO Mock Tests', () => {
-    // Clears the mock history (how many times it was called, with what arguments)
+describe('TeamDAO Implementation Tests', () => {
+    
     beforeEach(() => {
         jest.clearAllMocks();
+        // Default behavior for Types.ObjectId constructor mock
+        mongoose.Types.ObjectId = jest.fn(val => val); 
+        mongoose.Types.ObjectId.isValid = jest.fn(() => true);
     });
 
-    // --- Create Test ---
-    test('Create new team', async function() {
-        // Setup mock return value
-        TeamDao.create.mockResolvedValue(teamData);
+    // --- Standard Tests (Happy Path) ---
 
-        // Execute the function under test (assuming another module calls this)
-        let team = await TeamDao.create(teamData);
-    
-        // Assertions
-        expect(TeamDao.create).toHaveBeenCalledTimes(1);
-        expect(TeamDao.create).toHaveBeenCalledWith(teamData);
-        expect(team).toEqual(teamData);
+    test('Create should call model.create', async () => {
+        mockTeamModel.create.mockResolvedValue(teamData);
+        
+        const result = await TeamDao.create(teamData);
+        
+        expect(mockTeamModel.create).toHaveBeenCalledWith(teamData);
+        expect(result).toEqual(teamData);
     });
 
-    // --- Read All Test ---
-    test('Read all teams', async function() {
-        // Setup mock return value
-        TeamDao.readAll.mockResolvedValue(teamList);
-
-        // Execute
-        let teams = await TeamDao.readAll();
-    
-        // Assertions
-        expect(TeamDao.readAll).toHaveBeenCalledTimes(1);
-        expect(teams).toEqual(teamList);
-        expect(teams.length).toBe(2);
+    test('ReadAll should return all teams', async () => {
+        const list = [teamData];
+        mockTeamModel.find.mockResolvedValue(list);
+        
+        const result = await TeamDao.readAll();
+        
+        expect(mockTeamModel.find).toHaveBeenCalledWith({});
+        expect(result).toEqual(list);
     });
 
-    // --- Read Single Test ---
-    test('Read a single team by ID', async function() {
-        // Setup mock return value
-        TeamDao.read.mockResolvedValue(teamData);
+    // --- Logic Tests: The "Custom ID" Handling ---
 
-        // Execute
-        let team = await TeamDao.read(teamId);
-    
-        // Assertions
-        expect(TeamDao.read).toHaveBeenCalledTimes(1);
-        expect(TeamDao.read).toHaveBeenCalledWith(teamId);
-        expect(team).toEqual(teamData);
+    test('Read: Should use findOne (Mongoose) for non-hex custom IDs', async () => {
+        // Scenario: ID is "team_bears", not a 24-char hex
+        mockTeamModel.findOne.mockResolvedValue(teamData);
+
+        await TeamDao.read(standardId);
+
+        // Expect it to SKIP the native collection logic and go straight to mongoose findOne
+        expect(mockTeamModel.collection.findOne).not.toHaveBeenCalled();
+        expect(mockTeamModel.findOne).toHaveBeenCalledWith({ _id: standardId });
     });
 
-    // --- Update Test ---
-    test('Update an existing team', async function() {
-        // Setup mock return value (often returns the updated document)
-        TeamDao.update.mockResolvedValue(updatedTeamData);
+    test('Read: Should use collection.findOne (Native) for valid Hex/ObjectIDs', async () => {
+        // Scenario: ID looks like an ObjectId
+        mockTeamModel.collection.findOne.mockResolvedValue(teamData);
 
-        // Execute
-        let updatedTeam = await TeamDao.update(teamId, { coach: 'New Coach', players: ['Player 2'] });
-    
-        // Assertions
-        expect(TeamDao.update).toHaveBeenCalledTimes(1);
-        // Check if it was called with the correct ID and the update object
-        expect(TeamDao.update).toHaveBeenCalledWith(teamId, { coach: 'New Coach', players: ['Player 2'] });
-        expect(updatedTeam).toEqual(updatedTeamData);
+        await TeamDao.read(hexId);
+
+        // Expect it to use the native collection, NOT the standard mongoose findOne
+        expect(mockTeamModel.collection.findOne).toHaveBeenCalled();
+        expect(mockTeamModel.hydrate).toHaveBeenCalledWith(teamData);
     });
 
-    // --- Delete Single Test ---
-    test('Delete a single team by ID', async function() {
-        // Setup mock return value (e.g., confirmation object or the deleted document)
-        TeamDao.del.mockResolvedValue({ deletedCount: 1 });
+    test('Read: Fallback - If Hex ID is not found as ObjectId, try as String', async () => {
+        // Scenario: ID looks like ObjectId, but was saved as a String in DB
+        
+        // First attempt (ObjectId) returns null
+        mockTeamModel.collection.findOne.mockReturnValueOnce(null);
+        // Second attempt (String) returns data
+        mockTeamModel.collection.findOne.mockReturnValueOnce(teamData);
 
-        // Execute
-        let result = await TeamDao.del(teamId);
+        await TeamDao.read(hexId);
+
+        // Should be called twice: once for ObjectId, once for String
+        expect(mockTeamModel.collection.findOne).toHaveBeenCalledTimes(2);
+    });
+    // --- Cover the "Fallback" Logic (Hex ID valid, but doc not found by ObjectId) ---
     
-        // Assertions
-        expect(TeamDao.del).toHaveBeenCalledTimes(1);
-        expect(TeamDao.del).toHaveBeenCalledWith(teamId);
-        expect(result).toEqual({ deletedCount: 1 });
+    test('Update: Should fallback to String lookup if ObjectId lookup fails', async () => {
+        // Scenario: ID is a valid Hex, but DB returns null for ObjectId query
+        const hexId = '507f1f77bcf86cd799439011';
+        const updateData = { coach: 'New' };
+        
+        // 1. First call (ObjectId) returns null
+        mockTeamModel.collection.findOneAndUpdate.mockReturnValueOnce({ value: null });
+        // 2. Second call (String) returns the document
+        mockTeamModel.collection.findOneAndUpdate.mockReturnValueOnce({ value: { ...teamData, ...updateData } });
+
+        await TeamDao.update(hexId, updateData);
+
+        // Verify it tried twice
+        expect(mockTeamModel.collection.findOneAndUpdate).toHaveBeenCalledTimes(2);
     });
 
-    // --- Delete All Test ---
-    test('Delete all teams', async function() {
-        // Setup mock return value
-        TeamDao.deleteAll.mockResolvedValue({ deletedCount: 2 }); // Assuming 2 were deleted
+    test('Delete: Should fallback to String lookup if ObjectId lookup fails', async () => {
+        const hexId = '507f1f77bcf86cd799439011';
+        
+        // 1. First call (ObjectId) returns null
+        mockTeamModel.collection.findOneAndDelete.mockReturnValueOnce({ value: null });
+        // 2. Second call (String) returns the document
+        mockTeamModel.collection.findOneAndDelete.mockReturnValueOnce({ value: teamData });
 
-        // Execute
-        let result = await TeamDao.deleteAll();
-    
-        // Assertions
-        expect(TeamDao.deleteAll).toHaveBeenCalledTimes(1);
-        expect(result).toEqual({ deletedCount: 2 });
+        await TeamDao.del(hexId);
+
+        expect(mockTeamModel.collection.findOneAndDelete).toHaveBeenCalledTimes(2);
+    });
+
+    // --- Cover the "Not Found" scenarios to hit the null checks ---
+
+    test('Read: Should return null if neither ObjectId nor String ID is found', async () => {
+        const hexId = '507f1f77bcf86cd799439011';
+        // Both attempts return null
+        mockTeamModel.collection.findOne.mockResolvedValue(null); 
+        
+        const result = await TeamDao.read(hexId);
+        expect(result).toBeNull();
+    });
+
+    test('Update: Should return null if Hex ID not found via native collection', async () => {
+        const hexId = '507f1f77bcf86cd799439011';
+        mockTeamModel.collection.findOneAndUpdate.mockResolvedValue({ value: null }); // Null for both calls
+        
+        const result = await TeamDao.update(hexId, { coach: 'A' });
+        expect(result).toBeNull();
+    });
+
+    // --- Logic Tests: Update Handling ---
+
+    test('Update: Should use native findOneAndUpdate for Hex IDs', async () => {
+        const updateData = { coach: 'New Coach' };
+        const mockResult = { value: { ...teamData, ...updateData } };
+        
+        mockTeamModel.collection.findOneAndUpdate.mockResolvedValue(mockResult);
+
+        await TeamDao.update(hexId, updateData);
+
+        expect(mockTeamModel.collection.findOneAndUpdate).toHaveBeenCalled();
+        // Verify we requested the document after update
+        expect(mockTeamModel.collection.findOneAndUpdate).toHaveBeenCalledWith(
+            expect.anything(), 
+            { $set: updateData }, 
+            { returnDocument: 'after' }
+        );
+    });
+
+    test('Update: Should use standard findOneAndUpdate for Custom String IDs', async () => {
+        const updateData = { coach: 'New Coach' };
+        mockTeamModel.findOneAndUpdate.mockResolvedValue({ ...teamData, ...updateData });
+
+        await TeamDao.update(standardId, updateData);
+
+        // Should use the standard mongoose method, not the native collection
+        expect(mockTeamModel.findOneAndUpdate).toHaveBeenCalledWith(
+            { _id: standardId },
+            updateData,
+            { new: true }
+        );
+    });
+
+    // --- Logic Tests: Delete Handling ---
+
+    test('Delete: Should use native findOneAndDelete for Hex IDs', async () => {
+        const mockResult = { value: teamData };
+        mockTeamModel.collection.findOneAndDelete.mockResolvedValue(mockResult);
+
+        await TeamDao.del(hexId);
+
+        expect(mockTeamModel.collection.findOneAndDelete).toHaveBeenCalled();
+        expect(mockTeamModel.hydrate).toHaveBeenCalled();
+    });
+
+    test('Delete: Should use standard findOneAndDelete for Custom String IDs', async () => {
+        mockTeamModel.findOneAndDelete.mockResolvedValue(teamData);
+
+        await TeamDao.del(standardId);
+
+        expect(mockTeamModel.findOneAndDelete).toHaveBeenCalledWith({ _id: standardId });
     });
 });

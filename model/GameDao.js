@@ -7,6 +7,18 @@ const gameSchema = new mongoose.Schema({
     date: Date, /// date type to make sorting easier 
     location: String,
     link: String,
+    team1Score: {
+        type: Number,
+        default: 0
+    },
+    team2Score: {
+        type: Number,
+        default: 0
+    },
+    playerStats: {
+        type: Array,
+        default: [] // Array of { playerId, statType, value, timestamp }
+    },
     _id: String
 
     
@@ -20,8 +32,26 @@ exports.readAll = async function(){
 }
 
 exports.read = async function(id){
-    let game = await gameModel.findById(id);
-    return game;
+    console.log('GameDao.read: Looking up game with ID:', id);
+    console.log('GameDao.read: ID type:', typeof id);
+    
+    try {
+        let game = await gameModel.findById(id);
+        
+        if (game) {
+            console.log('GameDao.read: Game found successfully');
+            console.log('GameDao.read: Game _id:', game._id);
+            console.log('GameDao.read: Game teams:', game.team1, 'vs', game.team2);
+        } else {
+            console.log('GameDao.read: No game found with ID:', id);
+        }
+        
+        return game;
+    } catch (error) {
+        console.error('GameDao.read: Error looking up game:', error);
+        console.error('GameDao.read: Error message:', error.message);
+        throw error;
+    }
 }
 
 exports.create = async function(newgame){

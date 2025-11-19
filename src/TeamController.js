@@ -76,7 +76,7 @@ class TeamController {
         }
     }
 
-    // Update team old 
+    
     // async updateTeam (req, res) {
     //     try {
     //         if (!req.params || !req.params._id) {
@@ -283,49 +283,7 @@ class TeamController {
         }
     }
 
-    // Add player to team (old)
-    // async addPlayerToTeam (req, res) {
-    //     try {
-    //         if (!req.params || !req.params._id) {
-    //             res.status = 400;
-    //             res.send = { error: "Team ID is required" };
-    //             return;
-    //         }
-
-    //         if (!req.body || !req.body.playerName) {
-    //             res.status = 400;
-    //             res.send = { error: "Player ID is required" };
-    //             return;
-    //         }
-
-    //         let team = await TeamDao.read(req.params._id);
-    //         if (!team) {
-    //             res.status = 404;
-    //             res.send = { error: "Team not found" };
-    //             return;
-    //         }
-
-    //         // Check if player already exists
-    //         // this should be a full user object so we should do a check by id
-    //         if (team.players.includes(req.player._id)) {
-    //             res.status = 400;
-    //             res.send = { error: "Player already exists on this team" };
-    //             return;
-    //         }
-
-    //         team.players.push(req.playerName);
-    //         let updatedTeam = await TeamDao.update(req._id, { 
-    //             players: team.players,
-    //             updatedAt: new Date().toISOString()
-    //         });
-
-    //         res.status = 200;
-    //         res.send = { success: true, message: "Player added successfully", team: updatedTeam };
-    //     } catch (error) {
-    //         res.status = 500;
-    //         res.send = {error: "Failed to add player to team" };
-    //     }
-    // }
+    
 
     // Fix for registerTeam method
     async registerTeam(req, res) {
@@ -424,7 +382,7 @@ class TeamController {
         }
     }
 
-    // // Register a new team
+    
     // async registerTeam(req, res) {
     //     try {
     //         // Validate required fields
@@ -534,22 +492,7 @@ exports.addPlayer = async function (req, res) {
     }
 }
 
-// old 
-// exports.update = async function (req, res) {
-//     // Handle form data - get updateTeamId from body
-//     req.params = req.params || {};
-//     req.params._id = req.body.updateTeamId;
-    
-//     const team = new TeamController();
-//     const mockRes = { status: null, send: null };
-//     await team.updateTeam(req, mockRes);
-    
-//     if (mockRes.status == 200) {
-//         return res.redirect('/team.html');
-//     } else {
-//         return res.status(mockRes.status || 500).json(mockRes.send || { error: 'Unknown error' });
-//     }
-// }
+
 
     // Fixed exports.update function
 exports.update = async function (req, res) {
