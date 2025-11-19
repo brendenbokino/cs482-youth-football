@@ -56,9 +56,20 @@
                                     `${file.filename}`;
                                 }
                                 imageList.innerHTML += '<\div>'
+                                imageList.innerHTML += `
+                                <form method="POST" action="/files/${file.filename}" method="DELETE"> 
+                                    <button class="btn btn-danger bnt-block mt-4">
+                                        Delete
+                                    </button>
+                                </form>`
+                                /**imageList.innerHTML += `<form action="/files/delete" method="POST">
+                                    <input type="hidden" name="${file._id}" value="${file._id}}">
+                                    <button class="btn btn-danger btn-block mt-4">Delete</button>
+                                </form>`**/
+
                             }
                         } else{
-                            document.getElementById("id").innerHTML += 
+                            imageList.innerHTML += 
                             '<p>No files to show</p>';
                         }
                         }

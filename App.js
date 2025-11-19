@@ -254,15 +254,25 @@ app.get("/image/:filename", async (req, res) => {
   }
 });
 
+const { ObjectId } = require('mongoose')
 // delete file NEED TO UPDATE FROM GRIDFS TO GRIDFSBUCKET
-/**app.delete('/files/:id', (req, res) => {
-  gfs.remove({_id: req.params.id, root: 'uploads'}, (err, gridStore) => {
-    if (err) {
-      return res.status(404).json({err: err})
-    }
-    res.redirect('/')
-  })
-})**/
+app.post('/files/:filename', async (req, res) => {
+  let file;
+  try {
+    const cursor = bucket.find({filename: req.params.filename});
+    file = await cursor.next();
+    //res.json(file);
+} catch (err) {
+    //clres.json({err: 'file doesnt exist'})
+    res.redirect('/photos.html')
+}
+  if (file){
+    //res.json({err: 'file doesnt exist'})
+    //res.redirect('/photos.html')
+  }
+  await bucket.delete(file._id);
+  res.redirect('/photos.html')
+});
 
 
 // coach account routes
