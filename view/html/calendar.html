@@ -141,6 +141,7 @@
 
                     <!-- Action Buttons -->
                     <div class="action-buttons" id="actionButtons">
+                        <button class="btn btn-primary" id="viewGameBtn" style="background-color: #28a745;">View Game</button>
                         <button class="btn btn-primary" id="editGameBtn">Edit Game</button>
                         <button class="btn btn-secondary" id="deleteGameBtn" style="background-color: #dc3545;">Delete Game</button>
                     </div>
@@ -160,6 +161,7 @@
             // Popup management
             const popup = document.getElementById('gamePopup');
             const closeBtn = document.getElementById('closePopup');
+            const viewGameBtn = document.getElementById('viewGameBtn');
             const editBtn = document.getElementById('editGameBtn');
             const deleteBtn = document.getElementById('deleteGameBtn');
             const cancelEditBtn = document.getElementById('cancelEdit');
@@ -260,6 +262,11 @@
                 editForm.style.display = 'none';
                 actionButtons.style.display = 'flex';
             }
+
+            viewGameBtn.onclick = function() {
+                // Navigate to game detail page with game ID in URL
+                window.location.href = `/game-detail.html?id=${currentGameId}`;
+            };
 
             editBtn.onclick = function() {
                 editForm.style.display = 'block';
