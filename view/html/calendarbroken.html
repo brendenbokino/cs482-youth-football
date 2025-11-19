@@ -10,126 +10,6 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">        
         <link href="./css/main.css" rel="stylesheet" type="text/css">
         <link href="./css/popup.css" rel="stylesheet" type="text/css">
-        <style>
-            button {
-              background-color: #a78bfa;
-              color: white;
-              border: none;
-              padding: 10px 14px;
-              border-radius: 6px;
-              font-size: 1rem;
-              cursor: pointer;
-              transition: 0.3s;
-              width: fit-content;
-              align-self: center;
-              margin-top: 5px;
-            }
-        
-            button:hover {
-              background-color: #8b5cf6;
-            }
-        
-            .refresh-btn,
-            .hide-btn {
-              margin-right: 8px;
-            }
-        
-            #confirmationMessage {
-              text-align: center;
-              font-weight: 500;
-              color: #22c55e;
-              margin-top: 10px;
-            }
-        
-            #messageList {
-              margin-top: 20px;
-            }
-        
-            .message {
-              background-color: #f9f9ff;
-              border: 1px solid #e0d7ff;
-              padding: 10px 12px;
-              border-radius: 8px;
-              margin-bottom: 12px;
-            }
-        
-            .message p {
-              margin: 0.4em 0;
-            }
-
-            .message button {
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-                border: none;
-                padding: 6px 10px;
-                border-radius: 6px;
-                cursor: pointer;
-                font-size: 0.9rem;
-                transition: background-color 0.3s;
-                margin-right: 8px; 
-            }
-
-            .delete-btn {
-                background-color: #dc2626;
-                color: white;
-            }
-
-            .delete-btn:hover {
-                background-color: #b91c1c;
-            }
-
-            .update-btn {
-                background-color: #16a34a;
-                color: white;
-            }
-
-            .update-btn:hover {
-                background-color: #15803d;
-            }
-
-            .reply-btn {
-                background-color: #3b82f6;
-                color: white;
-            }
-
-            .reply-btn:hover {
-                background-color: #2563eb;
-            }
-
-            .message button i {
-                font-size: 1rem;
-            }
-
-            .replies {
-                margin-top: 10px;
-                padding-left: 20px;
-                border-left: 2px solid #e0d7ff;
-            }
-
-            .reply {
-                background-color: #f1f5f9;
-                border: 1px solid #e0e7ff;
-                padding: 8px 10px;
-                border-radius: 6px;
-                margin-bottom: 8px;
-            }
-
-            .reply-date {
-                font-size: 0.8rem;
-                color: #6b7280;
-            }
-        
-            footer {
-              text-align: center;
-              font-size: 0.9rem;
-              color: #555;
-              margin-top: 2rem;
-              padding: 1rem 0;
-              border-top: 1px solid #ddd;
-              background-color: #f3f0ff;
-            }
-        </style>
     </head>
 
     <script> 
@@ -255,20 +135,29 @@
 
                             <form id="messageForm">
                                 <textarea id="messageBody" placeholder="Write a message..." style="width:100%; height:80px;"></textarea>
-            
+                
                                 <input type="file" id="photoInput" accept="image/*">
                                 <input type="file" id="videoInput" accept="video/*">
-            
+                
                                 <button type="button" onclick="postMessage()">Post Message</button>
                                 <button type="button" onclick="uploadPhoto()">Upload Photo</button>
                                 <button type="button" onclick="uploadVideo()">Upload Video</button>
                             </form>
-            
+                
                         <button class="hide-btn" onclick="toggleMessages()">View Messages</button>
-            
+                
                     <div id="messageList" style="margin-top: 20px;"></div>
 
                     
+
+                    <div id="liveGameChat" style="display: none;">
+                        <h3>Live Game Chat</h3>
+                        <div id="chatMessages" style="border: 1px solid #ddd; padding: 10px; max-height: 200px; overflow-y: auto;"></div>
+                        <form id="chatForm" style="margin-top: 10px;">
+                            <textarea id="chatMessage" rows="2" placeholder="Type your message..." style="width: 100%;"></textarea>
+                            <button type="submit" style="margin-top: 5px;">Send</button>
+                        </form>
+                    </div>
 
                     <!-- Action Buttons -->
                     <div class="action-buttons" id="actionButtons">
@@ -321,7 +210,11 @@
                     _id: generateId(), // Generate _id
                     team1: document.getElementById('team1').value,
                     team2: document.getElementById('team2').value,
+                    startTime: new Date(`${dateVal}T${startVal}:00`),  
+                    endTime: new Date(`${dateVal}T${endVal}:00`),
                     date: document.getElementById('date').value,
+                    //startTime: document.getElementById('startTime').value, 
+                    //endTime: document.getElementById('endTime').value, 
                     location: document.getElementById('location').value,
                     link: document.getElementById('link').value || ''
                 };
@@ -352,13 +245,15 @@
 
             function showGameDetails(game) {
                 currentGameId = game._id;
-                
+
                 // Populate display fields
                 document.getElementById('popup-team1').textContent = game.team1;
                 document.getElementById('popup-team2').textContent = game.team2;
                 document.getElementById('popup-date').textContent = new Date(game.date).toLocaleDateString();
+                document.getElementById('popup-startTime').textContent = new Date(game.startTime).toLocaleTimeString();
+                document.getElementById('popup-endTime').textContent = new Date(game.endTime).toLocaleTimeString();
                 document.getElementById('popup-location').textContent = game.location || 'TBD';
-                
+
                 // Handle live link
                 const linkContainer = document.getElementById('popup-link-container');
                 const linkElement = document.getElementById('popup-link');
@@ -369,24 +264,27 @@
                     linkContainer.style.display = 'none';
                 }
 
-                // Populate edit form
                 document.getElementById('edit-game-id').value = game._id;
-                document.getElementById('edit-team1').value = game.team1;
+                document.getElementById( 'edit-team1').value = game.team1;
                 document.getElementById('edit-team2').value = game.team2;
-                
+
                 // Format date for input (YYYY-MM-DD)
-                const dateObj = new Date(game.date);
+                const dateObj = new Date(game. date);
                 const dateStr = dateObj.toISOString().split('T')[0];
-                document.getElementById('edit-date').value = dateStr;
-                
-                document.getElementById('edit-location').value = game.location || '';
-                document.getElementById('edit-link').value = game.link || '';
+                document.getElementById('edit-date' ).value = dateStr;
+                document.getElementById('edit-location').value = game. location || '';
+                document.getElementById('edit-link').value = game. link || '';
 
-                // Show chat feature
+                // Show chat feature only during game time
+                const now = new Date();
                 const liveGameChat = document.getElementById('liveGameChat');
-                liveGameChat.style.display = 'block';
+                if (now >= new Date(game.startTime) && now <= new Date(game.endTime)) {
+                    liveGameChat.style.display = 'block';
+                    document.getElementById('chatForm').style.display = 'block';
+                } else {
+                    liveGameChat.style.display = 'none';
+                }
 
-                // Show popup
                 popup.style.display = 'block';
                 editForm.style.display = 'none';
                 actionButtons.style.display = 'flex';
@@ -410,6 +308,8 @@
                     team1: document.getElementById('edit-team1').value,
                     team2: document.getElementById('edit-team2').value,
                     date: document.getElementById('edit-date').value,
+                    startTime: document.getElementById('edit-startTime').value,
+                    endTime: document.getElementById('edit-endTime').value,
                     location: document.getElementById('edit-location').value,
                     link: document.getElementById('edit-link').value
                 };
@@ -474,7 +374,7 @@
                         .filter(g => !!g.date)
                         .map(g => ({
                             title: `${g.team1} vs ${g.team2}`,
-                            start: g.date,
+                            start: g.date + "T00:00:00",
                             extendedProps: { 
                                 _id: g._id,
                                 location: g.location, 
@@ -507,6 +407,310 @@
                 });
                 calendarInstance.render();
             });
+            
+        
+            function getAuthorType(permission) {
+                switch (permission) {
+                    case 1: return 'Coach';
+                    case 2: return 'Parent';
+                    case 3: return 'Player';
+                    default: return 'User';
+                }
+            }
+
+            async function checkLoginStatus() {
+                try {
+                    const response = await fetch('/loggedUser', { credentials: 'include' }).then(res => res.json());
+                    if (response.status === 401) {
+                        window.location.href = '../view/html/login.html';
+                        return false;
+                    }
+                    return true;
+                } catch (error) {
+                    console.error('Error checking login status:', error);
+                    return false;
+                }
+            }
+
+            async function postMessage() {
+                const messageBody = document.getElementById('messageBody').value;
+                if (!messageBody) {
+                    alert("Message cannot be empty.");
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/calendar/postMessage', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message: messageBody }),
+                        credentials: 'include', 
+                    });
+
+                    const now = new Date();
+                    if (response.ok && now >= new Date(startTime) && now <= new Date(endTime)) {
+                        document.getElementById("confirmationMessage").style.display = "block";
+                        setTimeout(() => {
+                            document.getElementById("confirmationMessage").style.display = "none";
+                        }, 3000);
+                        document.getElementById("messageForm").reset();
+                        viewMessages();
+                    } else {
+                        const result = await response.json();
+                        console.error("Post failed:", result.error || "Unknown server error.");
+                        alert("Failed to post message: " + (result.error || "Unknown error."));
+                    }
+                } catch (error) {
+                    console.error('Network error during post:', error);
+                    alert("Network error. Please try again.");
+                }
+            }
+
+            async function deleteMessage(messageId) {
+                if (!confirm("Are you sure you want to delete this message?")) return;
+
+                try {
+                    const response = await fetch(`/calendar/deleteMessage/${messageId}`, {
+                        method: 'DELETE',
+                        credentials: 'include',
+                    });
+
+                    if (response.ok) {
+                        viewMessages();
+                    } else {
+                        const result = await response.json();
+                        alert("Failed to delete message: " + (result.error || "Unknown error."));
+                    }
+                } catch (error) {
+                    console.error('Network error during delete:', error);
+                    alert("Network error. Please try again.");
+                }
+            }
+
+            async function updateMessage(messageId) {
+                const newMessage = prompt("Enter the edited message:");
+                if (!newMessage) return;
+
+                try {
+                    const response = await fetch(`/comms/updateMessage/${messageId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message: newMessage }),
+                        credentials: 'include',
+                    });
+
+                    if (response.ok) {
+                        viewMessages();
+                    } else {
+                        const result = await response.json();
+                        alert("Failed to edit message: " + (result.error || "Unknown error."));
+                    }
+                } catch (error) {
+                    console.error('Network error during update:', error);
+                    alert("Network error. Please try again.");
+                }
+            }
+
+            async function replyToMessage(messageId) {
+                const replyMessage = prompt("Enter your reply:");
+                if (!replyMessage) return;
+
+                try {
+                    const response = await fetch(`/calendar/addReply/${messageId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message: replyMessage }),
+                        credentials: 'include',
+                    });
+
+                    if (response.ok) {
+                        viewMessages();
+                    } else {
+                        const result = await response.json();
+                        alert("Failed to add reply: " + (result.error || "Unknown error."));
+                    }
+                } catch (error) {
+                    console.error('Network error during reply:', error);
+                    alert("Network error. Please try again.");
+                }
+            }
+
+            async function uploadPhoto() {
+                const photoInput = document.getElementById('photoInput');
+                const messageBody = document.getElementById('messageBody').value;
+
+                if (!photoInput.files.length || !messageBody) {
+                    alert("Please select a photo.");
+                    return;
+                }
+
+                try {
+                    const formData = new FormData();
+                    formData.append('photo', photoInput.files[0]);
+                    formData.append('message', messageBody);
+
+                    const response = await fetch('/calendar/uploadPhoto', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                       body: formData,
+                        credentials: 'include', 
+                    });
+
+                    if (response.ok) {
+                        viewMessages();
+                    } else {
+                        const result = await response.json();
+                        console.error("Post failed:", result.error || "Unknown server error.");
+                        alert("Failed to post message: " + (result.error || "Unknown error."));
+                    }
+                } catch (error) {
+                    console.error('Network error during post:', error);
+                    alert("Network error. Please try again.");
+                }
+            }   
+
+            async function uploadVideo() {
+                const photoInput = document.getElementById('videoInput');
+                const messageBody = document.getElementById('messageBody').value;
+
+                if (!videoInput.files.length || !messageBody) {
+                    alert("Please select a video.");
+                    return;
+                }
+
+                try {
+                    const formData = new FormData();
+                    formData.append('video', videoInput.files[0]);
+                    formData.append('message', messageBody);
+
+                    const response = await fetch('/calendar/uploadVideo', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: formData,
+                        credentials: 'include', 
+                    });
+
+                    if (response.ok) {
+                        viewMessages();
+                    } else {
+                        const result = await response.json();
+                        console.error("Post failed:", result.error || "Unknown server error.");
+                        alert("Failed to post message: " + (result.error || "Unknown error."));
+                    }
+                } catch (error) {
+                    console.error('Network error during post:', error);
+                    alert("Network error. Please try again.");
+                }
+            }
+
+            async function viewMessages() {
+                try {
+                    const response = await fetch('/calendar/viewMessages', {
+                        method: 'GET',
+                        credentials: 'include', 
+                    });
+
+                    console.log("Response status:", response.status); 
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log("Fetched messages:", data); 
+                        const messageList = document.getElementById('messageList');
+                        messageList.innerHTML = '';
+
+                        const user = await fetch('/loggedUser', { credentials: 'include' }).then(res => res.json());
+
+                        data.messages.forEach(msg => {
+                            const msgDiv = document.createElement('div');
+                            msgDiv.classList.add('message');
+
+                            const authorType = getAuthorType(msg.authorType);
+                            const updatedAt = msg.edited ? ` (updated at ${new Date(msg.dateEdited).toLocaleString()})` : '';
+
+                            msgDiv.innerHTML = `
+                                <p><strong>${msg.author} (${authorType})${updatedAt}:</strong></p>
+                                <p>${msg.message}</p>
+                            `;
+
+                            if (msg.photo) {
+                               const photo = document.createElement('img');
+                               photo.src = msg.photo;
+                               photo.alt = "Attached photo";
+                               photo.style.maxWidth = "100%";
+                               msgDiv.appendChild(photo);
+                           }
+
+                            if (user.name === msg.author) {
+                                const deleteBtn = document.createElement('button');
+                                deleteBtn.classList.add('delete-btn');
+                                deleteBtn.innerHTML = `<i class="bi bi-trash"></i>`;
+                                deleteBtn.onclick = () => deleteMessage(msg._id);
+
+                                const updateBtn = document.createElement('button');
+                                updateBtn.classList.add('update-btn');
+                                updateBtn.innerHTML = `<i class="bi bi-pencil"></i>`;
+                                updateBtn.onclick = () => updateMessage(msg._id);
+
+                                msgDiv.appendChild(deleteBtn);
+                                msgDiv.appendChild(updateBtn);
+                            }
+
+                            const replyBtn = document.createElement('button');
+                            replyBtn.classList.add('reply-btn');
+                            replyBtn.innerHTML = `<i class="bi bi-reply"></i>`;
+                            replyBtn.onclick = () => replyToMessage(msg._id);
+                            msgDiv.appendChild(replyBtn);
+
+                            if (msg.replies && msg.replies.length > 0) {
+                                const repliesDiv = document.createElement('div');
+                                repliesDiv.classList.add('replies');
+                                msg.replies.forEach(reply => {
+                                    const replyDiv = document.createElement('div');
+                                    replyDiv.classList.add('reply');
+                                    replyDiv.innerHTML = `
+                                        <p><strong>${reply.email}:</strong> ${reply.message}</p>
+                                        <p class="reply-date">${new Date(reply.date).toLocaleString()}</p>
+                                    `;
+                                    repliesDiv.appendChild(replyDiv);
+                                });
+                                msgDiv.appendChild(repliesDiv);
+                            }
+
+                            messageList.appendChild(msgDiv);
+                        });
+                    } else {
+                        const result = await response.json();
+                        console.error("Failed to fetch messages:", result.error || "Unknown server error.");
+                        alert("Failed to fetch messages: " + (result.error || "Unknown error."));
+                    }
+                } catch (error) {
+                    console.error('Network error during message retrieval:', error); 
+                    alert("Network error. Please try again.");
+                }
+            }
+
+            function toggleMessages() {
+                const messageList = document.getElementById('messageList');
+                const hideBtn = document.querySelector('.hide-btn');
+
+                if (messageList.style.display === 'none' ){ 
+                    messageList.style.display = 'block';
+                    hideBtn.textContent = 'Hide Messages';
+                } else {
+                    messageList.style.display = 'none';
+                    hideBtn.textContent = 'View Messages';
+                }
+            }
         </script>
     
 

@@ -79,11 +79,13 @@ class CalendarManager {
 
             const calendarEvents = games.map(game => ({
                 title: `${game.team1} vs ${game.team2}`,
-                start: game.date,
+                start: new Date(game.date).toISOString(), 
                 extendedProps: {
                     location: game.location,
                     team1: game.team1,
-                    team2: game.team2
+                    team2: game.team2,
+                    startTime: game.date,
+                    endTime: new Date(new Date(game.date).getTime() + 2 * 60 * 60 * 1000), 
                 }
             }));
 
@@ -110,7 +112,6 @@ class CalendarManager {
 
         } catch (error) {
             console.error("Error creating calendar:", error);
-            // In a real application, you might want to re-throw or return an empty array
             return [];
         }
     }

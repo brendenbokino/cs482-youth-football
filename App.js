@@ -558,4 +558,120 @@ app.get('/checkSession', (req, res) => {
     res.json({ session: req.session });
 });
 
+app.post('/calendar/postMessage', isAuthenticated, async (req, res) => {
+  const { message } = req.body;
+  const user = req.session.user;
+
+  try {
+    const newMessage = await MessageDao.create({
+      message,
+      author: user.name,
+      authorType: user.permission,
+    });
+    res.status(200).json({ success: true, newMessage });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to post message", details: err.message });
+  }
+});
+
+app.get('/calendar/viewMessages', isAuthenticated, async (req, res) => {
+  try {
+    const messages = await MessageDao.readAll();
+    res.json({ messages });
+  } catch (err) {
+    console.error("Error fetching messages:", err); 
+    res.status(500).json({ error: "Failed to fetch messages", details: err.message });
+  }
+});
+
+app.delete('/calendar/deleteMessage/:id', isAuthenticated, async (req, res) => {
+  const { id } = req.params;
+  const user = req.session.user;
+
+  try {
+    const isAuthor = await MessageDao.isAuthor(id, user.name);
+    if (!isAuthor) {
+      return res.status(403).json({ error: "You are not authorized to delete this message." });
+    }
+    await MessageDao.delete(id);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete message", details: err.message });
+  }
+});
+
+app.put('/calendar/updateMessage/:id', isAuthenticated, async (req, res) => {
+  const { id } = req.params;
+  const { message } = req.body;
+  const user = req.session.user;
+
+  try {
+    const isAuthor = await MessageDao.isAuthor(id, user.name);
+    if (!isAuthor) {
+      return res.status(403).json({ error: "You are not authorized to update this message." });
+    }
+    const updatedMessage = await MessageDao.update(id, { message });
+    res.status(200).json({ success: true, updatedMessage });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update message", details: err.message });
+  }
+});
+
+app.post('/calendar/addReply/:id', isAuthenticated, async (req, res) => {
+    const { id } = req.params;
+    const { message } = req.body;
+    const user = req.session.user;
+
+    try {
+        const reply = {
+            email: user.email,
+            message,
+        };
+        const updatedMessage = await MessageDao.addReply(id, reply);
+        if (updatedMessage) {
+            res.status(200).json({ success: true, updatedMessage });
+        } else {
+            res.status(404).json({ error: "Message not found." });
+        }
+    } catch (err) {
+        res.status(500).json({ error: "Failed to add reply", details: err.message });
+    }
+});
+
+app.post('/calendar/uploadPhoto', isAuthenticated, upload.single('photo'), async (req, res) => {
+  const { message } = req.body;
+  const user = req.session.user;
+
+  try {
+    const photoUrl = `/image/${req.file.filename}`;
+    const newMessage = await MessageDao.create({
+      message: message || "", 
+      author: user.name,
+      authorType: user.permission,
+      photo: photoUrl,
+    });
+    res.status(200).json({ success: true, newMessage });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to upload photo", details: err.message });
+  }
+});
+
+app.post('/calendar/uploadVideo', isAuthenticated, upload.single('video'), async (req, res) => {
+  const { message } = req.body;
+  const user = req.session.user;
+
+  try {
+    const videoUrl = `/video/${req.file.filename}`;
+    const newMessage = await MessageDao.create({
+      message: message || "", 
+      author: user.name,
+      authorType: user.permission,
+      video: videoUrl,
+    });
+    res.status(200).json({ success: true, newMessage });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to upload video", details: err.message });
+  }
+});
+
 exports.app = app;
