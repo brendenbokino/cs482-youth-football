@@ -16,6 +16,10 @@
                 height: auto; /* Height adjusts proportionally to maintain aspect ratio */
                 display: block; /* Removes extra space below the image */
             }
+
+            .imageList {
+                text-align: center
+            }
         </style>
         
 
@@ -26,11 +30,13 @@
 
             <main>
                 <div>
-                    <h1>Mongo File Uploads</h1>
+                    <h1>Carousel Image Upload</h1>
+                    <p>Submit images to populate them in the Image Carousel on the home page and delete to remove them.</p>
+                    <p>Note that the order they are on this page will reflect the order they show up in on the Carousel</p>
                     <form action="/upload" method="POST" enctype="multipart/form-data">
                         <div class="custom-file mb-3">
                             <input type="file" name="file" id="file">
-                            <label for="file">Choose File</label>
+                            <label for="file" style="display: none">Choose File</label>
                         </div>
                         <input type="submit" value="submit" class="btn btn-primary btn-block">
                     </form>
@@ -47,7 +53,7 @@
                             for (let file of files) {
             
                                 
-                                imageList.innerHTML += '<div class="card card-body mb-3">';
+                                imageList.innerHTML += '<div class="card card-body mb-3" display="flex" justify-content="center">';
                                 if (file.isImage) {
                                     imageList.innerHTML +=
                                     `<img src="http://localhost:3000/image/${file.filename}" alt="" />`;
