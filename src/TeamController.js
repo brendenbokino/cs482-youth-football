@@ -289,20 +289,20 @@ class TeamController {
     async registerTeam(req, res) {
         try {
             // Validate required fields
-            if (!req.teamName) {
+            if (!req.body.teamName) {
                 res.status = 400;
                 res.send = { error: "Team name is required" };
                 return;
             }
 
-            if (!req.coach) {
+            if (!req.body.coach) {
                 res.status = 400;
                 res.send = { error: "Coach name is required" };
                 return;
             }
 
             // FIX: Changed from req.body.coach to req.coach
-            if (req.coach.trim() === "") {
+            if (req.body.coach.trim() === "") {
                 res.status = 400;
                 res.send = { error: "Coach name cannot be empty" };
                 return;
@@ -311,10 +311,11 @@ class TeamController {
             // Set up initial team structure with unique ID
             const teamPayload = {
                 _id: this.generateId(),
-                coach: req.coach.trim(),
-                players: req.players || [],
-                games: req.games || [],  // FIX: Changed from req.body.games
-                teamName: req.teamName.trim(),  // FIX: Changed from req.body.teamName
+                coach: req.body.coach.trim(),
+                players: req.body.players || [],
+                games: req.body.games || [],  // FIX: Changed from req.body.games
+                teamName: req.body.teamName.trim(),  // FIX: Changed from req.body.teamName
+                record: [0,0],
                 createdAt: new Date().toISOString()
             };
 

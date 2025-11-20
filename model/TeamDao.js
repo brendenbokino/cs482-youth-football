@@ -32,7 +32,7 @@ const teamSchema = new mongoose.Schema({
         type: Array,
         default: []
     },
-    records: {
+    record: {
         type: Array, //[wins, losses]
         default: []
     },
