@@ -543,7 +543,7 @@
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ message: messageBody }),
+                        body: JSON.stringify({ message: messageBody, gameId: currentGameId, date: new Date() }),
                         credentials: 'include', 
                     });
 

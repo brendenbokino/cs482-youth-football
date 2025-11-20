@@ -5,6 +5,9 @@
 const express = require("express");
 const GameChatDao = require('../model/GameChatDao');
 
+const app = express();
+app.use(express.json());
+
 class GameChat {
     constructor() {
         this.currentUser = null;
@@ -33,5 +36,32 @@ class GameChat {
         });
     }
 }
+
+app.post('/calendar/postMessage', isAuthenticated, async (req, res) => {
+    const { message, gameId } = req.body; 
+    const user = req.session.user;
+
+    if (!message || message.trim() === "") {
+        return res.status(400).json({ error: "Message cannot be empty." });
+    }
+
+    if (!gameId) {
+        return res.status(400).json({ error: "Game ID is required." });
+    }
+
+    try {
+        const newMessage = await GameChatDao.create({
+            gameId,
+            message,
+            dateCreated: new Date(),
+            author: user.name,
+            authorType: user.permission,
+        });
+        res.status(200).json({ success: true, newMessage });
+    } catch (err) {
+        console.error("Error posting message:", err); 
+        res.status(500).json({ error: "Failed to post message", details: err.message });
+    }
+});
 
 module.exports = GameChat;

@@ -559,12 +559,13 @@ app.get('/checkSession', (req, res) => {
 });
 
 app.post('/calendar/postMessage', isAuthenticated, async (req, res) => {
-  const { message } = req.body;
+  const { message, gameId } = req.body;
   const user = req.session.user;
 
   try {
     const newMessage = await GameChatDao.create({
       message,
+      gameId,
       author: user.name,
       authorType: user.permission,
     });
