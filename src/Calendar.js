@@ -79,14 +79,15 @@ class CalendarManager {
 
             const calendarEvents = games.map(game => ({
                 title: `${game.team1} vs ${game.team2}`,
-                start: new Date(game.date).toISOString(), 
+                start: new Date(game.startTime).toISOString(),
+                end: new Date(game.endTime).toISOString(),
                 extendedProps: {
                     location: game.location,
                     team1: game.team1,
                     team2: game.team2,
-                    startTime: game.date,
-                    endTime: new Date(new Date(game.date).getTime() + 2 * 60 * 60 * 1000), 
-                }
+                    startTime: game.startTime,
+                    endTime: game.endTime,
+                },
             }));
 
             if (!Calendar || !dayGridPlugin || !interactionPlugin) {
@@ -135,6 +136,9 @@ function showGameDetails(game) {
         liveGameChat.style.display = 'block';
         document.getElementById('chatForm').style.display = 'none';
     }
+
+    document.getElementById('popup-startTime').textContent = new Date(game.startTime).toLocaleTimeString();
+    document.getElementById('popup-endTime').textContent = new Date(game.endTime).toLocaleTimeString();
 
     loadGameChats(game._id);
 }

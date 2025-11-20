@@ -128,10 +128,62 @@ app.post('/teamsaddplayer', TeamController.addPlayer);
 
 
 // game routes (Express-friendly wrappers)
-app.post('/gameCreate', GameController.create);
+app.post('/gameCreate', async (req, res) => {
+  try {
+    const { team1, team2, date, startTime, endTime, location, link } = req.body;
+    const gameDate = new Date(date);
+    const start = new Date(`${date}T${startTime}`);
+    const end = new Date(`${date}T${endTime}`);
+
+    if (start >= end) {
+      return res.status(400).json({ error: "End time must be after start time." });
+    }
+
+    const newGame = {
+      team1,
+      team2,
+      date: gameDate,
+      startTime: start,
+      endTime: end,
+      location,
+      link,
+    };
+
+    const createdGame = await GameDao.create(newGame);
+    res.status(201).json({ success: true, createdGame });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to create game", details: err.message });
+  }
+});
 
 app.get('/games', GameController.getAll);
-app.put('/games/:id', GameController.update);
+
+app.put('/games/:id', async (req, res) => {
+  try {
+    const { team1, team2, date, startTime, endTime, location, link } = req.body;
+    const start = new Date(`${date}T${startTime}`);
+    const end = new Date(`${date}T${endTime}`);
+
+    if (start >= end) {
+      return res.status(400).json({ error: "End time must be after start time." });
+    }
+
+    const updatedGame = await GameDao.update(req.params.id, {
+      team1,
+      team2,
+      date: new Date(date),
+      startTime: start,
+      endTime: end,
+      location,
+      link,
+    });
+
+    res.status(200).json({ success: true, updatedGame });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update game", details: err.message });
+  }
+});
+
 app.delete('/games/:id', GameController.delete);
 
 
@@ -351,7 +403,7 @@ app.post('/comms/postMessage', isAuthenticated, async (req, res) => {
 
 app.get('/comms/viewMessages', isAuthenticated, async (req, res) => {
   const { gameId } = req.query;
-  console.log(`Received gameId in query: ${gameId}`); // Debugging log
+  console.log(`Received gameId in query: ${gameId}`); 
 
   try {
     const messages = await MessageDao.readByGameId(gameId);
@@ -423,7 +475,7 @@ app.post('/comms/uploadPhoto', isAuthenticated, upload.single('photo'), async (r
   try {
     const photoUrl = `/image/${req.file.filename}`;
     const newMessage = await MessageDao.create({
-      message: message || "", // Allow empty message
+      message: message || "", 
       author: user.name,
       authorType: user.permission,
       photo: photoUrl,
@@ -441,7 +493,7 @@ app.post('/comms/uploadVideo', isAuthenticated, upload.single('video'), async (r
   try {
     const videoUrl = `/video/${req.file.filename}`;
     const newMessage = await MessageDao.create({
-      message: message || "", // Allow empty message
+      message: message || "", 
       author: user.name,
       authorType: user.permission,
       video: videoUrl,
@@ -574,7 +626,7 @@ app.post('/calendar/postMessage', isAuthenticated, async (req, res) => {
     });
     res.status(200).json({ success: true, newMessage });
   } catch (err) {
-    console.error("Error posting message:", err); // Log the error
+    console.error("Error posting message:", err); 
     res.status(500).json({ error: "Failed to post message", details: err.message });
   }
 });

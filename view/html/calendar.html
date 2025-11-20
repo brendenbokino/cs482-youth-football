@@ -323,6 +323,8 @@
                     team1: document.getElementById('team1').value,
                     team2: document.getElementById('team2').value,
                     date: document.getElementById('date').value,
+                    startTime: document.getElementById('startTime').value,
+                    endTime: document.getElementById('endTime').value,
                     location: document.getElementById('location').value,
                     link: document.getElementById('link').value || ''
                 };
@@ -359,6 +361,8 @@
                 document.getElementById('popup-team1').textContent = game.team1;
                 document.getElementById('popup-team2').textContent = game.team2;
                 document.getElementById('popup-date').textContent = new Date(game.date).toLocaleDateString();
+                document.getElementById('popup-startTime').textContent = new Date(game.startTime).toLocaleDateString();
+                document.getElementById('popup-endTime').textContent = new Date(game.endTime).toLocaleDateString();
                 document.getElementById('popup-location').textContent = game.location || 'TBD';
 
                 // Handle live link
@@ -380,6 +384,8 @@
                 const dateObj = new Date(game.date);
                 const dateStr = dateObj.toISOString().split('T')[0];
                 document.getElementById('edit-date').value = dateStr;
+                document.getElementById('edit-startTime').value = game.startTime || '';
+                document.getElementById('edit-endTime').value = game.endTime || '';
 
                 document.getElementById('edit-location').value = game.location || '';
                 document.getElementById('edit-link').value = game.link || '';
@@ -415,6 +421,8 @@
                     team1: document.getElementById('edit-team1').value,
                     team2: document.getElementById('edit-team2').value,
                     date: document.getElementById('edit-date').value,
+                    startTime: document.getElementById('edit-startTime').value,
+                    endTime: document.getElementById('edit-endTime').value,
                     location: document.getElementById('edit-location').value,
                     link: document.getElementById('edit-link').value
                 };
@@ -485,6 +493,8 @@
                                 location: g.location, 
                                 team1: g.team1, 
                                 team2: g.team2,
+                                startTime: g.startTime,
+                                endTime: g.endTime,
                                 date: g.date,
                                 link: g.link
                             }
@@ -552,7 +562,7 @@
                         credentials: 'include', 
                     });
 
-                    //const now = new Date();
+                    
                     if (response.ok){ //&& now >= new Date(startTime) && now <= new Date(endTime)) {
                         document.getElementById("confirmationMessage").style.display = "block";
                         setTimeout(() => {
@@ -567,7 +577,7 @@
                     }
                 } catch (error) {
                     console.error('Network error during post:', error);
-                    //alert("Network error. Please try again.");
+                    
                 }
             }
 
@@ -724,16 +734,13 @@
                 }
 
                 try {
-                    //alert(`Fetching messages for gameId: ${currentGameId}`); 
 
                     const response = await fetch(`/calendar/viewMessages?gameId=${currentGameId}`, { 
-                        //const response = await fetch(`/calendar/viewMessages/${currentGameId}`, { 
                         method: 'GET',
                         credentials: 'include', 
                     });
 
                     console.log(`Response status: ${response.status}`); 
-                    //alert(`Response status: ${response.status}`); 
 
                     if (response.ok) {
                         const data = await response.json();

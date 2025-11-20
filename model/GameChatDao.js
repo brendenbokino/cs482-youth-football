@@ -41,12 +41,12 @@ module.exports = {
 
   async readByGameId(gameId) {
     try {
-        console.log(`Querying messages for gameId: ${gameId}`); // Debugging log
+        console.log(`Querying messages for gameId: ${gameId}`); 
         const messages = await gameChatModel.find({ gameId }).sort({ dateCreated: -1 }).lean();
-        console.log(`Messages retrieved for gameId ${gameId}:`, messages); // Log the retrieved messages
+        console.log(`Messages retrieved for gameId ${gameId}:`, messages); 
         return messages;
     } catch (err) {
-        console.error("Error querying messages by gameId:", err); // Log the error
+        console.error("Error querying messages by gameId:", err); 
         throw err;
     }
   },

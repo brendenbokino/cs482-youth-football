@@ -68,12 +68,12 @@ app.get('/calendar/viewMessages/:gameId', isAuthenticated, async (req, res) => {
     const { gameId } = req.params;
 
     try {
-        console.log(`Fetching messages for gameId: ${gameId}`); // Debugging log
-        const messages = await GameChatDao.readByGameId(gameId); // Filter by gameId
-        console.log(`Messages fetched for gameId ${gameId}:`, messages); // Log the fetched messages
+        console.log(`Fetching messages for gameId: ${gameId}`); 
+        const messages = await GameChatDao.readByGameId(gameId); 
+        console.log(`Messages fetched for gameId ${gameId}:`, messages); 
         res.json({ messages });
     } catch (err) {
-        console.error("Error fetching messages:", err); // Log the error
+        console.error("Error fetching messages:", err); 
         res.status(500).json({ error: "Failed to fetch messages", details: err.message });
     }
 });
