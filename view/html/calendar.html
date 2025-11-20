@@ -736,6 +736,9 @@
                         const messageList = document.getElementById('messageList');
                         messageList.innerHTML = '';
 
+                        const user = await fetch('/loggedUser', { credentials: 'include' }).then(res => res.json());
+
+
                         if (data.messages.length === 0) {
                             messageList.innerHTML = '<p>No messages found for this game.</p>';
                             return;
@@ -745,6 +748,46 @@
                             const msgDiv = document.createElement('div');
                             msgDiv.classList.add('message');
                             msgDiv.innerHTML = `<p><strong>${msg.author}:</strong> ${msg.message}</p>`;
+                            messageList.appendChild(msgDiv);
+                        
+
+
+                            if (user.name === msg.author) {
+                                const deleteBtn = document.createElement('button');
+                                deleteBtn.classList.add('delete-btn');
+                                deleteBtn.innerHTML = `<i class="bi bi-trash"></i>`;
+                                deleteBtn.onclick = () => deleteMessage(msg._id);
+
+                                const updateBtn = document.createElement('button');
+                                updateBtn.classList.add('update-btn');
+                                updateBtn.innerHTML = `<i class="bi bi-pencil"></i>`;
+                                updateBtn.onclick = () => updateMessage(msg._id);
+
+                                msgDiv.appendChild(deleteBtn);
+                                msgDiv.appendChild(updateBtn);
+                            }
+
+                            const replyBtn = document.createElement('button');
+                            replyBtn.classList.add('reply-btn');
+                            replyBtn.innerHTML = `<i class="bi bi-reply"></i>`;
+                            replyBtn.onclick = () => replyToMessage(msg._id);
+                            msgDiv.appendChild(replyBtn);
+
+                            if (msg.replies && msg.replies.length > 0) {
+                                const repliesDiv = document.createElement('div');
+                                repliesDiv.classList.add('replies');
+                                msg.replies.forEach(reply => {
+                                    const replyDiv = document.createElement('div');
+                                    replyDiv.classList.add('reply');
+                                    replyDiv.innerHTML = `
+                                        <p><strong>${reply.email}:</strong> ${reply.message}</p>
+                                        <p class="reply-date">${new Date(reply.date).toLocaleString()}</p>
+                                    `;
+                                    repliesDiv.appendChild(replyDiv);
+                                });
+                                msgDiv.appendChild(repliesDiv);
+                            }
+
                             messageList.appendChild(msgDiv);
                         });
                     } else {
