@@ -410,11 +410,11 @@ app.post('/comms/postMessage', isAuthenticated, async (req, res) => {
 });
 
 app.get('/comms/viewMessages', isAuthenticated, async (req, res) => {
-  const { gameId } = req.query;
-  console.log(`Received gameId in query: ${gameId}`); 
+  //const { gameId } = req.query;
+  //console.log(`Received gameId in query: ${gameId}`); 
 
   try {
-    const messages = await MessageDao.readByGameId(gameId);
+    const messages = await MessageDao.readAll();
     res.json({ messages });
   } catch (err) {
     console.error("Error fetching messages:", err); 
@@ -477,16 +477,16 @@ app.post('/comms/addReply/:id', isAuthenticated, async (req, res) => {
 });
 
 app.post('/comms/uploadPhoto', isAuthenticated, upload.single('photo'), async (req, res) => {
-  const { message } = req.body;
   const user = req.session.user;
 
   try {
-    const photoUrl = `/image/${req.file.filename}`;
     const newMessage = await MessageDao.create({
-      message: message || "", 
+      message: req.body.message || "", //message || "", 
       author: user.name,
       authorType: user.permission,
-      photo: photoUrl,
+      //photo: photoUrl,
+      photo: req.file.buffer,
+      photoMime: req.file.mimetype
     });
     res.status(200).json({ success: true, newMessage });
   } catch (err) {
@@ -495,22 +495,38 @@ app.post('/comms/uploadPhoto', isAuthenticated, upload.single('photo'), async (r
 });
 
 app.post('/comms/uploadVideo', isAuthenticated, upload.single('video'), async (req, res) => {
-  const { message } = req.body;
   const user = req.session.user;
 
   try {
-    const videoUrl = `/video/${req.file.filename}`;
     const newMessage = await MessageDao.create({
-      message: message || "", 
+      message: req.body.message || "", 
       author: user.name,
       authorType: user.permission,
-      video: videoUrl,
+      video: req.file.buffer,
+      videoMime: req.file.mimetype
     });
     res.status(200).json({ success: true, newMessage });
   } catch (err) {
     res.status(500).json({ error: "Failed to upload video", details: err.message });
   }
 });
+
+app.get('/image/:id', async (req, res) => {
+  const msg = await MessageDao.findById(req.params.id);
+  if (!msg || !msg.photo) return res.status(404).send("Not found");
+
+  res.contentType(msg.photoMime);
+  res.send(msg.photo);
+});
+
+app.get('/video/:id', async (req, res) => {
+  const msg = await MessageDao.findById(req.params.id);
+  if (!msg || !msg.video) return res.status(404).send("Not found");
+
+  res.contentType(msg.videoMime);
+  res.send(msg.video);
+});
+
 /*
 app.post('/gameChat/:gameId', isAuthenticated, async (req, res) => {
   const { gameId } = req.params;

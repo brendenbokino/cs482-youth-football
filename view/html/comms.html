@@ -411,9 +411,6 @@
 
                     const response = await fetch('/comms/uploadPhoto', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
                         body: formData,
                         credentials: 'include', 
                     });
@@ -448,9 +445,6 @@
 
                     const response = await fetch('/comms/uploadVideo', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
                         body: formData,
                         credentials: 'include', 
                     });
@@ -499,11 +493,18 @@
                             `;
 
                             if (msg.photo) {
-                                const photo = document.createElement('img');
-                                photo.src = msg.photo;
-                                photo.alt = "Attached photo";
-                                photo.style.maxWidth = "100%";
-                                msgDiv.appendChild(photo);
+                                const img = document.createElement('img');
+                                img.src = `/image/${msg._id}`;
+                                img.style.maxWidth = "100%";
+                                msgDiv.appendChild(img);
+                            }
+
+                            if (msg.video) {
+                                const vid = document.createElement('video');
+                                vid.src = `/video/${msg._id}`;
+                                vid.controls = true;
+                                vid.style.maxWidth = "100%";
+                                msgDiv.appendChild(vid);
                             }
 
                             if (user.name === msg.author) {
