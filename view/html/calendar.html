@@ -352,14 +352,15 @@
             };
 
             function showGameDetails(game) {
-                currentGameId = game._id;
-                
+                currentGameId = game._id; // Update currentGameId when a game is clicked
+                console.log(`Showing details for gameId: ${currentGameId}`); // Debugging log
+
                 // Populate display fields
                 document.getElementById('popup-team1').textContent = game.team1;
                 document.getElementById('popup-team2').textContent = game.team2;
                 document.getElementById('popup-date').textContent = new Date(game.date).toLocaleDateString();
                 document.getElementById('popup-location').textContent = game.location || 'TBD';
-                
+
                 // Handle live link
                 const linkContainer = document.getElementById('popup-link-container');
                 const linkElement = document.getElementById('popup-link');
@@ -374,12 +375,12 @@
                 document.getElementById('edit-game-id').value = game._id;
                 document.getElementById('edit-team1').value = game.team1;
                 document.getElementById('edit-team2').value = game.team2;
-                
+
                 // Format date for input (YYYY-MM-DD)
                 const dateObj = new Date(game.date);
                 const dateStr = dateObj.toISOString().split('T')[0];
                 document.getElementById('edit-date').value = dateStr;
-                
+
                 document.getElementById('edit-location').value = game.location || '';
                 document.getElementById('edit-link').value = game.link || '';
 
@@ -391,6 +392,9 @@
                 popup.style.display = 'block';
                 editForm.style.display = 'none';
                 actionButtons.style.display = 'flex';
+
+                // Automatically load messages for the selected game
+                viewMessages(); // Call viewMessages to fetch messages for the selected game
             }
 
             editBtn.onclick = function() {
@@ -593,7 +597,7 @@
                 if (!newMessage) return;
 
                 try {
-                    const response = await fetch(`/comms/updateMessage/${messageId}`, {
+                    const response = await fetch(`/calendar/updateMessage/${messageId}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
@@ -720,15 +724,16 @@
                 }
 
                 try {
-                    console.log(`Fetching messages for gameId: ${currentGameId}`); 
-                    const response = await fetch(`/calendar/viewMessages`, { 
+                    //alert(`Fetching messages for gameId: ${currentGameId}`); 
+
+                    const response = await fetch(`/calendar/viewMessages?gameId=${currentGameId}`, { 
                         //const response = await fetch(`/calendar/viewMessages/${currentGameId}`, { 
                         method: 'GET',
                         credentials: 'include', 
                     });
 
                     console.log(`Response status: ${response.status}`); 
-                    alert(`Response status: ${response.status}`); 
+                    //alert(`Response status: ${response.status}`); 
 
                     if (response.ok) {
                         const data = await response.json();
@@ -831,3 +836,4 @@
             });
         </script> </body>
 </html>
+``` 

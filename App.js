@@ -350,8 +350,11 @@ app.post('/comms/postMessage', isAuthenticated, async (req, res) => {
 });
 
 app.get('/comms/viewMessages', isAuthenticated, async (req, res) => {
+  const { gameId } = req.query;
+  console.log(`Received gameId in query: ${gameId}`); // Debugging log
+
   try {
-    const messages = await MessageDao.readAll();
+    const messages = await MessageDao.readByGameId(gameId);
     res.json({ messages });
   } catch (err) {
     console.error("Error fetching messages:", err); 

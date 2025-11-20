@@ -81,9 +81,16 @@ module.exports = {
   },
 
   async update(id, updates) {
-      updates.edited = true;
-      updates.dateEdited = new Date();
-      return await gameChatModel.findByIdAndUpdate(id, updates, { new: true });
+    try {
+        updates.edited = true; 
+        updates.dateEdited = new Date(); 
+        const updatedMessage = await gameChatModel.findByIdAndUpdate(id, updates, { new: true });
+        console.log("Message updated successfully:", updatedMessage); 
+        return updatedMessage;
+    } catch (err) {
+        console.error("Error updating message in database:", err); 
+        throw err;
+    }
   },
 
   async createForGame(gameId, data) {
