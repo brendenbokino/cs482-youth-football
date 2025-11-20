@@ -79,12 +79,15 @@ class CalendarManager {
 
             const calendarEvents = games.map(game => ({
                 title: `${game.team1} vs ${game.team2}`,
-                start: game.date,
+                start: new Date(game.startTime).toISOString(),
+                end: new Date(game.endTime).toISOString(),
                 extendedProps: {
                     location: game.location,
                     team1: game.team1,
-                    team2: game.team2
-                }
+                    team2: game.team2,
+                    startTime: game.startTime,
+                    endTime: game.endTime,
+                },
             }));
 
             if (!Calendar || !dayGridPlugin || !interactionPlugin) {
@@ -110,7 +113,6 @@ class CalendarManager {
 
         } catch (error) {
             console.error("Error creating calendar:", error);
-            // In a real application, you might want to re-throw or return an empty array
             return [];
         }
     }
@@ -134,6 +136,9 @@ function showGameDetails(game) {
         liveGameChat.style.display = 'block';
         document.getElementById('chatForm').style.display = 'none';
     }
+
+    document.getElementById('popup-startTime').textContent = new Date(game.startTime).toLocaleTimeString();
+    document.getElementById('popup-endTime').textContent = new Date(game.endTime).toLocaleTimeString();
 
     loadGameChats(game._id);
 }

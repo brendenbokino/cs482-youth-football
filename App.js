@@ -129,11 +129,65 @@ app.post('/teamsaddplayer', TeamController.addPlayer);
 
 
 // game routes (Express-friendly wrappers)
-app.post('/gameCreate', GameController.create);
+app.post('/gameCreate', async (req, res) => {
+  try {
+    const { team1, team2, date, startTime, endTime, location, link } = req.body;
+    const gameDate = new Date(date);
+    const start = new Date(`${date}T${startTime}`);
+    const end = new Date(`${date}T${endTime}`);
+
+    if (start >= end) {
+      return res.status(400).json({ error: "End time must be after start time." });
+    }
+
+    const newGame = {
+      team1,
+      team2,
+      date: gameDate,
+      startTime: start,
+      endTime: end,
+      location,
+      link,
+    };
+
+    const createdGame = await GameDao.create(newGame);
+    res.status(201).json({ success: true, createdGame });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to create game", details: err.message });
+  }
+});
 
 app.get('/games', GameController.getAll);
+
 app.get('/games/:id', GameController.getById);
 app.put('/games/:id', GameController.update);
+
+/*app.put('/games/:id', async (req, res) => {
+  try {
+    const { team1, team2, date, startTime, endTime, location, link } = req.body;
+    const start = new Date(`${date}T${startTime}`);
+    const end = new Date(`${date}T${endTime}`);
+
+    if (start >= end) {
+      return res.status(400).json({ error: "End time must be after start time." });
+    }
+
+    const updatedGame = await GameDao.update(req.params.id, {
+      team1,
+      team2,
+      date: new Date(date),
+      startTime: start,
+      endTime: end,
+      location,
+      link,
+    });
+
+    res.status(200).json({ success: true, updatedGame });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update game", details: err.message });
+  }
+});*/
+
 app.delete('/games/:id', GameController.delete);
 
 // Game score and stats routes (admin only)
@@ -356,8 +410,11 @@ app.post('/comms/postMessage', isAuthenticated, async (req, res) => {
 });
 
 app.get('/comms/viewMessages', isAuthenticated, async (req, res) => {
+  const { gameId } = req.query;
+  console.log(`Received gameId in query: ${gameId}`); 
+
   try {
-    const messages = await MessageDao.readAll();
+    const messages = await MessageDao.readByGameId(gameId);
     res.json({ messages });
   } catch (err) {
     console.error("Error fetching messages:", err); 
@@ -426,7 +483,7 @@ app.post('/comms/uploadPhoto', isAuthenticated, upload.single('photo'), async (r
   try {
     const photoUrl = `/image/${req.file.filename}`;
     const newMessage = await MessageDao.create({
-      message: message || "", // Allow empty message
+      message: message || "", 
       author: user.name,
       authorType: user.permission,
       photo: photoUrl,
@@ -444,7 +501,7 @@ app.post('/comms/uploadVideo', isAuthenticated, upload.single('video'), async (r
   try {
     const videoUrl = `/video/${req.file.filename}`;
     const newMessage = await MessageDao.create({
-      message: message || "", // Allow empty message
+      message: message || "", 
       author: user.name,
       authorType: user.permission,
       video: videoUrl,
@@ -454,7 +511,7 @@ app.post('/comms/uploadVideo', isAuthenticated, upload.single('video'), async (r
     res.status(500).json({ error: "Failed to upload video", details: err.message });
   }
 });
-
+/*
 app.post('/gameChat/:gameId', isAuthenticated, async (req, res) => {
   const { gameId } = req.params;
   const { message } = req.body;
@@ -497,7 +554,7 @@ app.get('/gameChat/:gameId', isAuthenticated, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch game chats", details: err.message });
   }
-});
+});*/
 
 const ReviewDao = require('./model/ReviewDao')
 
@@ -562,6 +619,126 @@ app.put('/teams/updateReview/:id', isAuthenticated, async (req, res) => {
 
 app.get('/checkSession', (req, res) => {
     res.json({ session: req.session });
+});
+
+app.post('/calendar/postMessage', isAuthenticated, async (req, res) => {
+  const { message, gameId } = req.body;
+  const user = req.session.user;
+
+  try {
+    const newMessage = await GameChatDao.create({
+      message,
+      gameId,
+      author: user.name,
+      authorType: user.permission,
+    });
+    res.status(200).json({ success: true, newMessage });
+  } catch (err) {
+    console.error("Error posting message:", err); 
+    res.status(500).json({ error: "Failed to post message", details: err.message });
+  }
+});
+
+app.get('/calendar/viewMessages', isAuthenticated, async (req, res) => {
+  const { gameId } = req.query;
+
+  try {
+    const messages = await GameChatDao.readByGameId(gameId);
+    res.json({ messages });
+  } catch (err) {
+    console.error("Error fetching messages:", err); 
+    res.status(500).json({ error: "Failed to fetch messages", details: err.message });
+  }
+});
+
+app.delete('/calendar/deleteMessage/:id', isAuthenticated, async (req, res) => {
+  const { id } = req.params;
+  const user = req.session.user;
+
+  try {
+    const isAuthor = await GameChatDao.isAuthor(id, user.name);
+    if (!isAuthor) {
+      return res.status(403).json({ error: "You are not authorized to delete this message." });
+    }
+    await GameChatDao.delete(id);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete message", details: err.message });
+  }
+});
+
+app.put('/calendar/updateMessage/:id', isAuthenticated, async (req, res) => {
+  const { id } = req.params;
+  const { message } = req.body;
+  const user = req.session.user;
+
+  try {
+    const isAuthor = await GameChatDao.isAuthor(id, user.name);
+    if (!isAuthor) {
+      return res.status(403).json({ error: "You are not authorized to update this message." });
+    }
+    const updatedMessage = await GameChatDao.update(id, { message });
+    res.status(200).json({ success: true, updatedMessage });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update message", details: err.message });
+  }
+});
+
+app.post('/calendar/addReply/:id', isAuthenticated, async (req, res) => {
+    const { id } = req.params;
+    const { message } = req.body;
+    const user = req.session.user;
+
+    try {
+        const reply = {
+            email: user.email,
+            message,
+        };
+        const updatedMessage = await GameChatDao.addReply(id, reply);
+        if (updatedMessage) {
+            res.status(200).json({ success: true, updatedMessage });
+        } else {
+            res.status(404).json({ error: "Message not found." });
+        }
+    } catch (err) {
+        res.status(500).json({ error: "Failed to add reply", details: err.message });
+    }
+});
+
+app.post('/calendar/uploadPhoto', isAuthenticated, upload.single('photo'), async (req, res) => {
+  const { message } = req.body;
+  const user = req.session.user;
+
+  try {
+    const photoUrl = `/image/${req.file.filename}`;
+    const newMessage = await GameChatDao.create({
+      message: message || "", 
+      author: user.name,
+      authorType: user.permission,
+      photo: photoUrl,
+    });
+    res.status(200).json({ success: true, newMessage });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to upload photo", details: err.message });
+  }
+});
+
+app.post('/calendar/uploadVideo', isAuthenticated, upload.single('video'), async (req, res) => {
+  const { message } = req.body;
+  const user = req.session.user;
+
+  try {
+    const videoUrl = `/video/${req.file.filename}`;
+    const newMessage = await GameChatDao.create({
+      message: message || "", 
+      author: user.name,
+      authorType: user.permission,
+      video: videoUrl,
+    });
+    res.status(200).json({ success: true, newMessage });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to upload video", details: err.message });
+  }
 });
 
 exports.app = app;
