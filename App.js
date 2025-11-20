@@ -125,6 +125,9 @@ app.get('/teams', TeamController.getAll);
 app.get('/teams/:id', TeamController.getById);
 app.post('/teamsupdate', TeamController.update);
 app.post('/teamsaddplayer', TeamController.addPlayer);
+app.post('/teamsupdaterecord', TeamController.updateRecord, (req, res) => {
+  res.redirect("/team.html");
+});
 
 
 

@@ -67,6 +67,24 @@
                         Load All Teams
                     </button>
                 </form>
+
+                <h2>Update Record</h2>
+                <form method="POST" action="teamsupdaterecord" style="margin-bottom: 40px;">
+                    <label for="updateTeamId">Team ID:</label><br>
+                    <input type="text" id="updateTeamId" name="updateTeamId" required style="width: 100%; padding: 10px; margin: 10px 0;"><br>
+                    
+                    <label for="wins">Wins:</label><br>
+                    <input type="text" id="wins" name="wins" style="width: 100%; padding: 10px; margin: 10px 0;"><br>
+
+                    <label for="losses">Losses:</label><br>
+                    <input type="text" id="losses" name="losses" style="width: 100%; padding: 10px; margin: 10px 0;"><br>
+                    
+                    <button type="submit" style="padding: 12px 24px; background-color: #ffc107; color: black; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+                        Update Record
+                    </button>
+                </form>
+
+                <hr>
             </div>
         </main>
 

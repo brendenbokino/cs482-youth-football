@@ -188,7 +188,7 @@ class TeamController {
             }
 
             if (req.body.record !== undefined) {
-                if (!Array.isArray(req.body.players) || req.body.players.length !== 2) {
+                if (req.body.record.length !== 2) {
                     res.status = 400;
                     res.send = { error: "Record must be array with length 2 (wins & losses)" };
                     return;
@@ -510,10 +510,15 @@ exports.update = async function (req, res) {
     
     // For JSON requests, return JSON response (not redirect)
     if (mockRes.status == 200) {
-        return res.status(200).json(mockRes.send);
+        return res.redirect('/team.html');
     } else {
         return res.status(mockRes.status || 500).json(mockRes.send || { error: 'Unknown error' });
     }
+}
+
+exports.updateRecord = async function (req, res) {
+    req.body.record = [req.body.wins, req.body.losses];
+    exports.update(req, res);
 }
 
 exports.getAll = async function (req, res) {
