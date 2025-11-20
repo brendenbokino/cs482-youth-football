@@ -286,9 +286,9 @@
             let calendarInstance = null;
 
             // Generate unique ID
-            function generateId() {
-                return Date.now().toString() + Math.random().toString(36).substr(2, 9);
-            }
+            //function generateId() {
+            //    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+            //}
 
             // Popup management
             const popup = document.getElementById('gamePopup');
@@ -321,7 +321,6 @@
                 e.preventDefault();
                 
                 const gameData = {
-                    _id: generateId(), // Generate _id
                     team1: document.getElementById('team1').value,
                     team2: document.getElementById('team2').value,
                     date: document.getElementById('date').value,
@@ -331,14 +330,20 @@
                     link: document.getElementById('link').value || ''
                 };
 
+                alert('game data: ' + JSON.stringify(gameData)); // Debugging alert
+
                 try {
                     const res = await fetch('/gameCreate', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(gameData)
                     });
+
+                    alert('Response status: ' + res.status); // Debugging alert
                     
                     const result = await res.json();
+                    alert('Result: ' + JSON.stringify(result)); // Debugging alert
+                    
                     if (res.ok && result.success) {
                         alert('Game created successfully!');
                         createGameForm.reset();
@@ -347,10 +352,10 @@
                         calendarInstance.removeAllEvents();
                         calendarInstance.addEventSource(events);
                     } else {
-                        alert('Error creating game: ' + (result.error || 'Unknown error'));
+                        alert('1 Error creating game: ' + (result.error || 'Unknown error'));
                     }
                 } catch (error) {
-                    console.error('Error creating game:', error);
+                    console.error('2 Error creating game:', error);
                     alert('Failed to create game. Please try again.');
                 }
             };
@@ -363,8 +368,8 @@
                 document.getElementById('popup-team1').textContent = game.team1;
                 document.getElementById('popup-team2').textContent = game.team2;
                 document.getElementById('popup-date').textContent = new Date(game.date).toLocaleDateString();
-                document.getElementById('popup-startTime').textContent = new Date(game.startTime).toLocaleDateString();
-                document.getElementById('popup-endTime').textContent = new Date(game.endTime).toLocaleDateString();
+                document.getElementById('popup-startTime').textContent = game.startTime;
+                document.getElementById('popup-endTime').textContent = game.endTime;
                 document.getElementById('popup-location').textContent = game.location || 'TBD';
 
                 // Handle live link
@@ -378,7 +383,7 @@
                 }
 
                 // Populate edit form
-                document.getElementById('edit-game-id').value = game._id;
+                //document.getElementById('edit-game-id').value = game._id;
                 document.getElementById('edit-team1').value = game.team1;
                 document.getElementById('edit-team2').value = game.team2;
 
@@ -850,4 +855,3 @@
             });
         </script> </body>
 </html>
-``` 

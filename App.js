@@ -133,8 +133,12 @@ app.post('/gameCreate', async (req, res) => {
   try {
     const { team1, team2, date, startTime, endTime, location, link } = req.body;
     const gameDate = new Date(date);
-    const start = new Date(`${date}T${startTime}`);
-    const end = new Date(`${date}T${endTime}`);
+    const start = new Date(`${date}T${startTime}:00`);
+    const end = new Date(`${date}T${endTime}:00`);
+
+    if (isNaN(start) || isNaN(end)) {
+      return res.status(400).json({ error: "Invalid startTime or endTime format." });
+    }
 
     if (start >= end) {
       return res.status(400).json({ error: "End time must be after start time." });
@@ -150,9 +154,12 @@ app.post('/gameCreate', async (req, res) => {
       link,
     };
 
+    console.log('Creating new game:', newGame); // Debugging log
+
     const createdGame = await GameDao.create(newGame);
     res.status(201).json({ success: true, createdGame });
   } catch (err) {
+    console.error('Error in /gameCreate:', err.message); // Debugging log
     res.status(500).json({ error: "Failed to create game", details: err.message });
   }
 });
