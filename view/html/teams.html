@@ -578,6 +578,7 @@
                 teamCard.innerHTML = `
                     <div class="team-header">
                         <h3 class="team-name">${escapeHtml(team.teamName || 'Unnamed Team')}</h3>
+                        <p class="record">${escapeHtml(team.record[0])}-${escapeHtml(team.record[1])}</p>
                     </div>
                     
                     <div class="coach-section">
