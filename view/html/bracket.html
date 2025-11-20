@@ -22,20 +22,20 @@
         <!-- Round 1 -->
         <div class="round" id="round1">
             <div class="matchup">
-                <div class="team" onclick="pickWinner(this, 'match1-winner')">1 Seed</div>
-                <div class="team" onclick="pickWinner(this, 'match1-winner')">8 Seed</div>
+                <div id="1seed" class="team" onclick="pickWinner(this, 'match1-winner')">1 Seed</div>
+                <div id="8seed" class="team" onclick="pickWinner(this, 'match1-winner')">8 Seed</div>
             </div>
             <div class="matchup">
-                <div class="team" onclick="pickWinner(this, 'match2-winner')">4 Seed</div>
-                <div class="team" onclick="pickWinner(this, 'match2-winner')">5 Seed</div>
+                <div id="4seed" class="team" onclick="pickWinner(this, 'match2-winner')">4 Seed</div>
+                <div id="5seed" class="team" onclick="pickWinner(this, 'match2-winner')">5 Seed</div>
             </div>
             <div class="matchup">
-                <div class="team" onclick="pickWinner(this, 'match3-winner')">3 Seed</div>
-                <div class="team" onclick="pickWinner(this, 'match3-winner')">6 Seed</div>
+                <div id="3seed" class="team" onclick="pickWinner(this, 'match3-winner')">3 Seed</div>
+                <div id="6seed" class="team" onclick="pickWinner(this, 'match3-winner')">6 Seed</div>
             </div>
             <div class="matchup">
-                <div class="team" onclick="pickWinner(this, 'match4-winner')">2 Seed</div>
-                <div class="team" onclick="pickWinner(this, 'match4-winner')">7 Seed</div>
+                <div id="2seed" class="team" onclick="pickWinner(this, 'match4-winner')">2 Seed</div>
+                <div id="7seed" class="team" onclick="pickWinner(this, 'match4-winner')">7 Seed</div>
             </div>
         </div>
         <!-- Round 2 -->
@@ -62,29 +62,7 @@
             </div>
         </div>
     </div>
-    <script>
-        function pickWinner(clickedTeam, nextRoundTeamId) {
-        console.log(clickedTeam);
-        const match = clickedTeam.parentElement;
-        // Remove 'winner' class from any other team in the same match
-        const teamsInMatch = match.querySelectorAll('.team');
-        teamsInMatch.forEach(team => {
-        team.classList.remove('winner');
-        });
 
-        // Add 'winner' class to the clicked team
-        clickedTeam.classList.add('winner');
-
-        // Update the next round with the winner's name
-        const winnerName = clickedTeam.textContent;
-        const nextRoundTeam = document.getElementById(nextRoundTeamId);
-        if (nextRoundTeam) {
-            nextRoundTeam.textContent = winnerName;
-            // Optional: add a class to the next round team to indicate it's filled
-            nextRoundTeam.classList.add('filled'); 
-        }
-    }
-    </script>
         </main>
 
         <div id="footer"></div>
@@ -97,7 +75,49 @@
                 $("#header").load("header.html"); 
                 $("#footer").load("footer.html"); 
             });
-        </script> </body>
+        </script> 
+            <!--<script src="../../src/Bracket.js" type="text/javascript"></script>-->
+            <script>
+                /**function pickWinner(clickedTeam, nextRoundTeamId) {
+                console.log(clickedTeam);
+                const match = clickedTeam.parentElement;
+                // Remove 'winner' class from any other team in the same match
+                const teamsInMatch = match.querySelectorAll('.team');
+                teamsInMatch.forEach(team => {
+                team.classList.remove('winner');
+                });
+        
+                // Add 'winner' class to the clicked team
+                clickedTeam.classList.add('winner');
+        
+                // Update the next round with the winner's name
+                const winnerName = clickedTeam.textContent;
+                const nextRoundTeam = document.getElementById(nextRoundTeamId);
+                if (nextRoundTeam) {
+                    nextRoundTeam.textContent = winnerName;
+                    // Optional: add a class to the next round team to indicate it's filled
+                    nextRoundTeam.classList.add('filled'); 
+                }
+            }**/
+                async function setSeeding(){
+                    const response = await fetch('/teams');
+                    const json = await response.json();
+                    const teams = json.teams;
+
+                    let i=0;
+                    for (let team of teams){
+                       window.alert(team.teamName); i++;
+                    }
+                    //seeding = seedTeams(teams, 8);
+                    
+                    //for (team in seeding){
+                        
+                    //}
+                }
+                
+                setSeeding();
+            </script>
+    </body>
 </html>
 
 

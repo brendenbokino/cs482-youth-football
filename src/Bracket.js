@@ -1,4 +1,4 @@
-/**function pickWinner(clickedTeam, nextMatchId) {
+function pickWinner(clickedTeam, nextMatchId) {
     console.log(clickedTeam);
     const matchup = clickedTeam.closest('.matchup');
     // Remove 'winner' class from any other team in the same matchup
@@ -15,7 +15,7 @@
     if (nextMatchPlaceholder) {
         nextMatchPlaceholder.textContent = clickedTeam.textContent;
     }
-}**/
+}
 
 const TeamController = require('./TeamController');
 
