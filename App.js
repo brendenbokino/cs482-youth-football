@@ -577,8 +577,10 @@ app.post('/calendar/postMessage', isAuthenticated, async (req, res) => {
 });
 
 app.get('/calendar/viewMessages', isAuthenticated, async (req, res) => {
+  const { gameId } = req.query;
+
   try {
-    const messages = await GameChatDao.readAll();
+    const messages = await GameChatDao.readByGameId(gameId);
     res.json({ messages });
   } catch (err) {
     console.error("Error fetching messages:", err); 

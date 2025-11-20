@@ -39,6 +39,18 @@ module.exports = {
       return await gameChatModel.find().sort({ date: -1 }).lean();
   },
 
+  async readByGameId(gameId) {
+    try {
+        console.log(`Querying messages for gameId: ${gameId}`); // Debugging log
+        const messages = await gameChatModel.find({ gameId }).sort({ dateCreated: -1 }).lean();
+        console.log(`Messages retrieved for gameId ${gameId}:`, messages); // Log the retrieved messages
+        return messages;
+    } catch (err) {
+        console.error("Error querying messages by gameId:", err); // Log the error
+        throw err;
+    }
+  },
+
   async findById(id) {
       return await gameChatModel.findById(id);
   },

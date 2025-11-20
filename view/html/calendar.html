@@ -262,6 +262,7 @@
                                 <button type="button" onclick="postMessage()">Post Message</button>
                                 <button type="button" onclick="uploadPhoto()">Upload Photo</button>
                                 <button type="button" onclick="uploadVideo()">Upload Video</button>
+                                <button type="button" onclick="viewMessages()">Refresh Messages</button>
                             </form>
             
                         <button class="hide-btn" onclick="toggleMessages()">View Messages</button>
@@ -562,7 +563,7 @@
                     }
                 } catch (error) {
                     console.error('Network error during post:', error);
-                    alert("Network error. Please try again.");
+                    //alert("Network error. Please try again.");
                 }
             }
 
@@ -712,13 +713,22 @@
             }
 
             async function viewMessages() {
+                if (!currentGameId) {
+                    console.error("No game selected. currentGameId is null or undefined.");
+                    alert("Please select a game to view messages.");
+                    return;
+                }
+
                 try {
-                    const response = await fetch('/calendar/viewMessages', {
+                    console.log(`Fetching messages for gameId: ${currentGameId}`); 
+                    const response = await fetch(`/calendar/viewMessages`, { 
+                        //const response = await fetch(`/calendar/viewMessages/${currentGameId}`, { 
                         method: 'GET',
                         credentials: 'include', 
                     });
 
-                    console.log("Response status:", response.status); 
+                    console.log(`Response status: ${response.status}`); 
+                    alert(`Response status: ${response.status}`); 
 
                     if (response.ok) {
                         const data = await response.json();
@@ -726,64 +736,15 @@
                         const messageList = document.getElementById('messageList');
                         messageList.innerHTML = '';
 
-                        const user = await fetch('/loggedUser', { credentials: 'include' }).then(res => res.json());
+                        if (data.messages.length === 0) {
+                            messageList.innerHTML = '<p>No messages found for this game.</p>';
+                            return;
+                        }
 
                         data.messages.forEach(msg => {
                             const msgDiv = document.createElement('div');
                             msgDiv.classList.add('message');
-
-                            const authorType = getAuthorType(msg.authorType);
-                            const updatedAt = msg.edited ? ` (updated at ${new Date(msg.dateEdited).toLocaleString()})` : '';
-
-                            msgDiv.innerHTML = `
-                                <p><strong>${msg.author} (${authorType})${updatedAt}:</strong></p>
-                                <p>${msg.message}</p>
-                            `;
-
-                            if (msg.photo) {
-                               const photo = document.createElement('img');
-                               photo.src = msg.photo;
-                               photo.alt = "Attached photo";
-                               photo.style.maxWidth = "100%";
-                               msgDiv.appendChild(photo);
-                           }
-
-                            if (user.name === msg.author) {
-                                const deleteBtn = document.createElement('button');
-                                deleteBtn.classList.add('delete-btn');
-                                deleteBtn.innerHTML = `<i class="bi bi-trash"></i>`;
-                                deleteBtn.onclick = () => deleteMessage(msg._id);
-
-                                const updateBtn = document.createElement('button');
-                                updateBtn.classList.add('update-btn');
-                                updateBtn.innerHTML = `<i class="bi bi-pencil"></i>`;
-                                updateBtn.onclick = () => updateMessage(msg._id);
-
-                                msgDiv.appendChild(deleteBtn);
-                                msgDiv.appendChild(updateBtn);
-                            }
-
-                            const replyBtn = document.createElement('button');
-                            replyBtn.classList.add('reply-btn');
-                            replyBtn.innerHTML = `<i class="bi bi-reply"></i>`;
-                            replyBtn.onclick = () => replyToMessage(msg._id);
-                            msgDiv.appendChild(replyBtn);
-
-                            if (msg.replies && msg.replies.length > 0) {
-                                const repliesDiv = document.createElement('div');
-                                repliesDiv.classList.add('replies');
-                                msg.replies.forEach(reply => {
-                                    const replyDiv = document.createElement('div');
-                                    replyDiv.classList.add('reply');
-                                    replyDiv.innerHTML = `
-                                        <p><strong>${reply.email}:</strong> ${reply.message}</p>
-                                        <p class="reply-date">${new Date(reply.date).toLocaleString()}</p>
-                                    `;
-                                    repliesDiv.appendChild(replyDiv);
-                                });
-                                msgDiv.appendChild(repliesDiv);
-                            }
-
+                            msgDiv.innerHTML = `<p><strong>${msg.author}:</strong> ${msg.message}</p>`;
                             messageList.appendChild(msgDiv);
                         });
                     } else {
@@ -793,7 +754,7 @@
                     }
                 } catch (error) {
                     console.error('Network error during message retrieval:', error); 
-                    alert("Network error. Please try again.");
+                    alert("View Messages. Network error. Please try again.");
                 }
             }
 
