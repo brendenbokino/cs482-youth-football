@@ -260,12 +260,10 @@
                                 <input type="file" id="videoInput" accept="video/*">
             
                                 <button type="button" onclick="postMessage()">Post Message</button>
-                                <button type="button" onclick="uploadPhoto()">Upload Photo</button>
-                                <button type="button" onclick="uploadVideo()">Upload Video</button>
                                 <button type="button" onclick="viewMessages()">Refresh Messages</button>
                             </form>
             
-                        <button class="hide-btn" onclick="toggleMessages()">View Messages</button>
+                        
             
                     <div id="messageList" style="margin-top: 20px;"></div>
 
@@ -330,7 +328,7 @@
                     link: document.getElementById('link').value || ''
                 };
 
-                alert('game data: ' + JSON.stringify(gameData)); // Debugging alert
+                //alert('game data: ' + JSON.stringify(gameData)); 
 
                 try {
                     const res = await fetch('/gameCreate', {
@@ -339,10 +337,10 @@
                         body: JSON.stringify(gameData)
                     });
 
-                    alert('Response status: ' + res.status); // Debugging alert
+                    //alert('Response status: ' + res.status); 
                     
                     const result = await res.json();
-                    alert('Result: ' + JSON.stringify(result)); // Debugging alert
+                    //alert('Result: ' + JSON.stringify(result)); 
                     
                     if (res.ok && result.success) {
                         alert('Game created successfully!');
@@ -386,23 +384,20 @@
                     linkContainer.style.display = 'none';
                 }
 
-                // Populate edit form
-                //document.getElementById('edit-game-id').value = game._id;
-                document.getElementById('edit-team1').value = game.team1;
-                document.getElementById('edit-team2').value = game.team2;
+                // Determine if the current time is within the game's start and end times
+                const now = new Date();
+                const gameStart = new Date(game.startTime);
+                const gameEnd = new Date(game.endTime);
 
-                // Format date for input (YYYY-MM-DD)
-                const dateStr = localDate.toISOString().split('T')[0];
-                document.getElementById('edit-date').value = dateStr;
-                document.getElementById('edit-startTime').value = game.startTime || '';
-                document.getElementById('edit-endTime').value = game.endTime || '';
-
-                document.getElementById('edit-location').value = game.location || '';
-                document.getElementById('edit-link').value = game.link || '';
-
-                // Show chat feature
                 const liveGameChat = document.getElementById('liveGameChat');
-                liveGameChat.style.display = 'block';
+                const messageForm = document.getElementById('messageForm');
+                if (now >= gameStart && now <= gameEnd) {
+                    liveGameChat.style.display = 'block';
+                    messageForm.style.display = 'block';
+                } else {
+                    liveGameChat.style.display = 'block';
+                    messageForm.style.display = 'none';
+                }
 
                 // Show popup
                 popup.style.display = 'block';
@@ -567,18 +562,27 @@
                     return;
                 }
 
+                //alert("messageBody: " + messageBody);
+                //alert("gameId: " + currentGameId);
+
+                //alert("Attempting to post message:", { message: messageBody, gameId: currentGameId });
+
                 try {
                     const response = await fetch('/calendar/postMessage', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ message: messageBody, gameId: currentGameId, date: new Date() }),
+                        body: JSON.stringify({ message: messageBody, gameId: currentGameId }),
                         credentials: 'include', 
                     });
 
-                    
-                    if (response.ok){ //&& now >= new Date(startTime) && now <= new Date(endTime)) {
+                    console.log("Response received:", response);
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        console.log("Message posted successfully:", result);
+
                         document.getElementById("confirmationMessage").style.display = "block";
                         setTimeout(() => {
                             document.getElementById("confirmationMessage").style.display = "none";
@@ -587,12 +591,12 @@
                         viewMessages();
                     } else {
                         const result = await response.json();
-                        console.error("Post failed:", result.error || "Unknown server error.");
+                        console.error("Failed to post message:", result.error || "Unknown server error.");
                         alert("Failed to post message: " + (result.error || "Unknown error."));
                     }
                 } catch (error) {
-                    console.error('Network error during post:', error);
-                    
+                    console.error("Network error during post:", error);
+                    //alert("Network error. Please try again.");
                 }
             }
 
@@ -669,7 +673,7 @@
                 }
             }
 
-            async function uploadPhoto() {
+            /*async function uploadPhoto() {
                 const photoInput = document.getElementById('photoInput');
                 const messageBody = document.getElementById('messageBody').value;
 
@@ -739,7 +743,7 @@
                     console.error('Network error during post:', error);
                     alert("Network error. Please try again.");
                 }
-            }
+            }*/
 
             async function viewMessages() {
                 if (!currentGameId) {
@@ -754,6 +758,8 @@
                         method: 'GET',
                         credentials: 'include', 
                     });
+
+                    //alert('Response status: ' + response.status);
 
                     console.log(`Response status: ${response.status}`); 
 
@@ -776,10 +782,14 @@
                             msgDiv.classList.add('message');
                             msgDiv.innerHTML = `<p><strong>${msg.author}:</strong> ${msg.message}</p>`;
                             messageList.appendChild(msgDiv);
-                        
 
+                            const now = new Date();
+                            const gameStart = new Date(msg.startTime);
+                            const gameEnd = new Date(msg.endTime);
 
-                            if (user.name === msg.author) {
+                            //alert("user.name: " + user.name + ", msg.author: " + msg.author + ", now: " + now + ", gameStart: " + gameStart + ", gameEnd: " + gameEnd);
+
+                            if (user.name === msg.author){ //&& now >= gameStart && now <= gameEnd) {
                                 const deleteBtn = document.createElement('button');
                                 deleteBtn.classList.add('delete-btn');
                                 deleteBtn.innerHTML = `<i class="bi bi-trash"></i>`;
@@ -858,4 +868,3 @@
             });
         </script> </body>
 </html>
-``` 

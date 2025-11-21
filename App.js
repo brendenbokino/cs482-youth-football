@@ -649,15 +649,20 @@ app.post('/calendar/postMessage', isAuthenticated, async (req, res) => {
   const user = req.session.user;
 
   try {
+    console.log("Creating message in database:", { message, gameId, author: user.name, authorType: user.permission });
+
     const newMessage = await GameChatDao.create({
       message,
       gameId,
       author: user.name,
       authorType: user.permission,
     });
+
+    console.log("Message created successfully:", newMessage);
+
     res.status(200).json({ success: true, newMessage });
   } catch (err) {
-    console.error("Error posting message:", err); 
+    console.error("Error posting message:", err);
     res.status(500).json({ error: "Failed to post message", details: err.message });
   }
 });
