@@ -22,20 +22,20 @@
         <!-- Round 1 -->
         <div class="round" id="round1">
             <div class="matchup">
-                <div id="1seed" class="team" onclick="pickWinner(this, 'match1-winner')">1 Seed</div>
-                <div id="8seed" class="team" onclick="pickWinner(this, 'match1-winner')">8 Seed</div>
+                <div id="1seed" class="team" onclick="pickWinner(this, 'match1-winner')">1 </div>
+                <div id="8seed" class="team" onclick="pickWinner(this, 'match1-winner')">8 </div>
             </div>
             <div class="matchup">
-                <div id="4seed" class="team" onclick="pickWinner(this, 'match2-winner')">4 Seed</div>
-                <div id="5seed" class="team" onclick="pickWinner(this, 'match2-winner')">5 Seed</div>
+                <div id="4seed" class="team" onclick="pickWinner(this, 'match2-winner')">4 </div>
+                <div id="5seed" class="team" onclick="pickWinner(this, 'match2-winner')">5 </div>
             </div>
             <div class="matchup">
-                <div id="3seed" class="team" onclick="pickWinner(this, 'match3-winner')">3 Seed</div>
-                <div id="6seed" class="team" onclick="pickWinner(this, 'match3-winner')">6 Seed</div>
+                <div id="3seed" class="team" onclick="pickWinner(this, 'match3-winner')">3 </div>
+                <div id="6seed" class="team" onclick="pickWinner(this, 'match3-winner')">6 </div>
             </div>
             <div class="matchup">
-                <div id="2seed" class="team" onclick="pickWinner(this, 'match4-winner')">2 Seed</div>
-                <div id="7seed" class="team" onclick="pickWinner(this, 'match4-winner')">7 Seed</div>
+                <div id="2seed" class="team" onclick="pickWinner(this, 'match4-winner')">2 </div>
+                <div id="7seed" class="team" onclick="pickWinner(this, 'match4-winner')">7 </div>
             </div>
         </div>
         <!-- Round 2 -->
@@ -76,45 +76,115 @@
                 $("#footer").load("footer.html"); 
             });
         </script> 
-            <!--<script src="../../src/Bracket.js" type="text/javascript"></script>-->
             <script>
-                /**function pickWinner(clickedTeam, nextRoundTeamId) {
-                console.log(clickedTeam);
-                const match = clickedTeam.parentElement;
-                // Remove 'winner' class from any other team in the same match
-                const teamsInMatch = match.querySelectorAll('.team');
-                teamsInMatch.forEach(team => {
-                team.classList.remove('winner');
-                });
-        
-                // Add 'winner' class to the clicked team
-                clickedTeam.classList.add('winner');
-        
-                // Update the next round with the winner's name
-                const winnerName = clickedTeam.textContent;
-                const nextRoundTeam = document.getElementById(nextRoundTeamId);
-                if (nextRoundTeam) {
-                    nextRoundTeam.textContent = winnerName;
-                    // Optional: add a class to the next round team to indicate it's filled
-                    nextRoundTeam.classList.add('filled'); 
+                //had to move Bracket.js functions in the html file for them to work
+                function pickWinner(clickedTeam, nextMatchId) {
+                    const matchup = clickedTeam.closest('.matchup');
+                    // Remove 'winner' class from any other team in the same matchup
+                    const teamsInMatchup = matchup.querySelectorAll('.team');
+                    teamsInMatchup.forEach(team => {
+                        team.classList.remove('winner');
+                    });
+                    
+                    const nextMatchPlaceholder = document.getElementById(nextMatchId);
+                    const temp = nextMatchPlaceholder;
+
+                    //if clicked team is already a winner, remove 'winner' class from team
+                    if (clickedTeam.classList.contains('winner')){
+                        clickedTeam.classList.remove('winner')
+                        window.alert('in if')
+
+                        //reset the next round placeholder
+                        if (nextMatchPlaceholder) {
+                        nextMatchPlaceholder.textContent = temp.textContent;
+                    }
+                    } else{ //otherwise add 'winner'
+                        // Add 'winner' class to the clicked team
+                        clickedTeam.classList.add('winner');
+                        window.alert('in else')
+
+                        // Update the next round's placeholder with the winner's name
+
+                        if (nextMatchPlaceholder) {
+                            nextMatchPlaceholder.textContent = clickedTeam.textContent;
+                        }
+                    }
+                    
                 }
-            }**/
+
+                //return team with more wins
+                //if teams have the same number of wins, team1 is default return
+                //could include a tie breaker once stats are implemented
+                function higherSeed(team1, team2) {
+                    if (team2.record[0] > team1.record[0]) {
+                        return team2;
+                    }
+                    return team1;
+                }
+
+                //find the playoff seeding
+                //param teams: array of all teams in league
+                //param numSeeds: number of playoff teams
+
+                function seedTeams(teams, numSeeds) {
+                    let seeding = new Array(numSeeds);
+                    //copy teams to a temp array to not mess with the original data
+                    let temp = teams;
+                    for (let i = 0; i < numSeeds; i++){
+                        maxIndex = 0;
+                        max = temp[maxIndex];
+                        
+                        //iterate through the teams to find the highest remaining seed
+                        for (let j = 1; j < temp.length; j++){
+                            max = higherSeed(max, temp[j])
+                            if (max._id === temp[j]._id){
+                                maxIndex = j;
+                            }
+                        }
+                        //add team to playoff array
+                        seeding[i] = max
+
+                        //remove the highest
+                        temp.splice(maxIndex,1)
+                    }
+                    return seeding;
+                }
+
+                function pickWinner(clickedTeam, nextRoundTeamId) {
+                    console.log(clickedTeam);
+                    const match = clickedTeam.parentElement;
+                    // Remove 'winner' class from any other team in the same match
+                    const teamsInMatch = match.querySelectorAll('.team');
+                    teamsInMatch.forEach(team => {
+                    team.classList.remove('winner');
+                    });
+
+                    // Add 'winner' class to the clicked team
+                    clickedTeam.classList.add('winner');
+
+                    // Update the next round with the winner's name
+                    const winnerName = clickedTeam.textContent;
+                    const nextRoundTeam = document.getElementById(nextRoundTeamId);
+                    if (nextRoundTeam) {
+                        nextRoundTeam.textContent = winnerName;
+                        // Optional: add a class to the next round team to indicate it's filled
+                        nextRoundTeam.classList.add('filled'); 
+                    } 
+                }    
+                
                 async function setSeeding(){
                     const response = await fetch('/teams');
                     const json = await response.json();
                     const teams = json.teams;
-
-                    let i=0;
-                    for (let team of teams){
-                       window.alert(team.teamName); i++;
-                    }
-                    //seeding = seedTeams(teams, 8);
-                    
-                    //for (team in seeding){
-                        
-                    //}
+                    seeding = seedTeams(teams, 8);      
+                    let i=1;
+                    for (let team of seeding){
+                        label = document.getElementById(`${i}seed`)
+                        label.innerHTML += `${team.teamName}`
+                        i++;
+                    } 
                 }
-                
+
                 setSeeding();
             </script>
     </body>
