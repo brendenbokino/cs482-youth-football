@@ -484,54 +484,59 @@ app.post('/comms/addReply/:id', isAuthenticated, async (req, res) => {
 });
 
 app.post('/comms/uploadPhoto', isAuthenticated, upload.single('photo'), async (req, res) => {
-  const user = req.session.user;
+    const user = req.session.user;
 
-  try {
-    const newMessage = await MessageDao.create({
-      message: req.body.message || "", //message || "", 
-      author: user.name,
-      authorType: user.permission,
-      //photo: photoUrl,
-      photo: req.file.buffer,
-      photoMime: req.file.mimetype
-    });
-    res.status(200).json({ success: true, newMessage });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to upload photo", details: err.message });
-  }
+    try {
+        const message = req.body.message || "(no message)"; 
+        console.log("Received message:", message);
+
+        const newMessage = await MessageDao.create({
+            message,
+            author: user.name,
+            authorType: user.permission,
+            photo: req.file.buffer,
+            photoMime: req.file.mimetype
+        });
+
+        console.log("Photo message saved successfully:", newMessage);
+        res.status(200).json({ success: true, newMessage });
+    } catch (err) {
+        console.error("Error saving photo message:", err);
+        res.status(500).json({ error: "Failed to upload photo", details: err.message });
+    }
 });
 
 app.post('/comms/uploadVideo', isAuthenticated, upload.single('video'), async (req, res) => {
-  const user = req.session.user;
+    const user = req.session.user;
 
-  try {
-    const newMessage = await MessageDao.create({
-      message: req.body.message || "", 
-      author: user.name,
-      authorType: user.permission,
-      video: req.file.buffer,
-      videoMime: req.file.mimetype
-    });
-    res.status(200).json({ success: true, newMessage });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to upload video", details: err.message });
-  }
+    try {
+        const newMessage = await MessageDao.create({
+            message: req.body.message || "",
+            author: user.name,
+            authorType: user.permission,
+            video: req.file.buffer,
+            videoMime: req.file.mimetype
+        });
+        res.status(200).json({ success: true, newMessage });
+    } catch (err) {
+        res.status(500).json({ error: "Failed to upload video", details: err.message });
+    }
 });
 
 app.get('/image/:id', async (req, res) => {
-  const msg = await MessageDao.findById(req.params.id);
-  if (!msg || !msg.photo) return res.status(404).send("Not found");
+    const msg = await MessageDao.findById(req.params.id);
+    if (!msg || !msg.photo) return res.status(404).send("Not found");
 
-  res.contentType(msg.photoMime);
-  res.send(msg.photo);
+    res.contentType(msg.photoMime);
+    res.send(msg.photo);
 });
 
 app.get('/video/:id', async (req, res) => {
-  const msg = await MessageDao.findById(req.params.id);
-  if (!msg || !msg.video) return res.status(404).send("Not found");
+    const msg = await MessageDao.findById(req.params.id);
+    if (!msg || !msg.video) return res.status(404).send("Not found");
 
-  res.contentType(msg.videoMime);
-  res.send(msg.video);
+    res.contentType(msg.videoMime);
+    res.send(msg.video);
 });
 
 /*

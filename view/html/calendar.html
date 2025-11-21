@@ -830,11 +830,11 @@
                     } else {
                         const result = await response.json();
                         console.error("Failed to fetch messages:", result.error || "Unknown server error.");
-                        alert("Failed to fetch messages: " + (result.error || "Unknown error."));
+                        //alert("Failed to fetch messages: " + (result.error || "Unknown error."));
                     }
                 } catch (error) {
                     console.error('Network error during message retrieval:', error); 
-                    alert("View Messages. Network error. Please try again.");
+                    //alert("View Messages. Network error. Please try again.");
                 }
             }
 

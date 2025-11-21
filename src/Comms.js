@@ -24,7 +24,13 @@ class Comms {
 
         console.log("\nMessage Board:");
         messages.forEach((msg, i) => {
-            console.log(`${i + 1}. [${new Date(msg.dateCreated).toLocaleString()}] ${msg.author}: ${msg.message}`);
+            console.log(`${i + 1}. [${new Date(msg.dateCreated).toLocaleString()}] ${msg.author}: ${msg.message || "(No message)"}`);
+            if (msg.photo) {
+                console.log(`   ↳ Photo URL: /image/${msg._id}`);
+            }
+            if (msg.video) {
+                console.log(`   ↳ Video: /video/${msg._id}`);
+            }
             if (msg.replies && msg.replies.length > 0) {
                 msg.replies.forEach((r, j) => {
                     console.log(`   ↳ Reply ${j + 1} by ${r.email} [${new Date(r.date).toLocaleString()}]: ${r.message}`);

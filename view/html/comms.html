@@ -239,13 +239,11 @@
                 <div style="display: flex; gap: 10px; align-items: flex-start;">
                     <textarea id="messageBody" name="messageBody" rows="4" placeholder="Type your message here..." style="flex: 1;" required></textarea>
                     <div style="display: flex; flex-direction: column; gap: 10px;">
-                        <label for="photoInput">Upload Photo</label>
-                        <input type="file" id="photoInput" name="photo" accept="image/*">
-                        <button type="button" onclick="uploadPhoto()">Upload Photo</button>
+                        <button type="button" onclick="triggerFileInput('photoInput')">Upload Photo</button>
+                        <input type="file" id="photoInput" name="photo" accept="image/*" style="display: none;" onchange="handleFileChange('photoInput')">
 
-                        <label for="videoInput">Upload Video</label>
-                        <input type="file" id="videoInput" name="video" accept="video/*">
-                        <button type="button" onclick="uploadVideo()">Upload Video</button>
+                        <button type="button" onclick="triggerFileInput('videoInput')">Upload Video</button>
+                        <input type="file" id="videoInput" name="video" accept="video/*" style="display: none;" onchange="handleFileChange('videoInput')">
                     </div>
                 </div>
                 <button type="submit">Post Message</button>
@@ -259,7 +257,7 @@
             
         <div id="footer"></div>
         <script src="comms_frontend.js"></script>
-        /*<script>
+        <script>
         
             function getAuthorType(permission) {
                 switch (permission) {
@@ -398,35 +396,34 @@
             async function uploadPhoto() {
                 const photoInput = document.getElementById('photoInput');
                 const messageBody = document.getElementById('messageBody').value;
-
-                if (!photoInput.files.length || !messageBody) {
+    
+                if (!photoInput.files.length) {
                     alert("Please select a photo.");
                     return;
                 }
-
+    
                 try {
                     const formData = new FormData();
                     formData.append('photo', photoInput.files[0]);
-                    formData.append('message', messageBody);
-
+                    formData.append('message', messageBody || ""); 
+    
                     const response = await fetch('/comms/uploadPhoto', {
                         method: 'POST',
                         body: formData,
-                        credentials: 'include', 
+                        credentials: 'include',
                     });
-
+    
                     if (response.ok) {
                         viewMessages();
                     } else {
                         const result = await response.json();
-                        console.error("Post failed:", result.error || "Unknown server error.");
-                        alert("Failed to post message: " + (result.error || "Unknown error."));
+                        console.error("Photo upload failed:", result.error || "Unknown server error.");
+                        alert("Failed to upload photo: " + (result.error || "Unknown error."));
                     }
                 } catch (error) {
-                    console.error('Network error during post:', error);
+                    console.error('Network error during photo upload:', error);
                     alert("Network error. Please try again.");
                 }
-                
             }
 
             async function uploadVideo() {
@@ -568,6 +565,29 @@
                     hideBtn.textContent = 'View Messages';
                 }
             }
-        </script>*/
+
+            function triggerFileInput(inputId) {
+                const inputElement = document.getElementById(inputId);
+                if (inputElement) {
+                    inputElement.click();
+                } else {
+                    console.error(`Input element with ID '${inputId}' not found.`);
+                }
+            }
+
+            function handleFileChange(inputId) {
+                const inputElement = document.getElementById(inputId);
+                if (inputElement && inputElement.files.length > 0) {
+                    console.log(`File selected for ${inputId}:`, inputElement.files[0].name);
+                    if (inputId === 'photoInput') {
+                        uploadPhoto();
+                    } else if (inputId === 'videoInput') {
+                        uploadVideo();
+                    }
+                } else {
+                    console.warn(`No file selected for ${inputId}.`);
+                }
+            }
+        </script>
     </body>
 </html>
