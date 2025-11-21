@@ -11,30 +11,31 @@ class GameController {
 
     /// We need functions to create a game 
     async createNewGame(req, res) {
-        // create a payload to match our intended schema 
-        // here we can also ensure logic 
-
-
-        /// later we can add a clause to only add team names that match a team name in the DB *****************
-
         if (req != null) {
-            // check request quality 
-            // neither should be null a game doesn't have 1 team thats not a game
             if (req.team1 != null && req.team2 != null) {
-                // if this is true then construct a new game object
-                
-                let game = await gameDao.create(req);
-                this.gameData = game; 
-                
+                const gameDate = new Date(req.date);
+                const startTime = new Date(`${req.date}T${req.startTime}:00`);
+                const endTime = new Date(`${req.date}T${req.endTime}:00`);
+
+                const game = await gameDao.create({
+                    team1: req.team1,
+                    team2: req.team2,
+                    date: gameDate,
+                    startTime: startTime,
+                    endTime: endTime,
+                    location: req.location,
+                    link: req.link
+                });
+
+                this.gameData = game;
                 res.status = 200;
                 res.send = { success: true, game: game };
-                
             } else {
-                res.status= 400;
+                res.status = 400;
                 res.send = { error: "There must be at least 2 teams in order to create a game" };
             }
         } else {
-            res.status= 400 ;
+            res.status = 400;
             res.send = { error: "Request is empty" };
         }
     }

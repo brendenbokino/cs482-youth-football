@@ -367,9 +367,13 @@
                 // Populate display fields
                 document.getElementById('popup-team1').textContent = game.team1;
                 document.getElementById('popup-team2').textContent = game.team2;
-                document.getElementById('popup-date').textContent = new Date(game.date).toLocaleDateString();
-                document.getElementById('popup-startTime').textContent = game.startTime;
-                document.getElementById('popup-endTime').textContent = game.endTime;
+
+                const dateObj = new Date(game.date);
+                const localDate = new Date(dateObj.getTime() - dateObj.getTimezoneOffset() * 60000);
+                document.getElementById('popup-date').textContent = localDate.toLocaleDateString();
+
+                document.getElementById('popup-startTime').textContent = new Date(game.startTime).toLocaleTimeString();
+                document.getElementById('popup-endTime').textContent = new Date(game.endTime).toLocaleTimeString();
                 document.getElementById('popup-location').textContent = game.location || 'TBD';
 
                 // Handle live link
@@ -388,8 +392,7 @@
                 document.getElementById('edit-team2').value = game.team2;
 
                 // Format date for input (YYYY-MM-DD)
-                const dateObj = new Date(game.date);
-                const dateStr = dateObj.toISOString().split('T')[0];
+                const dateStr = localDate.toISOString().split('T')[0];
                 document.getElementById('edit-date').value = dateStr;
                 document.getElementById('edit-startTime').value = game.startTime || '';
                 document.getElementById('edit-endTime').value = game.endTime || '';
@@ -855,3 +858,4 @@
             });
         </script> </body>
 </html>
+``` 
