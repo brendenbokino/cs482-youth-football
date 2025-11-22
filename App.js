@@ -204,7 +204,7 @@ app.use(methodOverride('_method'));
 app.use(bodyParser.urlencoded({ extended: true }));
 
 //initialize connection to db
-let bucket;
+/**let bucket;
 
 mongoose.connection.once('open', () => {
     bucket = new GridFSBucket(mongoose.connection.db, {
@@ -232,15 +232,16 @@ const storage = new GridFsStorage({
     }
 });
 
-const upload = multer({ storage });
+const upload = multer({ storage });*/
 
-app.get('/photos/images', (req, res) =>{
+const FileStorage = require('./src/FileStorage');
+
+/**app.get('/photos/images', (req, res) =>{
   const cursor = bucket.find({});
   let files;
   cursor.toArray()
     .then(function(files){
       if (!files || files.length == 0){
-        //res.render('/photos.html', {files: false})
         res.json(files)
       } else{
         for (const file of files){
@@ -250,27 +251,23 @@ app.get('/photos/images', (req, res) =>{
             file.isImage = false;
           }
         }
-        /**files.map(file => {
-          if (file.contentType === 'image/jpeg' || file.contentType === 'image/png'){
-            file.isImage = true;
-          } else{
-            file.isImage = false;
-          }
-        });**/
-        //res.render('/photos.html', {files: files})
         res.json(files)
       }
     })
-})
+})**/
+app.get('/photos/images', FileStorage.getImages)
 
 //upload file to db
-app.post('/upload', upload.single('file'), (req, res) => {
+/**app.post('/upload', upload.single('file'), (req, res) => {
   //res.json({file: req.file});
+  res.redirect('/photos.html')
+});**/
+app.post('/upload', FileStorage.uploadFile, (req, res) => {
   res.redirect('/photos.html')
 });
 
 // display all files in JSON
-app.get("/files", async (req, res) => {
+/**app.get("/files", async (req, res) => {
   const cursor = bucket.find({});
   const files = await cursor.toArray();
   if (!files || files.length == 0){
@@ -279,10 +276,11 @@ app.get("/files", async (req, res) => {
   else{
     res.json(files)
   }
-});
+});**/
+app.get('/files', FileStorage.getFiles);
 
 // display single file in JSON
-app.get("/files/:filename", async (req, res) => {
+/**app.get("/files/:filename", async (req, res) => {
   try {
       const cursor = bucket.find({filename: req.params.filename});
       const file = await cursor.next();
@@ -291,10 +289,11 @@ app.get("/files/:filename", async (req, res) => {
   } catch (err) {
       res.json({err: 'file doesnt exist'})
   }
-});
+});**/
+app.get('/files/:filename', FileStorage.getFile);
 
 // display image
-app.get("/image/:filename", async (req, res) => {
+/**app.get("/image/:filename", async (req, res) => {
   let file;
   try {
     const cursor = bucket.find({filename: req.params.filename});
@@ -315,11 +314,13 @@ app.get("/image/:filename", async (req, res) => {
       err: 'Not an image'
     })
   }
-});
+});**/
+app.get('/image/:filename', FileStorage.getImage);
 
 const { ObjectId } = require('mongoose')
-// delete file NEED TO UPDATE FROM GRIDFS TO GRIDFSBUCKET
-app.post('/files/:filename', async (req, res) => {
+
+
+/**app.post('/files/:filename', async (req, res) => {
   let file;
   try {
     const cursor = bucket.find({filename: req.params.filename});
@@ -335,7 +336,8 @@ app.post('/files/:filename', async (req, res) => {
   }
   await bucket.delete(file._id);
   res.redirect('/photos.html')
-});
+});**/
+app.post('/files/:filename', FileStorage.deleteFile);
 
 
 // coach account routes
@@ -479,7 +481,7 @@ app.post('/comms/addReply/:id', isAuthenticated, async (req, res) => {
     }
 });
 
-app.post('/comms/uploadPhoto', isAuthenticated, upload.single('photo'), async (req, res) => {
+app.post('/comms/uploadPhoto', isAuthenticated, FileStorage.uploadPhoto, async (req, res) => {
   const { message } = req.body;
   const user = req.session.user;
 
@@ -497,7 +499,7 @@ app.post('/comms/uploadPhoto', isAuthenticated, upload.single('photo'), async (r
   }
 });
 
-app.post('/comms/uploadVideo', isAuthenticated, upload.single('video'), async (req, res) => {
+app.post('/comms/uploadVideo', isAuthenticated, FileStorage.uploadVideo, async (req, res) => {
   const { message } = req.body;
   const user = req.session.user;
 
@@ -708,7 +710,7 @@ app.post('/calendar/addReply/:id', isAuthenticated, async (req, res) => {
     }
 });
 
-app.post('/calendar/uploadPhoto', isAuthenticated, upload.single('photo'), async (req, res) => {
+app.post('/calendar/uploadPhoto', isAuthenticated, FileStorage.uploadPhoto, async (req, res) => {
   const { message } = req.body;
   const user = req.session.user;
 
@@ -726,7 +728,7 @@ app.post('/calendar/uploadPhoto', isAuthenticated, upload.single('photo'), async
   }
 });
 
-app.post('/calendar/uploadVideo', isAuthenticated, upload.single('video'), async (req, res) => {
+app.post('/calendar/uploadVideo', isAuthenticated, FileStorage.uploadVideo, async (req, res) => {
   const { message } = req.body;
   const user = req.session.user;
 
