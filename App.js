@@ -507,7 +507,7 @@ app.post('/postReview', isAuthenticated, async (req, res) => {
 app.get('/viewReviews', isAuthenticated, async (req, res) => {
   try {
     const reviews = await ReviewDao.readAll();
-    console.log(reviews);
+    //console.log(reviews);
     res.json({ reviews });
   } catch (err) {
     console.error("Error fetching reviews:", err); 
@@ -515,16 +515,17 @@ app.get('/viewReviews', isAuthenticated, async (req, res) => {
   }
 });
 
-app.delete('/teams/deleteReview/:id', isAuthenticated, async (req, res) => {
+app.delete('/deleteReview/:id', isAuthenticated, async (req, res) => {
   const { id } = req.params;
   const user = req.session.user;
+  //console.log('req.params: ', req.params)
 
   try {
     const isAuthor = await ReviewDao.isAuthor(id, user.name);
     if (!isAuthor) {
       return res.status(403).json({ error: "You are not authorized to delete this review." });
     }
-    await ReviewDaoDao.delete(id);
+    await ReviewDao.delete(id);
     res.status(200).json({ success: true });
   } catch (err) {
     res.status(500).json({ error: "Failed to delete review", details: err.message });
