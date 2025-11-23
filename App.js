@@ -464,9 +464,10 @@ app.post('/postReview', isAuthenticated, async (req, res) => {
   }
 });
 
-app.get('/teams/viewReviews', isAuthenticated, async (req, res) => {
+app.get('/viewReviews', isAuthenticated, async (req, res) => {
   try {
     const reviews = await ReviewDao.readAll();
+    console.log(reviews);
     res.json({ reviews });
   } catch (err) {
     console.error("Error fetching reviews:", err); 

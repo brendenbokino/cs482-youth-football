@@ -23,11 +23,11 @@
     
                 <p id="confirmationMessage" style="display: none; color: green;">Review sent successfully!</p>
                 <p id="failToSendMessage" style="display: none; color: red;">Review failed to send</p>
-                <button class="refresh-btn" onclick="viewReviews()">View Reviews</button>
-                <button class="hide-btn" onclick="toggleReviews()">Hide Reviews</button>
-                <div id="reviewList"></div>
                 <button type="submit" value="submit">Send Review</button>
             </form>
+            <button class="refresh-btn" onclick="viewReviews()">View Reviews</button>
+            <button class="hide-btn" onclick="toggleReviews()">Hide Reviews</button>
+            <div id="reviewList"></div>
         </div>
 
         <div id="footer"></div>
@@ -165,31 +165,34 @@ function getAuthorType(permission) {
 
             async function viewReviews() {
                 try {
-                    const response = await fetch('/teams/viewReviews', {
+                    const response = await fetch('/viewReviews'/**, {
                         method: 'GET',
                         credentials: 'include', 
-                    });
+                    }*/);
 
                     console.log("Response status:", response.status); 
 
                     if (response.ok) {
                         const data = await response.json();
+                        window.alert(data);
                         console.log("Fetched reviews:", data); 
                         const reviewList = document.getElementById('reviewList');
                         reviewList.innerHTML = '';
+                        i = 0;
 
                         const user = await fetch('/loggedUser', { credentials: 'include' }).then(res => res.json());
 
-                        data.reviews.forEach(review => {
+                        data.reviews.forEach(rev => {
+                            //window.alert(i); i++;
                             const reviewDiv = document.createElement('div');
                             reviewDiv.classList.add('review');
 
-                            const authorType = getAuthorType(review.authorType);
-                            const updatedAt = review.edited ? ` (updated at ${new Date(review.dateEdited).toLocaleString()})` : '';
+                            const authorType = getAuthorType(rev.authorType);
+                            const updatedAt = rev.edited ? ` (updated at ${new Date(rev.dateEdited).toLocaleString()})` : '';
 
                             reviewDiv.innerHTML = `
-                                <p><strong>${review.author} (${authorType})${updatedAt}:</strong></p>
-                                <p>${review.message}</p>
+                                <p><strong>${rev.author} (${authorType})${updatedAt}:</strong></p>
+                                <p>${rev.review}</p>
                             `;
 
                             /**if (msg.photo) {
@@ -200,16 +203,16 @@ function getAuthorType(permission) {
                                 msgDiv.appendChild(photo);
                             }**/
 
-                            if (user.name === review.author) {
+                            if (user.name === rev.author) {
                                 const deleteBtn = document.createElement('button');
                                 deleteBtn.classList.add('delete-btn');
                                 deleteBtn.innerHTML = `<i class="bi bi-trash"></i>`;
-                                deleteBtn.onclick = () => deleteReview(review._id);
+                                deleteBtn.onclick = () => deleteReview(rev._id);
 
                                 const updateBtn = document.createElement('button');
                                 updateBtn.classList.add('update-btn');
                                 updateBtn.innerHTML = `<i class="bi bi-pencil"></i>`;
-                                updateBtn.onclick = () => updateReview(review._id);
+                                updateBtn.onclick = () => updateReview(rev._id);
 
                                 reviewDiv.appendChild(deleteBtn);
                                 reviewDiv.appendChild(updateBtn);
@@ -236,7 +239,7 @@ function getAuthorType(permission) {
                                 msgDiv.appendChild(repliesDiv);
                             }**/
 
-                            messageList.appendChild(reviewDiv);
+                            reviewList.appendChild(reviewDiv);
                         });
                     } else {
                         const result = await response.json();
@@ -245,7 +248,8 @@ function getAuthorType(permission) {
                     }
                 } catch (error) {
                     console.error('Network error during review retrieval:', error); 
-                    alert("Network error. Please try again.");
+                    alert("Network error. Please try again. ");
+                    alert(error)
                 }
             }
 
