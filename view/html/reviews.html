@@ -14,7 +14,8 @@
 
         <div class="reviews-section">
             <h1>Reviews</h1>
-            <form id="reviewForm" onsubmit="event.preventDefault(); postReview();">
+            <!--onsubmit="event.preventDefault(); postReview();"-->
+            <form id="reviewForm" action="/postReview" method="POST" enctype="application/json">
                 <label for="reviewBody">Review</label>
                 <textarea id="reviewBody" name="reviewBody" rows="2" required></textarea>
     
@@ -25,7 +26,7 @@
                 <button class="refresh-btn" onclick="viewReviews()">View Reviews</button>
                 <button class="hide-btn" onclick="toggleReviews()">Hide Reviews</button>
                 <div id="reviewList"></div>
-                <button type="submit">Send Review</button>
+                <button type="submit" value="submit">Send Review</button>
             </form>
         </div>
 
@@ -82,7 +83,7 @@ function getAuthorType(permission) {
                 }
 
                 try {
-                    const response = await fetch('/teams/postReview', {
+                    const response = await fetch('/reviews/postReview', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

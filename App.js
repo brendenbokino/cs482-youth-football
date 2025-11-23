@@ -203,140 +203,23 @@ app.use(express.json());
 app.use(methodOverride('_method'));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-//initialize connection to db
-/**let bucket;
-
-mongoose.connection.once('open', () => {
-    bucket = new GridFSBucket(mongoose.connection.db, {
-      bucketName: 'uploads'
-    })
-})
-
-//create storage
-const storage = new GridFsStorage({
-    url: process.env.DB_URI,
-    file: (req, file) => {
-      return new Promise((resolve, reject) => {
-        crypto.randomBytes(16, (err, buf) => {
-          if (err) {
-            return reject(err);
-          }
-          const filename = buf.toString('hex') + path.extname(file.originalname);
-          const fileInfo = {
-            filename: filename,
-            bucketName: 'uploads'
-          };
-          resolve(fileInfo);
-        });
-      });
-    }
-});
-
-const upload = multer({ storage });*/
-
 const FileStorage = require('./src/FileStorage');
 
-/**app.get('/photos/images', (req, res) =>{
-  const cursor = bucket.find({});
-  let files;
-  cursor.toArray()
-    .then(function(files){
-      if (!files || files.length == 0){
-        res.json(files)
-      } else{
-        for (const file of files){
-          if (file.contentType === 'image/jpeg' || file.contentType === 'image/png'){
-            file.isImage = true;
-          } else{
-            file.isImage = false;
-          }
-        }
-        res.json(files)
-      }
-    })
-})**/
 app.get('/photos/images', FileStorage.getImages)
 
-//upload file to db
-/**app.post('/upload', upload.single('file'), (req, res) => {
-  //res.json({file: req.file});
-  res.redirect('/photos.html')
-});**/
 app.post('/upload', FileStorage.uploadFile, (req, res) => {
   res.redirect('/photos.html')
 });
 
-// display all files in JSON
-/**app.get("/files", async (req, res) => {
-  const cursor = bucket.find({});
-  const files = await cursor.toArray();
-  if (!files || files.length == 0){
-    res.json({err: 'no files exist'})
-  }
-  else{
-    res.json(files)
-  }
-});**/
+
 app.get('/files', FileStorage.getFiles);
 
-// display single file in JSON
-/**app.get("/files/:filename", async (req, res) => {
-  try {
-      const cursor = bucket.find({filename: req.params.filename});
-      const file = await cursor.next();
-      
-      res.json(file);
-  } catch (err) {
-      res.json({err: 'file doesnt exist'})
-  }
-});**/
 app.get('/files/:filename', FileStorage.getFile);
 
-// display image
-/**app.get("/image/:filename", async (req, res) => {
-  let file;
-  try {
-    const cursor = bucket.find({filename: req.params.filename});
-    file = await cursor.next();
-  } catch (err) {
-      res.json({err: 'file doesnt exist'})
-  }
-//console.log('file exists')
-  //check if image
-  if(file.contentType === 'image/jpeg' || file.contentType === 'image/png') {
-    // read output to browser
-    //console.log('file is an image')
-    let readstream = bucket.openDownloadStream(file._id);
-    //console.log('readstream created')
-    readstream.pipe(res);
-  } else {
-    res.status(404).json({
-      err: 'Not an image'
-    })
-  }
-});**/
 app.get('/image/:filename', FileStorage.getImage);
 
 const { ObjectId } = require('mongoose')
 
-
-/**app.post('/files/:filename', async (req, res) => {
-  let file;
-  try {
-    const cursor = bucket.find({filename: req.params.filename});
-    file = await cursor.next();
-    //res.json(file);
-} catch (err) {
-    //clres.json({err: 'file doesnt exist'})
-    res.redirect('/photos.html')
-}
-  if (file){
-    //res.json({err: 'file doesnt exist'})
-    //res.redirect('/photos.html')
-  }
-  await bucket.delete(file._id);
-  res.redirect('/photos.html')
-});**/
 app.post('/files/:filename', FileStorage.deleteFile);
 
 
@@ -563,13 +446,15 @@ app.get('/gameChat/:gameId', isAuthenticated, async (req, res) => {
 
 const ReviewDao = require('./model/ReviewDao')
 
-app.post('/teams/postReview', isAuthenticated, async (req, res) => {
-  const { review } = req.body;
+app.post('/postReview', isAuthenticated, async (req, res) => {
+  const reviewToSend  = req.body.reviewBody;
   const user = req.session.user;
+  console.log('req.body.reviewBody: ', req.body.reviewBody)
+  console.log('reviewToSend: ', reviewToSend)
 
   try {
     const newReview = await ReviewDao.create({
-      message,
+      review: reviewToSend,
       author: user.name,
       authorType: user.permission,
     });
