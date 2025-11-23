@@ -79,6 +79,13 @@ test('Add reply to message', async () => {
   expect(updated.replies[0].email).toBe('responder@test.com');
 });
 
+test('Add reply to non-existent message', async () => {
+  const reply = { email: 'responder@test.com', message: 'Reply here' };
+  const updated = await dao.addReply('nonexistentId', reply);
+
+  expect(updated).toBeNull();
+});
+
 test('Delete message', async () => {
   const msg = { message: 'Delete me', author: 'Temp', authorType: 1 };
   const created = await dao.create(msg);
@@ -87,6 +94,28 @@ test('Delete message', async () => {
   const found = await dao.findById(created._id);
 
   expect(found).toBeNull();
+});
+
+test('Update non-existent message', async () => {
+  const updates = { message: 'Updated text' };
+  const updated = await dao.update('nonexistentId', updates);
+
+  expect(updated).toBeNull();
+});
+
+test('Add photo to message', async () => {
+  const msg = { message: 'Photo message', author: 'Loren', authorType: 1 };
+  const created = await dao.create(msg);
+
+  const updated = await dao.addPhoto(created._id, 'http://photo.url');
+
+  expect(updated.photo).toBe('http://photo.url');
+});
+
+test('Add photo to non-existent message', async () => {
+  const updated = await dao.addPhoto('nonexistentId', 'http://photo.url');
+
+  expect(updated).toBeNull();
 });
 
 test('Check author', async () => {
