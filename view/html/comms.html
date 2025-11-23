@@ -464,7 +464,7 @@
                 try {
                     const response = await fetch('/comms/viewMessages', {
                         method: 'GET',
-                        credentials: 'include', 
+                        credentials: 'include',
                     });
 
                     console.log("Response status:", response.status); 
@@ -472,6 +472,8 @@
                     if (response.ok) {
                         const data = await response.json();
                         console.log("Fetched messages:", data); 
+                        //alert("Fetched " + data);
+
                         const messageList = document.getElementById('messageList');
                         messageList.innerHTML = '';
 
@@ -486,19 +488,21 @@
 
                             msgDiv.innerHTML = `
                                 <p><strong>${msg.author} (${authorType})${updatedAt}:</strong></p>
-                                <p>${msg.message}</p>
+                                <p>${msg.message || ''}</p>
                             `;
 
-                            if (msg.photo) {
+                            if (msg.photoUrl) {
                                 const img = document.createElement('img');
-                                img.src = `/image/${msg._id}`;
+                                img.src = msg.photoUrl; 
+                                img.alt = "Message Photo";
                                 img.style.maxWidth = "100%";
+                                img.style.marginTop = "10px";
                                 msgDiv.appendChild(img);
                             }
 
-                            if (msg.video) {
+                            if (msg.videoUrl) {
                                 const vid = document.createElement('video');
-                                vid.src = `/video/${msg._id}`;
+                                vid.src = msg.videoUrl; 
                                 vid.controls = true;
                                 vid.style.maxWidth = "100%";
                                 msgDiv.appendChild(vid);
