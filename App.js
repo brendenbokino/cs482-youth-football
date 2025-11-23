@@ -532,13 +532,13 @@ app.delete('/deleteReview/:id', isAuthenticated, async (req, res) => {
   }
 });
 
-app.put('/teams/updateReview/:id', isAuthenticated, async (req, res) => {
+app.put('/updateReview/:id', isAuthenticated, async (req, res) => {
   const { id } = req.params;
   const { review } = req.body;
   const user = req.session.user;
 
   try {
-    const isAuthor = await ReviewDaoDao.isAuthor(id, user.name);
+    const isAuthor = await ReviewDao.isAuthor(id, user.name);
     if (!isAuthor) {
       return res.status(403).json({ error: "You are not authorized to update this review." });
     }

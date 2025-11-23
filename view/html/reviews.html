@@ -141,7 +141,7 @@ function getAuthorType(permission) {
                 if (!newReview) return;
 
                 try {
-                    const response = await fetch(`/teams/updateReview/${reviewId}`, {
+                    const response = await fetch(`/updateReview/${reviewId}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
@@ -151,7 +151,8 @@ function getAuthorType(permission) {
                     });
 
                     if (response.ok) {
-                        //alert("Message updated successfully.");
+                        
+                        alert("Message updated successfully.");
                         viewReviews();
                     } else {
                         const result = await response.json();
