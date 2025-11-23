@@ -1,5 +1,5 @@
 const dbcon = require('./DbConnect');
-const dao = require('./MessageDao');
+const dao = require('./GameChatDao');
 
 beforeAll(async function(){ 
     await dbcon.connect('test');
@@ -79,13 +79,6 @@ test('Add reply to message', async () => {
   expect(updated.replies[0].email).toBe('responder@test.com');
 });
 
-test('Add reply to non-existent message', async () => {
-  const reply = { email: 'responder@test.com', message: 'Reply here' };
-  const updated = await dao.addReply('nonexistentId', reply);
-
-  expect(updated).toBeNull();
-});
-
 test('Delete message', async () => {
   const msg = { message: 'Delete me', author: 'Temp', authorType: 1 };
   const created = await dao.create(msg);
@@ -94,28 +87,6 @@ test('Delete message', async () => {
   const found = await dao.findById(created._id);
 
   expect(found).toBeNull();
-});
-
-test('Update non-existent message', async () => {
-  const updates = { message: 'Updated text' };
-  const updated = await dao.update('nonexistentId', updates);
-
-  expect(updated).toBeNull();
-});
-
-test('Add photo to message', async () => {
-  const msg = { message: 'Photo message', author: 'Loren', authorType: 1 };
-  const created = await dao.create(msg);
-
-  const updated = await dao.addPhoto(created._id, 'http://photo.url');
-
-  expect(updated.photo).toBe('http://photo.url');
-});
-
-test('Add photo to non-existent message', async () => {
-  const updated = await dao.addPhoto('nonexistentId', 'http://photo.url');
-
-  expect(updated).toBeNull();
 });
 
 test('Check author', async () => {
@@ -127,5 +98,66 @@ test('Check author', async () => {
 
   expect(valid).toBe(true);
   expect(invalid).toBe(false);
+});
+
+test('Read messages by gameId', async () => {
+  const gameId = 'game123';
+  const msg1 = { gameId, message: 'Game message 1', author: 'Alice', authorType: 1 };
+  const msg2 = { gameId, message: 'Game message 2', author: 'Bob', authorType: 2 };
+
+  await dao.create(msg1);
+  await dao.create(msg2);
+
+  const messages = await dao.readByGameId(gameId);
+
+  expect(messages.length).toBe(2);
+  expect(messages[0].gameId).toBe(gameId);
+  expect(messages[1].gameId).toBe(gameId);
+});
+
+test('Create message for a game within valid time', async () => {
+  const gameId = 'game123';
+  const gameDao = {
+    read: jest.fn().mockResolvedValue({
+      startTime: new Date(Date.now() - 1000),
+      endTime: new Date(Date.now() + 1000),
+    }),
+  };
+  dao.__set__('gameDao', gameDao);
+
+  const newMessage = { message: 'Game chat', author: 'Loren', authorType: 1 };
+  const created = await dao.createForGame(gameId, newMessage);
+
+  expect(created).not.toBeNull();
+  expect(created.gameId).toBe(gameId);
+});
+
+test('Fail to create message for a game outside valid time', async () => {
+  const gameId = 'game123';
+  const gameDao = {
+    read: jest.fn().mockResolvedValue({
+      startTime: new Date(Date.now() + 1000),
+      endTime: new Date(Date.now() + 2000),
+    }),
+  };
+  dao.__set__('gameDao', gameDao);
+
+  const newMessage = { message: 'Game chat', author: 'Loren', authorType: 1 };
+
+  await expect(dao.createForGame(gameId, newMessage)).rejects.toThrow('Chats can only be added during the game time');
+});
+
+test('Add reply to non-existent message', async () => {
+  const reply = { email: 'responder@test.com', message: 'Reply here' };
+  const updated = await dao.addReply('nonexistentId', reply);
+
+  expect(updated).toBeNull();
+});
+
+test('Update non-existent message', async () => {
+  const updates = { message: 'Updated text' };
+  const updated = await dao.update('nonexistentId', updates);
+
+  expect(updated).toBeNull();
 });
 
