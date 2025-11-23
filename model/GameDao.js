@@ -21,11 +21,8 @@ const gameSchema = new mongoose.Schema({
     playerStats: {
         type: Array,
         default: [] // Array of { playerId, statType, value, timestamp }
-    },
-    _id: String
-
-    
-});
+    }
+}, { _id: true }); // keep getting issues with no id
 
 const gameModel = mongoose.model('game', gameSchema);
 
@@ -58,9 +55,13 @@ exports.read = async function(id){
 }
 
 exports.create = async function(newgame){
-    let game = new gameModel(newgame); 
-    await game.save();
-    return game;
+    try {
+        const result = await gameModel.create(newgame); // Use create() to let MongoDB handle _id
+        return result;
+    } catch (error) {
+        console.error('GameDao.create: Error creating game:', error.message);
+        throw error;
+    }
 }
 
 exports.update = async function(id, updateData){

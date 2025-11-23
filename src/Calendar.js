@@ -82,6 +82,7 @@ class CalendarManager {
                 start: new Date(game.startTime).toISOString(),
                 end: new Date(game.endTime).toISOString(),
                 extendedProps: {
+                    _id: game._id,
                     location: game.location,
                     team1: game.team1,
                     team2: game.team2,

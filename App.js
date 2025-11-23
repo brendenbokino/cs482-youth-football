@@ -136,8 +136,12 @@ app.post('/gameCreate', async (req, res) => {
   try {
     const { team1, team2, date, startTime, endTime, location, link } = req.body;
     const gameDate = new Date(date);
-    const start = new Date(`${date}T${startTime}`);
-    const end = new Date(`${date}T${endTime}`);
+    const start = new Date(`${date}T${startTime}:00`);
+    const end = new Date(`${date}T${endTime}:00`);
+
+    if (isNaN(start) || isNaN(end)) {
+      return res.status(400).json({ error: "Invalid startTime or endTime format." });
+    }
 
     if (start >= end) {
       return res.status(400).json({ error: "End time must be after start time." });
@@ -153,9 +157,12 @@ app.post('/gameCreate', async (req, res) => {
       link,
     };
 
+    console.log('Creating new game:', newGame); // Debugging log
+
     const createdGame = await GameDao.create(newGame);
     res.status(201).json({ success: true, createdGame });
   } catch (err) {
+    console.error('Error in /gameCreate:', err.message); // Debugging log
     res.status(500).json({ error: "Failed to create game", details: err.message });
   }
 });
@@ -298,11 +305,11 @@ app.post('/comms/postMessage', isAuthenticated, async (req, res) => {
 });
 
 app.get('/comms/viewMessages', isAuthenticated, async (req, res) => {
-  const { gameId } = req.query;
-  console.log(`Received gameId in query: ${gameId}`); 
+  //const { gameId } = req.query;
+  //console.log(`Received gameId in query: ${gameId}`); 
 
   try {
-    const messages = await MessageDao.readByGameId(gameId);
+    const messages = await MessageDao.readAll();
     res.json({ messages });
   } catch (err) {
     console.error("Error fetching messages:", err); 
@@ -364,41 +371,74 @@ app.post('/comms/addReply/:id', isAuthenticated, async (req, res) => {
     }
 });
 
-app.post('/comms/uploadPhoto', isAuthenticated, FileStorage.uploadPhoto, async (req, res) => {
-  const { message } = req.body;
-  const user = req.session.user;
 
-  try {
-    const photoUrl = `/image/${req.file.filename}`;
-    const newMessage = await MessageDao.create({
-      message: message || "", 
-      author: user.name,
-      authorType: user.permission,
-      photo: photoUrl,
-    });
-    res.status(200).json({ success: true, newMessage });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to upload photo", details: err.message });
-  }
+app.post('/comms/uploadPhoto', isAuthenticated, FileStorage.uploadPhoto, async (req, res) => {
+  /*const { message } = req.body;
+  const user = req.session.user;*/
+
+//app.post('/comms/uploadPhoto', isAuthenticated, upload.single('photo'), async (req, res) => {
+    const user = req.session.user;
+
+
+    try {
+        const message = req.body.message || "(no message)"; 
+        console.log("Received message:", message);
+
+        const newMessage = await MessageDao.create({
+            message,
+            author: user.name,
+            authorType: user.permission,
+            photo: req.file.buffer,
+            photoMime: req.file.mimetype
+        });
+
+        console.log("Photo message saved successfully:", newMessage);
+        res.status(200).json({ success: true, newMessage });
+    } catch (err) {
+        console.error("Error saving photo message:", err);
+        res.status(500).json({ error: "Failed to upload photo", details: err.message });
+    }
 });
+
 
 app.post('/comms/uploadVideo', isAuthenticated, FileStorage.uploadVideo, async (req, res) => {
-  const { message } = req.body;
-  const user = req.session.user;
+  /*const { message } = req.body;
+  const user = req.session.user;*/
 
-  try {
-    const videoUrl = `/video/${req.file.filename}`;
-    const newMessage = await MessageDao.create({
-      message: message || "", 
-      author: user.name,
-      authorType: user.permission,
-      video: videoUrl,
-    });
-    res.status(200).json({ success: true, newMessage });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to upload video", details: err.message });
-  }
+//app.post('/comms/uploadVideo', isAuthenticated, upload.single('video'), async (req, res) => {
+    const user = req.session.user;
+
+
+    try {
+        const newMessage = await MessageDao.create({
+            message: req.body.message || "",
+            author: user.name,
+            authorType: user.permission,
+            video: req.file.buffer,
+            videoMime: req.file.mimetype
+        });
+        res.status(200).json({ success: true, newMessage });
+    } catch (err) {
+        res.status(500).json({ error: "Failed to upload video", details: err.message });
+    }
 });
+
+app.get('/image/:id', async (req, res) => {
+    const msg = await MessageDao.findById(req.params.id);
+    if (!msg || !msg.photo) return res.status(404).send("Not found");
+
+    res.contentType(msg.photoMime);
+    res.send(msg.photo);
+});
+
+app.get('/video/:id', async (req, res) => {
+    const msg = await MessageDao.findById(req.params.id);
+    if (!msg || !msg.video) return res.status(404).send("Not found");
+
+    res.contentType(msg.videoMime);
+    res.send(msg.video);
+});
+
 /*
 app.post('/gameChat/:gameId', isAuthenticated, async (req, res) => {
   const { gameId } = req.params;
@@ -516,15 +556,20 @@ app.post('/calendar/postMessage', isAuthenticated, async (req, res) => {
   const user = req.session.user;
 
   try {
+    console.log("Creating message in database:", { message, gameId, author: user.name, authorType: user.permission });
+
     const newMessage = await GameChatDao.create({
       message,
       gameId,
       author: user.name,
       authorType: user.permission,
     });
+
+    console.log("Message created successfully:", newMessage);
+
     res.status(200).json({ success: true, newMessage });
   } catch (err) {
-    console.error("Error posting message:", err); 
+    console.error("Error posting message:", err);
     res.status(500).json({ error: "Failed to post message", details: err.message });
   }
 });
