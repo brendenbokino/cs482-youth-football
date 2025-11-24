@@ -10,7 +10,7 @@ describe('Comms Class', () => {
 
     beforeEach(() => {
         comms = new Comms();
-        comms.currentUser = { name: 'Test User' }; // Mock a logged-in user
+        comms.currentUser = { name: 'Test User' }; 
     });
 
     afterEach(() => {
@@ -24,7 +24,7 @@ describe('Comms Class', () => {
         ];
         MessageDao.readAll.mockResolvedValue(mockMessages);
 
-        console.log = jest.fn(); // Mock console.log
+        console.log = jest.fn(); 
 
         await comms.viewMessages();
 
@@ -37,7 +37,7 @@ describe('Comms Class', () => {
     test('viewMessages should log "No messages." when no messages exist', async () => {
         MessageDao.readAll.mockResolvedValue([]);
 
-        console.log = jest.fn(); // Mock console.log
+        console.log = jest.fn(); 
 
         await comms.viewMessages();
 
