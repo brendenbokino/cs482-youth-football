@@ -82,26 +82,26 @@
                     const matchup = clickedTeam.closest('.matchup');
                     // Remove 'winner' class from any other team in the same matchup
                     const teamsInMatchup = matchup.querySelectorAll('.team');
-                    teamsInMatchup.forEach(team => {
-                        team.classList.remove('winner');
-                    });
-                    
                     const nextMatchPlaceholder = document.getElementById(nextMatchId);
                     const temp = nextMatchPlaceholder;
+                    let defaultText = `Winner ${teamsInMatchup[0].textContent}/${teamsInMatchup[1].textContent}`;
 
                     //if clicked team is already a winner, remove 'winner' class from team
                     if (clickedTeam.classList.contains('winner')){
-                        clickedTeam.classList.remove('winner')
-                        window.alert('in if')
+                        teamsInMatchup.forEach(team => {
+                            team.classList.remove('winner');
+                        });
 
                         //reset the next round placeholder
                         if (nextMatchPlaceholder) {
-                        nextMatchPlaceholder.textContent = temp.textContent;
-                    }
+                            nextMatchPlaceholder.textContent = defaultText;
+                        }
                     } else{ //otherwise add 'winner'
+                        teamsInMatchup.forEach(team => {
+                            team.classList.remove('winner');
+                        });
                         // Add 'winner' class to the clicked team
                         clickedTeam.classList.add('winner');
-                        window.alert('in else')
 
                         // Update the next round's placeholder with the winner's name
 
@@ -150,7 +150,7 @@
                     return seeding;
                 }
 
-                function pickWinner(clickedTeam, nextRoundTeamId) {
+                /**function pickWinner(clickedTeam, nextRoundTeamId) {
                     console.log(clickedTeam);
                     const match = clickedTeam.parentElement;
                     // Remove 'winner' class from any other team in the same match
@@ -170,7 +170,7 @@
                         // Optional: add a class to the next round team to indicate it's filled
                         nextRoundTeam.classList.add('filled'); 
                     } 
-                }    
+                }    **/
                 
                 async function setSeeding(){
                     const response = await fetch('/teams');
