@@ -141,7 +141,7 @@ async function uploadPhoto() {
     try {
         const formData = new FormData();
         formData.append('photo', photoInput.files[0]);
-        formData.append('message', messageBody); // Optional message
+        formData.append('message', messageBody); 
 
         const response = await fetch('/comms/uploadPhoto', {
             method: 'POST',
@@ -175,7 +175,7 @@ async function uploadVideo() {
     try {
         const formData = new FormData();
         formData.append('video', videoInput.files[0]);
-        formData.append('message', messageBody); // Optional message
+        formData.append('message', messageBody); 
 
         const response = await fetch('/comms/uploadVideo', {
             method: 'POST',
@@ -310,3 +310,16 @@ window.uploadPhoto = uploadPhoto;
 window.uploadVideo = uploadVideo;
 window.viewMessages = viewMessages;
 window.toggleMessages = toggleMessages;
+
+module.exports = {
+    getAuthorType,
+    checkLoginStatus,
+    postMessage,
+    deleteMessage,
+    updateMessage,
+    replyToMessage,
+    uploadPhoto,
+    uploadVideo,
+    viewMessages,
+    toggleMessages
+};
