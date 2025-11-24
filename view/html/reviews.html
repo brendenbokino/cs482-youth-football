@@ -7,24 +7,203 @@
     <link href="./css/main.css" rel="stylesheet" type="text/css">
     <link href="./css/popup.css" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
+    <style>
+        body {
+              font-family: 'Inter', 'Segoe UI', sans-serif;
+              background-color: #fafafa;
+              color: #333;
+              margin: 0;
+            }
+        
+            header {
+              background-color: #e6e0f8;
+              color: #3c1361;
+              padding: 0.5rem 2rem;
+              text-align: center;
+              border-bottom: 2px solid #c4b5fd;
+            }
+
+            .header-container {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .logo-title {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            }
+        
+            header h1 {
+              margin: 0.5rem 0;
+              font-size: 1.8rem;
+              font-weight: 600;
+            }
+        
+            .topnav {
+              display: flex;
+              gap: 1rem;
+            }
+        
+            .topnav a {
+              text-decoration: none;
+              color: #3c1361;
+              font-weight: 500;
+              padding: 6px 12px;
+              border-radius: 6px;
+              transition: 0.3s;
+            }
+        
+            .topnav a:hover {
+              background-color: #dcd0ff;
+              color: #2b0a50;
+            }
+        
+            main {
+              max-width: 800px;
+              margin: 2rem auto;
+              padding: 1.5rem;
+              background-color: #ffffff;
+              border-radius: 10px;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+        
+            h2 {
+              text-align: center;
+              color: #3c1361;
+              margin-bottom: 1rem;
+            }
+        
+            form {
+              display: flex;
+              flex-direction: column;
+              gap: 10px;
+            }
+        
+            textarea {
+              border-radius: 8px;
+              border: 1px solid #c4b5fd;
+              padding: 10px;
+              font-size: 1rem;
+              resize: vertical;
+              min-height: 80px;
+            }
+        
+            textarea:focus {
+              outline: none;
+              border-color: #a78bfa;
+              box-shadow: 0 0 3px #c4b5fd;
+            }
+        
+            button {
+              background-color: #a78bfa;
+              color: white;
+              border: none;
+              padding: 10px 14px;
+              border-radius: 6px;
+              font-size: 1rem;
+              cursor: pointer;
+              transition: 0.3s;
+              width: fit-content;
+              align-self: center;
+              margin-top: 5px;
+            }
+        
+            button:hover {
+              background-color: #8b5cf6;
+            }
+        
+            .refresh-btn,
+            .hide-btn {
+              margin-right: 8px;
+            }
+        
+            #confirmationMessage {
+              text-align: center;
+              font-weight: 500;
+              color: #22c55e;
+              margin-top: 10px;
+            }
+        
+            #reviewList {
+              margin-top: 20px;
+            }
+        
+            .review {
+              background-color: #f9f9ff;
+              border: 1px solid #e0d7ff;
+              padding: 10px 12px;
+              border-radius: 8px;
+              margin-bottom: 12px;
+            }
+        
+            .review p {
+              margin: 0.4em 0;
+            }
+
+            .review button {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                border: none;
+                padding: 6px 10px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 0.9rem;
+                transition: background-color 0.3s;
+                margin-right: 8px; 
+            }
+
+            .delete-btn {
+                background-color: #dc2626;
+                color: white;
+            }
+
+            .delete-btn:hover {
+                background-color: #b91c1c;
+            }
+
+            .update-btn {
+                background-color: #16a34a;
+                color: white;
+            }
+
+            .update-btn:hover {
+                background-color: #15803d;
+            }
+
+            .message button i {
+                font-size: 1rem;
+            }
+
+            label {
+                text-align: center;
+                display: block; 
+            }
+
+    </style>
     </head>
 
     <body>
         <div id="header"></div>
 
         <div class="reviews-section">
-            <h1>Reviews</h1>
+            <h2>Reviews</h2>
             <!--onsubmit="event.preventDefault(); postReview();"-->
             <form id="reviewForm" action="/postReview" method="POST" enctype="application/json">
-                <label for="reviewBody">Review</label>
-                <textarea id="reviewBody" name="reviewBody" rows="2" required></textarea>
-    
-                
+                <label for="reviewBody" style="display:center">Review</label>
+                <textarea id="reviewBody" name="reviewBody" rows="4" required></textarea>
+
+                <label for="team">Team</label>
+                <textarea name="team" id="team" rows="1" required></textarea>
     
                 <p id="confirmationMessage" style="display: none; color: green;">Review sent successfully!</p>
                 <p id="failToSendMessage" style="display: none; color: red;">Review failed to send</p>
                 <button type="submit" value="submit">Send Review</button>
             </form>
+
             <button class="refresh-btn" onclick="viewReviews()">View Reviews</button>
             <button class="hide-btn" onclick="toggleReviews()">Hide Reviews</button>
             <div id="reviewList"></div>
@@ -203,21 +382,23 @@ function getAuthorType(permission) {
                                 photo.style.maxWidth = "100%";
                                 msgDiv.appendChild(photo);
                             }**/
+                            if (user !== null){
+                                if (user.name === rev.author) {
+                                    const deleteBtn = document.createElement('button');
+                                    deleteBtn.classList.add('delete-btn');
+                                    deleteBtn.innerHTML = `<i class="bi bi-trash"></i>`;
+                                    deleteBtn.onclick = () => deleteReview(rev._id);
 
-                            if (user.name === rev.author) {
-                                const deleteBtn = document.createElement('button');
-                                deleteBtn.classList.add('delete-btn');
-                                deleteBtn.innerHTML = `<i class="bi bi-trash"></i>`;
-                                deleteBtn.onclick = () => deleteReview(rev._id);
+                                    const updateBtn = document.createElement('button');
+                                    updateBtn.classList.add('update-btn');
+                                    updateBtn.innerHTML = `<i class="bi bi-pencil"></i>`;
+                                    updateBtn.onclick = () => updateReview(rev._id);
 
-                                const updateBtn = document.createElement('button');
-                                updateBtn.classList.add('update-btn');
-                                updateBtn.innerHTML = `<i class="bi bi-pencil"></i>`;
-                                updateBtn.onclick = () => updateReview(rev._id);
-
-                                reviewDiv.appendChild(deleteBtn);
-                                reviewDiv.appendChild(updateBtn);
+                                    reviewDiv.appendChild(deleteBtn);
+                                    reviewDiv.appendChild(updateBtn);
+                                }
                             }
+                            
 
                             /**const replyBtn = document.createElement('button');
                             replyBtn.classList.add('reply-btn');

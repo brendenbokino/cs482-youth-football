@@ -488,23 +488,27 @@ const ReviewDao = require('./model/ReviewDao')
 
 app.post('/postReview', isAuthenticated, async (req, res) => {
   const reviewToSend  = req.body.reviewBody;
+  const teamToSend = req.body.team;
   const user = req.session.user;
-  console.log('req.body.reviewBody: ', req.body.reviewBody)
-  console.log('reviewToSend: ', reviewToSend)
+  //console.log('req.body.team', req.body.team);
+  //console.log('req.body.reviewBody: ', req.body.reviewBody)
+  //console.log('reviewToSend: ', reviewToSend)
 
   try {
     const newReview = await ReviewDao.create({
       review: reviewToSend,
       author: user.name,
       authorType: user.permission,
+      team: teamToSend,
     });
-    res.status(200).json({ success: true, newReview });
+    //res.status(200).json({ success: true, newReview });
+    res.redirect('/reviews.html')
   } catch (err) {
     res.status(500).json({ error: "Failed to post review", details: err.message });
   }
 });
 
-app.get('/viewReviews', isAuthenticated, async (req, res) => {
+app.get('/viewReviews', async (req, res) => {
   try {
     const reviews = await ReviewDao.readAll();
     //console.log(reviews);
