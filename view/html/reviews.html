@@ -369,9 +369,10 @@ function getAuthorType(permission) {
 
                             const authorType = getAuthorType(rev.authorType);
                             const updatedAt = rev.edited ? ` (updated at ${new Date(rev.dateEdited).toLocaleString()})` : '';
+                            const revTeam = rev.team;
 
                             reviewDiv.innerHTML = `
-                                <p><strong>${rev.author} (${authorType})${updatedAt}:</strong></p>
+                                <p><strong>${rev.author} (${authorType})${updatedAt} - Review of ${revTeam}:</strong></p>
                                 <p>${rev.review}</p>
                             `;
 
