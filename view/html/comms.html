@@ -239,13 +239,11 @@
                 <div style="display: flex; gap: 10px; align-items: flex-start;">
                     <textarea id="messageBody" name="messageBody" rows="4" placeholder="Type your message here..." style="flex: 1;" required></textarea>
                     <div style="display: flex; flex-direction: column; gap: 10px;">
-                        <label for="photoInput">Upload Photo</label>
-                        <input type="file" id="photoInput" name="photo" accept="image/*">
-                        <button type="button" onclick="uploadPhoto()">Upload Photo</button>
+                        <button type="button" onclick="triggerFileInput('photoInput')">Upload Photo</button>
+                        <input type="file" id="photoInput" name="photo" accept="image/*" style="display: none;" onchange="handleFileChange('photoInput')">
 
-                        <label for="videoInput">Upload Video</label>
-                        <input type="file" id="videoInput" name="video" accept="video/*">
-                        <button type="button" onclick="uploadVideo()">Upload Video</button>
+                        <button type="button" onclick="triggerFileInput('videoInput')">Upload Video</button>
+                        <input type="file" id="videoInput" name="video" accept="video/*" style="display: none;" onchange="handleFileChange('videoInput')">
                     </div>
                 </div>
                 <button type="submit">Post Message</button>
@@ -259,7 +257,7 @@
             
         <div id="footer"></div>
         <script src="comms_frontend.js"></script>
-        /*<script>
+        <script>
         
             function getAuthorType(permission) {
                 switch (permission) {
@@ -398,38 +396,34 @@
             async function uploadPhoto() {
                 const photoInput = document.getElementById('photoInput');
                 const messageBody = document.getElementById('messageBody').value;
-
-                if (!photoInput.files.length || !messageBody) {
+    
+                if (!photoInput.files.length) {
                     alert("Please select a photo.");
                     return;
                 }
-
+    
                 try {
                     const formData = new FormData();
                     formData.append('photo', photoInput.files[0]);
-                    formData.append('message', messageBody);
-
+                    formData.append('message', messageBody || ""); 
+    
                     const response = await fetch('/comms/uploadPhoto', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
                         body: formData,
-                        credentials: 'include', 
+                        credentials: 'include',
                     });
-
+    
                     if (response.ok) {
                         viewMessages();
                     } else {
                         const result = await response.json();
-                        console.error("Post failed:", result.error || "Unknown server error.");
-                        alert("Failed to post message: " + (result.error || "Unknown error."));
+                        console.error("Photo upload failed:", result.error || "Unknown server error.");
+                        alert("Failed to upload photo: " + (result.error || "Unknown error."));
                     }
                 } catch (error) {
-                    console.error('Network error during post:', error);
+                    console.error('Network error during photo upload:', error);
                     alert("Network error. Please try again.");
                 }
-                
             }
 
             async function uploadVideo() {
@@ -448,9 +442,6 @@
 
                     const response = await fetch('/comms/uploadVideo', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
                         body: formData,
                         credentials: 'include', 
                     });
@@ -473,7 +464,7 @@
                 try {
                     const response = await fetch('/comms/viewMessages', {
                         method: 'GET',
-                        credentials: 'include', 
+                        credentials: 'include',
                     });
 
                     console.log("Response status:", response.status); 
@@ -481,6 +472,8 @@
                     if (response.ok) {
                         const data = await response.json();
                         console.log("Fetched messages:", data); 
+                        //alert("Fetched " + data);
+
                         const messageList = document.getElementById('messageList');
                         messageList.innerHTML = '';
 
@@ -495,16 +488,28 @@
 
                             msgDiv.innerHTML = `
                                 <p><strong>${msg.author} (${authorType})${updatedAt}:</strong></p>
-                                <p>${msg.message}</p>
+                                <p>${msg.message || ''}</p>
                             `;
 
-                            if (msg.photo) {
-                                const photo = document.createElement('img');
-                                photo.src = msg.photo;
-                                photo.alt = "Attached photo";
-                                photo.style.maxWidth = "100%";
-                                msgDiv.appendChild(photo);
+                            if (msg.photoUrl) {
+                                const img = document.createElement('img');
+                                img.src = msg.photoUrl; 
+                                img.alt = "Message Photo";
+                                img.style.maxWidth = "100%";
+                                img.style.marginTop = "10px";
+                                msgDiv.appendChild(img);
                             }
+
+                            if (msg.videoUrl) {
+                                const vid = document.createElement('video');
+                                vid.src = msg.videoUrl; 
+                                vid.controls = true;
+                                vid.style.maxWidth = "100%";
+                                msgDiv.appendChild(vid);
+                            }
+
+                            const buttonContainer = document.createElement('div');
+                            buttonContainer.style.marginTop = "10px";
 
                             if (user.name === msg.author) {
                                 const deleteBtn = document.createElement('button');
@@ -517,15 +522,17 @@
                                 updateBtn.innerHTML = `<i class="bi bi-pencil"></i>`;
                                 updateBtn.onclick = () => updateMessage(msg._id);
 
-                                msgDiv.appendChild(deleteBtn);
-                                msgDiv.appendChild(updateBtn);
+                                buttonContainer.appendChild(deleteBtn);
+                                buttonContainer.appendChild(updateBtn);
                             }
 
                             const replyBtn = document.createElement('button');
                             replyBtn.classList.add('reply-btn');
                             replyBtn.innerHTML = `<i class="bi bi-reply"></i>`;
                             replyBtn.onclick = () => replyToMessage(msg._id);
-                            msgDiv.appendChild(replyBtn);
+                            buttonContainer.appendChild(replyBtn);
+
+                            msgDiv.appendChild(buttonContainer);
 
                             if (msg.replies && msg.replies.length > 0) {
                                 const repliesDiv = document.createElement('div');
@@ -567,6 +574,29 @@
                     hideBtn.textContent = 'View Messages';
                 }
             }
-        </script>*/
+
+            function triggerFileInput(inputId) {
+                const inputElement = document.getElementById(inputId);
+                if (inputElement) {
+                    inputElement.click();
+                } else {
+                    console.error(`Input element with ID '${inputId}' not found.`);
+                }
+            }
+
+            function handleFileChange(inputId) {
+                const inputElement = document.getElementById(inputId);
+                if (inputElement && inputElement.files.length > 0) {
+                    console.log(`File selected for ${inputId}:`, inputElement.files[0].name);
+                    if (inputId === 'photoInput') {
+                        uploadPhoto();
+                    } else if (inputId === 'videoInput') {
+                        uploadVideo();
+                    }
+                } else {
+                    console.warn(`No file selected for ${inputId}.`);
+                }
+            }
+        </script>
     </body>
 </html>

@@ -147,8 +147,12 @@ app.post('/gameCreate', async (req, res) => {
     console.log('gameCreate - Extracted values:', { team1_id, team2_id, date, startTime, endTime, location, link });
     
     const gameDate = new Date(date);
-    const start = new Date(`${date}T${startTime}`);
-    const end = new Date(`${date}T${endTime}`);
+    const start = new Date(`${date}T${startTime}:00`);
+    const end = new Date(`${date}T${endTime}:00`);
+
+    if (isNaN(start) || isNaN(end)) {
+      return res.status(400).json({ error: "Invalid startTime or endTime format." });
+    }
 
     if (start >= end) {
       return res.status(400).json({ error: "End time must be after start time." });
@@ -164,13 +168,12 @@ app.post('/gameCreate', async (req, res) => {
       link,
     };
 
-    console.log('gameCreate - Creating game with data:', newGame);
+    console.log('Creating new game:', newGame); // Debugging log
     const createdGame = await GameDao.create(newGame);
     console.log('gameCreate - Game created successfully:', createdGame);
     res.status(201).json({ success: true, createdGame });
   } catch (err) {
-    console.error('gameCreate - Error creating game:', err);
-    console.error('gameCreate - Error stack:', err.stack);
+    console.error('Error in /gameCreate:', err.message); // Debugging log
     res.status(500).json({ error: "Failed to create game", details: err.message });
   }
 });
@@ -218,139 +221,24 @@ app.use(express.json());
 app.use(methodOverride('_method'));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-//initialize connection to db
-let bucket;
+const FileStorage = require('./src/FileStorage');
 
-mongoose.connection.once('open', () => {
-    bucket = new GridFSBucket(mongoose.connection.db, {
-      bucketName: 'uploads'
-    })
-})
+app.get('/photos/images', FileStorage.getImages)
 
-//create storage
-const storage = new GridFsStorage({
-    url: process.env.DB_URI,
-    file: (req, file) => {
-      return new Promise((resolve, reject) => {
-        crypto.randomBytes(16, (err, buf) => {
-          if (err) {
-            return reject(err);
-          }
-          const filename = buf.toString('hex') + path.extname(file.originalname);
-          const fileInfo = {
-            filename: filename,
-            bucketName: 'uploads'
-          };
-          resolve(fileInfo);
-        });
-      });
-    }
-});
-
-const upload = multer({ storage });
-
-app.get('/photos/images', (req, res) =>{
-  const cursor = bucket.find({});
-  let files;
-  cursor.toArray()
-    .then(function(files){
-      if (!files || files.length == 0){
-        //res.render('/photos.html', {files: false})
-        res.json(files)
-      } else{
-        for (const file of files){
-          if (file.contentType === 'image/jpeg' || file.contentType === 'image/png'){
-            file.isImage = true;
-          } else{
-            file.isImage = false;
-          }
-        }
-        /**files.map(file => {
-          if (file.contentType === 'image/jpeg' || file.contentType === 'image/png'){
-            file.isImage = true;
-          } else{
-            file.isImage = false;
-          }
-        });**/
-        //res.render('/photos.html', {files: files})
-        res.json(files)
-      }
-    })
-})
-
-//upload file to db
-app.post('/upload', upload.single('file'), (req, res) => {
-  //res.json({file: req.file});
+app.post('/upload', FileStorage.uploadFile, (req, res) => {
   res.redirect('/photos.html')
 });
 
-// display all files in JSON
-app.get("/files", async (req, res) => {
-  const cursor = bucket.find({});
-  const files = await cursor.toArray();
-  if (!files || files.length == 0){
-    res.json({err: 'no files exist'})
-  }
-  else{
-    res.json(files)
-  }
-});
 
-// display single file in JSON
-app.get("/files/:filename", async (req, res) => {
-  try {
-      const cursor = bucket.find({filename: req.params.filename});
-      const file = await cursor.next();
-      
-      res.json(file);
-  } catch (err) {
-      res.json({err: 'file doesnt exist'})
-  }
-});
+app.get('/files', FileStorage.getFiles);
 
-// display image
-app.get("/image/:filename", async (req, res) => {
-  let file;
-  try {
-    const cursor = bucket.find({filename: req.params.filename});
-    file = await cursor.next();
-  } catch (err) {
-      res.json({err: 'file doesnt exist'})
-  }
-//console.log('file exists')
-  //check if image
-  if(file.contentType === 'image/jpeg' || file.contentType === 'image/png') {
-    // read output to browser
-    //console.log('file is an image')
-    let readstream = bucket.openDownloadStream(file._id);
-    //console.log('readstream created')
-    readstream.pipe(res);
-  } else {
-    res.status(404).json({
-      err: 'Not an image'
-    })
-  }
-});
+app.get('/files/:filename', FileStorage.getFile);
+
+app.get('/image/:filename', FileStorage.getImage);
 
 const { ObjectId } = require('mongoose')
-// delete file NEED TO UPDATE FROM GRIDFS TO GRIDFSBUCKET
-app.post('/files/:filename', async (req, res) => {
-  let file;
-  try {
-    const cursor = bucket.find({filename: req.params.filename});
-    file = await cursor.next();
-    //res.json(file);
-} catch (err) {
-    //clres.json({err: 'file doesnt exist'})
-    res.redirect('/photos.html')
-}
-  if (file){
-    //res.json({err: 'file doesnt exist'})
-    //res.redirect('/photos.html')
-  }
-  await bucket.delete(file._id);
-  res.redirect('/photos.html')
-});
+
+app.post('/files/:filename', FileStorage.deleteFile);
 
 
 // coach account routes
@@ -428,11 +316,11 @@ app.post('/comms/postMessage', isAuthenticated, async (req, res) => {
 });
 
 app.get('/comms/viewMessages', isAuthenticated, async (req, res) => {
-  const { gameId } = req.query;
-  console.log(`Received gameId in query: ${gameId}`); 
+  //const { gameId } = req.query;
+  //console.log(`Received gameId in query: ${gameId}`); 
 
   try {
-    const messages = await MessageDao.readByGameId(gameId);
+    const messages = await MessageDao.readAll();
     res.json({ messages });
   } catch (err) {
     console.error("Error fetching messages:", err); 
@@ -494,41 +382,68 @@ app.post('/comms/addReply/:id', isAuthenticated, async (req, res) => {
     }
 });
 
-app.post('/comms/uploadPhoto', isAuthenticated, upload.single('photo'), async (req, res) => {
-  const { message } = req.body;
-  const user = req.session.user;
+const upload = multer({ dest: 'uploads/' }); 
 
-  try {
-    const photoUrl = `/image/${req.file.filename}`;
-    const newMessage = await MessageDao.create({
-      message: message || "", 
-      author: user.name,
-      authorType: user.permission,
-      photo: photoUrl,
-    });
-    res.status(200).json({ success: true, newMessage });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to upload photo", details: err.message });
-  }
+app.use('/uploads', express.static('uploads'));
+
+app.post('/comms/uploadPhoto', isAuthenticated, upload.single('photo'), async (req, res) => {
+    const user = req.session.user;
+
+    try {
+        const message = req.body.message || "(no message)";
+        const photoUrl = `/uploads/${req.file.filename}`; 
+
+        const newMessage = await MessageDao.create({
+            message,
+            author: user.name,
+            authorType: user.permission,
+            photoUrl, 
+        });
+
+        res.status(200).json({ success: true, newMessage });
+    } catch (err) {
+        console.error("Error saving photo message:", err);
+        res.status(500).json({ error: "Failed to upload photo", details: err.message });
+    }
 });
 
 app.post('/comms/uploadVideo', isAuthenticated, upload.single('video'), async (req, res) => {
-  const { message } = req.body;
-  const user = req.session.user;
+    const user = req.session.user;
 
-  try {
-    const videoUrl = `/video/${req.file.filename}`;
-    const newMessage = await MessageDao.create({
-      message: message || "", 
-      author: user.name,
-      authorType: user.permission,
-      video: videoUrl,
-    });
-    res.status(200).json({ success: true, newMessage });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to upload video", details: err.message });
-  }
+    try {
+        const message = req.body.message || "(no message)";
+        const videoUrl = `/uploads/${req.file.filename}`; 
+
+        const newMessage = await MessageDao.create({
+            message,
+            author: user.name,
+            authorType: user.permission,
+            videoUrl,
+        });
+
+        res.status(200).json({ success: true, newMessage });
+    } catch (err) {
+        console.error("Error saving video message:", err);
+        res.status(500).json({ error: "Failed to upload video", details: err.message });
+    }
 });
+
+app.get('/image/:id', async (req, res) => {
+    const msg = await MessageDao.findById(req.params.id);
+    if (!msg || !msg.photo) return res.status(404).send("Not found");
+
+    res.contentType(msg.photoMime);
+    res.send(msg.photo);
+});
+
+app.get('/video/:id', async (req, res) => {
+    const msg = await MessageDao.findById(req.params.id);
+    if (!msg || !msg.video) return res.status(404).send("Not found");
+
+    res.contentType(msg.videoMime);
+    res.send(msg.video);
+});
+
 /*
 app.post('/gameChat/:gameId', isAuthenticated, async (req, res) => {
   const { gameId } = req.params;
@@ -576,25 +491,32 @@ app.get('/gameChat/:gameId', isAuthenticated, async (req, res) => {
 
 const ReviewDao = require('./model/ReviewDao')
 
-app.post('/teams/postReview', isAuthenticated, async (req, res) => {
-  const { review } = req.body;
+app.post('/postReview', isAuthenticated, async (req, res) => {
+  const reviewToSend  = req.body.reviewBody;
+  const teamToSend = req.body.team;
   const user = req.session.user;
+  //console.log('req.body.team', req.body.team);
+  //console.log('req.body.reviewBody: ', req.body.reviewBody)
+  //console.log('reviewToSend: ', reviewToSend)
 
   try {
     const newReview = await ReviewDao.create({
-      message,
+      review: reviewToSend,
       author: user.name,
       authorType: user.permission,
+      team: teamToSend,
     });
-    res.status(200).json({ success: true, newReview });
+    //res.status(200).json({ success: true, newReview });
+    res.redirect('/reviews.html')
   } catch (err) {
     res.status(500).json({ error: "Failed to post review", details: err.message });
   }
 });
 
-app.get('/teams/viewReviews', isAuthenticated, async (req, res) => {
+app.get('/viewReviews', async (req, res) => {
   try {
     const reviews = await ReviewDao.readAll();
+    //console.log(reviews);
     res.json({ reviews });
   } catch (err) {
     console.error("Error fetching reviews:", err); 
@@ -602,29 +524,30 @@ app.get('/teams/viewReviews', isAuthenticated, async (req, res) => {
   }
 });
 
-app.delete('/teams/deleteReview/:id', isAuthenticated, async (req, res) => {
+app.delete('/deleteReview/:id', isAuthenticated, async (req, res) => {
   const { id } = req.params;
   const user = req.session.user;
+  //console.log('req.params: ', req.params)
 
   try {
     const isAuthor = await ReviewDao.isAuthor(id, user.name);
     if (!isAuthor) {
       return res.status(403).json({ error: "You are not authorized to delete this review." });
     }
-    await ReviewDaoDao.delete(id);
+    await ReviewDao.delete(id);
     res.status(200).json({ success: true });
   } catch (err) {
     res.status(500).json({ error: "Failed to delete review", details: err.message });
   }
 });
 
-app.put('/teams/updateReview/:id', isAuthenticated, async (req, res) => {
+app.put('/updateReview/:id', isAuthenticated, async (req, res) => {
   const { id } = req.params;
   const { review } = req.body;
   const user = req.session.user;
 
   try {
-    const isAuthor = await ReviewDaoDao.isAuthor(id, user.name);
+    const isAuthor = await ReviewDao.isAuthor(id, user.name);
     if (!isAuthor) {
       return res.status(403).json({ error: "You are not authorized to update this review." });
     }
@@ -644,15 +567,20 @@ app.post('/calendar/postMessage', isAuthenticated, async (req, res) => {
   const user = req.session.user;
 
   try {
+    console.log("Creating message in database:", { message, gameId, author: user.name, authorType: user.permission });
+
     const newMessage = await GameChatDao.create({
       message,
       gameId,
       author: user.name,
       authorType: user.permission,
     });
+
+    console.log("Message created successfully:", newMessage);
+
     res.status(200).json({ success: true, newMessage });
   } catch (err) {
-    console.error("Error posting message:", err); 
+    console.error("Error posting message:", err);
     res.status(500).json({ error: "Failed to post message", details: err.message });
   }
 });
@@ -723,7 +651,7 @@ app.post('/calendar/addReply/:id', isAuthenticated, async (req, res) => {
     }
 });
 
-app.post('/calendar/uploadPhoto', isAuthenticated, upload.single('photo'), async (req, res) => {
+app.post('/calendar/uploadPhoto', isAuthenticated, FileStorage.uploadPhoto, async (req, res) => {
   const { message } = req.body;
   const user = req.session.user;
 
@@ -741,7 +669,7 @@ app.post('/calendar/uploadPhoto', isAuthenticated, upload.single('photo'), async
   }
 });
 
-app.post('/calendar/uploadVideo', isAuthenticated, upload.single('video'), async (req, res) => {
+app.post('/calendar/uploadVideo', isAuthenticated, FileStorage.uploadVideo, async (req, res) => {
   const { message } = req.body;
   const user = req.session.user;
 

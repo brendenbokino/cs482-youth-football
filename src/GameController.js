@@ -11,12 +11,6 @@ class GameController {
 
     /// We need functions to create a game 
     async createNewGame(req, res) {
-        // create a payload to match our intended schema 
-        // here we can also ensure logic 
-
-
-        /// later we can add a clause to only add team names that match a team name in the DB *****************
-
         if (req != null) {
             // check request quality 
             // neither should be null a game doesn't have 1 team thats not a game
@@ -28,13 +22,12 @@ class GameController {
                 
                 res.status = 200;
                 res.send = { success: true, game: game };
-                
             } else {
-                res.status= 400;
+                res.status = 400;
                 res.send = { error: "There must be at least 2 teams in order to create a game" };
             }
         } else {
-            res.status= 400 ;
+            res.status = 400;
             res.send = { error: "Request is empty" };
         }
     }

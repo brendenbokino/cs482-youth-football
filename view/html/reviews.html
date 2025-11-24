@@ -7,27 +7,216 @@
     <link href="./css/main.css" rel="stylesheet" type="text/css">
     <link href="./css/popup.css" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
+    <style>
+        body {
+              font-family: 'Inter', 'Segoe UI', sans-serif;
+              background-color: #fafafa;
+              color: #333;
+              margin: 0;
+            }
+        
+            header {
+              background-color: #e6e0f8;
+              color: #3c1361;
+              padding: 0.5rem 2rem;
+              text-align: center;
+              border-bottom: 2px solid #c4b5fd;
+            }
+
+            .header-container {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .logo-title {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            }
+        
+            header h1 {
+              margin: 0.5rem 0;
+              font-size: 1.8rem;
+              font-weight: 600;
+            }
+        
+            .topnav {
+              display: flex;
+              gap: 1rem;
+            }
+        
+            .topnav a {
+              text-decoration: none;
+              color: #3c1361;
+              font-weight: 500;
+              padding: 6px 12px;
+              border-radius: 6px;
+              transition: 0.3s;
+            }
+        
+            .topnav a:hover {
+              background-color: #dcd0ff;
+              color: #2b0a50;
+            }
+        
+            main {
+              max-width: 800px;
+              margin: 2rem auto;
+              padding: 1.5rem;
+              background-color: #ffffff;
+              border-radius: 10px;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+        
+            h2 {
+              text-align: center;
+              color: #3c1361;
+              margin-bottom: 1rem;
+            }
+        
+            form {
+              display: flex;
+              flex-direction: column;
+              gap: 10px;
+            }
+        
+            textarea {
+              border-radius: 8px;
+              border: 1px solid #c4b5fd;
+              padding: 10px;
+              font-size: 1rem;
+              resize: vertical;
+              min-height: 80px;
+            }
+        
+            textarea:focus {
+              outline: none;
+              border-color: #a78bfa;
+              box-shadow: 0 0 3px #c4b5fd;
+            }
+        
+            button {
+              background-color: #a78bfa;
+              color: white;
+              border: none;
+              padding: 10px 14px;
+              border-radius: 6px;
+              font-size: 1rem;
+              cursor: pointer;
+              transition: 0.3s;
+              width: fit-content;
+              align-self: center;
+              margin-top: 5px;
+            }
+        
+            button:hover {
+              background-color: #8b5cf6;
+            }
+        
+            .refresh-btn,
+            .hide-btn {
+              margin-right: 8px;
+            }
+        
+            #confirmationMessage {
+              text-align: center;
+              font-weight: 500;
+              color: #22c55e;
+              margin-top: 10px;
+            }
+        
+            #reviewList {
+              margin-top: 20px;
+            }
+        
+            .review {
+              background-color: #f9f9ff;
+              border: 1px solid #e0d7ff;
+              padding: 10px 12px;
+              border-radius: 8px;
+              margin-bottom: 12px;
+            }
+        
+            .review p {
+              margin: 0.4em 0;
+            }
+
+            .review button {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                border: none;
+                padding: 6px 10px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 0.9rem;
+                transition: background-color 0.3s;
+                margin-right: 8px; 
+            }
+
+            .delete-btn {
+                background-color: #dc2626;
+                color: white;
+            }
+
+            .delete-btn:hover {
+                background-color: #b91c1c;
+            }
+
+            .update-btn {
+                background-color: #16a34a;
+                color: white;
+            }
+
+            .update-btn:hover {
+                background-color: #15803d;
+            }
+
+            .message button i {
+                font-size: 1rem;
+            }
+
+            label {
+                text-align: center;
+                display: block; 
+            }
+
+    </style>
     </head>
 
     <body>
         <div id="header"></div>
 
-        <div class="reviews-section">
-            <h1>Reviews</h1>
-            <form id="reviewForm" onsubmit="event.preventDefault(); postReview();">
-                <label for="reviewBody">Review</label>
-                <textarea id="reviewBody" name="reviewBody" rows="2" required></textarea>
-    
-                
+        <main>
+            <h2>Reviews</h2>
+            <!--onsubmit="event.preventDefault(); postReview();"-->
+            <form id="reviewForm" action="/postReview" method="POST" enctype="application/json">
+                <label for="reviewBody" style="display:center">Review</label>
+                <textarea id="reviewBody" name="reviewBody" rows="4" required></textarea>
+
+                <label for="team">Team</label>
+                <textarea name="team" id="team" rows="1" required></textarea>
     
                 <p id="confirmationMessage" style="display: none; color: green;">Review sent successfully!</p>
                 <p id="failToSendMessage" style="display: none; color: red;">Review failed to send</p>
-                <button class="refresh-btn" onclick="viewReviews()">View Reviews</button>
-                <button class="hide-btn" onclick="toggleReviews()">Hide Reviews</button>
-                <div id="reviewList"></div>
-                <button type="submit">Send Review</button>
+                <button type="submit" value="submit">Send Review</button>
             </form>
-        </div>
+
+            <h4>Filter Reviews by Team</h4>
+            <div class="filter-input-group">
+                <input type="text" id="filteredTeam" placeholder="Enter team name..." />
+                <button onclick="viewReviews(true)">Apply Filter</button>
+                <button class="clear-filter-btn" onclick="viewReviews(false)">Clear Filter</button>
+            </div>
+
+            <hr>
+
+            <button class="refresh-btn" onclick="viewReviews(false)">View Reviews</button>
+            <button class="hide-btn" onclick="toggleReviews(false)">Hide Reviews</button>
+            <div id="reviewList"></div>
+        </main>
 
         <div id="footer"></div>
 
@@ -82,7 +271,7 @@ function getAuthorType(permission) {
                 }
 
                 try {
-                    const response = await fetch('/teams/postReview', {
+                    const response = await fetch('/reviews/postReview', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -97,7 +286,7 @@ function getAuthorType(permission) {
                             document.getElementById("confirmationMessage").style.display = "none";
                         }, 3000);
                         document.getElementById("reviewForm").reset();
-                        viewReviews();
+                        viewReviews(false);
                     } else {
                         document.getElementById("failToSendMessage").style.display = "block";
                         setTimeout(() => {
@@ -117,14 +306,14 @@ function getAuthorType(permission) {
                 if (!confirm("Are you sure you want to delete this review?")) return;
 
                 try {
-                    const response = await fetch(`/teams/deleteReview/${reviewId}`, {
+                    const response = await fetch(`/deleteReview/${reviewId}`, {
                         method: 'DELETE',
                         credentials: 'include',
                     });
 
                     if (response.ok) {
                         //alert("Message deleted successfully.");
-                        viewReviews();
+                        viewReviews(false);
                     } else {
                         const result = await response.json();
                         alert("Failed to delete message: " + (result.error || "Unknown error."));
@@ -140,7 +329,7 @@ function getAuthorType(permission) {
                 if (!newReview) return;
 
                 try {
-                    const response = await fetch(`/teams/updateReview/${reviewId}`, {
+                    const response = await fetch(`/updateReview/${reviewId}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
@@ -150,8 +339,9 @@ function getAuthorType(permission) {
                     });
 
                     if (response.ok) {
-                        //alert("Message updated successfully.");
-                        viewReviews();
+                        
+                        alert("Message updated successfully.");
+                        viewReviews(false);
                     } else {
                         const result = await response.json();
                         alert("Failed to edit review: " + (result.error || "Unknown error."));
@@ -162,81 +352,31 @@ function getAuthorType(permission) {
                 }
             }
 
-            async function viewReviews() {
+            async function viewReviews(filterApplied) {
                 try {
-                    const response = await fetch('/teams/viewReviews', {
+                    const response = await fetch('/viewReviews'/**, {
                         method: 'GET',
                         credentials: 'include', 
-                    });
-
+                    }*/);
                     console.log("Response status:", response.status); 
 
                     if (response.ok) {
                         const data = await response.json();
+                        //window.alert(data);
                         console.log("Fetched reviews:", data); 
-                        const reviewList = document.getElementById('reviewList');
-                        reviewList.innerHTML = '';
-
-                        const user = await fetch('/loggedUser', { credentials: 'include' }).then(res => res.json());
-
-                        data.reviews.forEach(review => {
-                            const reviewDiv = document.createElement('div');
-                            reviewDiv.classList.add('review');
-
-                            const authorType = getAuthorType(review.authorType);
-                            const updatedAt = review.edited ? ` (updated at ${new Date(review.dateEdited).toLocaleString()})` : '';
-
-                            reviewDiv.innerHTML = `
-                                <p><strong>${review.author} (${authorType})${updatedAt}:</strong></p>
-                                <p>${review.message}</p>
-                            `;
-
-                            /**if (msg.photo) {
-                                const photo = document.createElement('img');
-                                photo.src = msg.photo;
-                                photo.alt = "Attached photo";
-                                photo.style.maxWidth = "100%";
-                                msgDiv.appendChild(photo);
-                            }**/
-
-                            if (user.name === review.author) {
-                                const deleteBtn = document.createElement('button');
-                                deleteBtn.classList.add('delete-btn');
-                                deleteBtn.innerHTML = `<i class="bi bi-trash"></i>`;
-                                deleteBtn.onclick = () => deleteReview(review._id);
-
-                                const updateBtn = document.createElement('button');
-                                updateBtn.classList.add('update-btn');
-                                updateBtn.innerHTML = `<i class="bi bi-pencil"></i>`;
-                                updateBtn.onclick = () => updateReview(review._id);
-
-                                reviewDiv.appendChild(deleteBtn);
-                                reviewDiv.appendChild(updateBtn);
-                            }
-
-                            /**const replyBtn = document.createElement('button');
-                            replyBtn.classList.add('reply-btn');
-                            replyBtn.innerHTML = `<i class="bi bi-reply"></i>`;
-                            replyBtn.onclick = () => replyToMessage(msg._id);
-                            msgDiv.appendChild(replyBtn);
-
-                            if (msg.replies && msg.replies.length > 0) {
-                                const repliesDiv = document.createElement('div');
-                                repliesDiv.classList.add('replies');
-                                msg.replies.forEach(reply => {
-                                    const replyDiv = document.createElement('div');
-                                    replyDiv.classList.add('reply');
-                                    replyDiv.innerHTML = `
-                                        <p><strong>${reply.email}:</strong> ${reply.message}</p>
-                                        <p class="reply-date">${new Date(reply.date).toLocaleString()}</p>
-                                    `;
-                                    repliesDiv.appendChild(replyDiv);
-                                });
-                                msgDiv.appendChild(repliesDiv);
-                            }**/
-
-                            messageList.appendChild(reviewDiv);
-                        });
+                        document.getElementById('reviewList').innerHTML='';
+                        filter = document.getElementById("filteredTeam").value;
+                        if (filterApplied){
+                            data.reviews.forEach(rev => {
+                                if (filter === rev.team){
+                                    createReview(rev)
+                                }
+                            });    
+                        } 
+                        else{
+                            data.reviews.forEach(rev => createReview(rev));
+                            document.getElementById("filteredTeam").value = '';
+                        }          
                     } else {
                         const result = await response.json();
                         console.error("Failed to fetch reviews:", result.error || "Unknown server error.");
@@ -244,8 +384,45 @@ function getAuthorType(permission) {
                     }
                 } catch (error) {
                     console.error('Network error during review retrieval:', error); 
-                    alert("Network error. Please try again.");
+                    alert("Network error. Please try again. ");
+                    alert(error)
                 }
+            }
+
+            async function createReview(rev){
+                const user = await fetch('/loggedUser', { credentials: 'include' }).then(res => res.json());
+                const reviewList = document.getElementById('reviewList');
+
+                const reviewDiv = document.createElement('div');
+                reviewDiv.classList.add('review');
+
+                const authorType = getAuthorType(rev.authorType);
+                const updatedAt = rev.edited ? ` (updated at ${new Date(rev.dateEdited).toLocaleString()})` : '';
+                const revTeam = rev.team;
+
+                reviewDiv.innerHTML = `
+                    <p><strong>${rev.author} (${authorType})${updatedAt} - Review of ${revTeam}:</strong></p>
+                    <p>${rev.review}</p>
+                `;
+
+                if (user !== null){
+                    if (user.name === rev.author) {
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.classList.add('delete-btn');
+                        deleteBtn.innerHTML = `<i class="bi bi-trash"></i>`;
+                        deleteBtn.onclick = () => deleteReview(rev._id);
+
+                        const updateBtn = document.createElement('button');
+                        updateBtn.classList.add('update-btn');
+                        updateBtn.innerHTML = `<i class="bi bi-pencil"></i>`;
+                        updateBtn.onclick = () => updateReview(rev._id);
+
+                        reviewDiv.appendChild(deleteBtn);
+                        reviewDiv.appendChild(updateBtn);
+                    }
+                }
+
+                reviewList.appendChild(reviewDiv);
             }
 
             function toggleReviews() {

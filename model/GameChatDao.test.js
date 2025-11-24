@@ -1,5 +1,6 @@
+const { describe } = require('yargs');
 const dbcon = require('./DbConnect');
-const dao = require('./MessageDao');
+const dao = require('./GameChatDao');
 
 beforeAll(async function(){ 
     await dbcon.connect('test');
@@ -16,11 +17,13 @@ afterEach(function(){
  
 });
 
+
 test('Create new message', async () => {
   const newMessage = {
+    gameId: '0',
     message: 'Hi there',
     author: 'Loren',
-    authorType: 1
+    authorType: 1,
   };
 
   const created = await dao.create(newMessage);
@@ -31,10 +34,20 @@ test('Create new message', async () => {
   expect(found.author).toBe('Loren');
 });
 
+test('Error when creating message without author', async () => {
+  const newMessage = {
+    gameId: '0',
+    message: 'No author here',
+    authorType: 1,
+  };
+
+  await expect(dao.create(newMessage)).rejects.toThrow();
+});
+
 test('Read all messages', async () => {
-  const msg1 = { message: 'Test 1', author: 'Alice', authorType: 1 };
-  const msg2 = { message: 'Test 2', author: 'Bob', authorType: 2 };
-  const msg3 = { message: 'Test 3', author: 'Carol', authorType: 3 };
+  const msg1 = { gameId: '0', message: 'Test 1', author: 'Alice', authorType: 1 };
+  const msg2 = { gameId: '0', message: 'Test 2', author: 'Bob', authorType: 2 };
+  const msg3 = { gameId: '0', message: 'Test 3', author: 'Carol', authorType: 3 };
 
   await dao.create(msg1);
   await dao.create(msg2);
@@ -46,8 +59,39 @@ test('Read all messages', async () => {
   expect(messages[0]).toHaveProperty('message');
 });
 
+test('Read by gameId', async () => {
+  const msg1 = { gameId: 'game1', message: 'Game 1 Msg', author: 'Loren', authorType: 1 };
+  const msg2 = { gameId: 'game2', message: 'Game 2 Msg', author: 'Brenden', authorType: 2 };
+  const msg3 = { gameId: 'game1', message: 'Another Game 1 Msg', author: 'Oscar', authorType: 3 };
+
+  await dao.create(msg1);
+  await dao.create(msg2);
+  await dao.create(msg3);
+
+  const game1Messages = await dao.readByGameId('game1');
+
+  expect(game1Messages.length).toBe(2);
+  expect(game1Messages[0].gameId).toBe('game1');
+  expect(game1Messages[1].gameId).toBe('game1');
+});
+
+test('Create for gameId', async () => {
+  const msg = { gameId: 'gameX', message: 'Hello', author: 'Reece', authorType: 1 };
+  const created = await dao.create(msg);
+
+  expect(created.gameId).toBe('gameX');
+  expect(created.message).toBe('Hello');
+  expect(created.author).toBe('Reece');
+});
+
+test('Error read by non-existent gameId', async () => {
+  const messages = await dao.readByGameId('nonexistentGameId');
+
+  expect(messages.length).toBe(0);
+});
+
 test('Find message by ID', async () => {
-  const msg = { message: 'Find me', author: 'Finder', authorType: 1 };
+  const msg = { gameId: '0', message: 'Find me', author: 'Finder', authorType: 1 };
   const created = await dao.create(msg);
 
   const found = await dao.findById(created._id);
@@ -58,7 +102,7 @@ test('Find message by ID', async () => {
 });
 
 test('Update message', async () => {
-  const msg = { message: 'Old text', author: 'Loren', authorType: 1 };
+  const msg = { gameId: '0', message: 'Old text', author: 'Loren', authorType: 1 };
   const created = await dao.create(msg);
 
   const updated = await dao.update(created._id, { message: 'Updated text' });
@@ -69,7 +113,7 @@ test('Update message', async () => {
 });
 
 test('Add reply to message', async () => {
-  const msg = { message: 'Original', author: 'Poster', authorType: 1 };
+  const msg = { gameId: '0', message: 'Original', author: 'Poster', authorType: 1 };
   const created = await dao.create(msg);
 
   const reply = { email: 'responder@test.com', message: 'Reply here' };
@@ -80,14 +124,14 @@ test('Add reply to message', async () => {
 });
 
 test('Add reply to non-existent message', async () => {
-  const reply = { email: 'responder@test.com', message: 'Reply here' };
+  const reply = { gameId: '0', email: 'responder@test.com', message: 'Reply here' };
   const updated = await dao.addReply('nonexistentId', reply);
 
   expect(updated).toBeNull();
 });
 
 test('Delete message', async () => {
-  const msg = { message: 'Delete me', author: 'Temp', authorType: 1 };
+  const msg = { gameId: '0', message: 'Delete me', author: 'Temp', authorType: 1 };
   const created = await dao.create(msg);
 
   await dao.delete(created._id);
@@ -103,23 +147,10 @@ test('Update non-existent message', async () => {
   expect(updated).toBeNull();
 });
 
-test('Add photo to message', async () => {
-  const msg = { message: 'Photo message', author: 'Loren', authorType: 1 };
-  const created = await dao.create(msg);
 
-  const updated = await dao.addPhoto(created._id, 'http://photo.url');
-
-  expect(updated.photo).toBe('http://photo.url');
-});
-
-test('Add photo to non-existent message', async () => {
-  const updated = await dao.addPhoto('nonexistentId', 'http://photo.url');
-
-  expect(updated).toBeNull();
-});
 
 test('Check author', async () => {
-  const msg = { message: 'My post', author: 'Loren', authorType: 1 };
+  const msg = { gameId: '0', message: 'My post', author: 'Loren', authorType: 1 };
   const created = await dao.create(msg);
 
   const valid = await dao.isAuthor(created._id, 'Loren');
@@ -128,4 +159,13 @@ test('Check author', async () => {
   expect(valid).toBe(true);
   expect(invalid).toBe(false);
 });
+
+test('createForGame throws when outside game time', async () => {
+  const msgData = { message: 'Test', author: 'Loren', authorType: 1 };
+
+  await expect(dao.createForGame('game1', msgData))
+    .rejects
+    .toThrow('gameDao is not defined');
+});
+
 

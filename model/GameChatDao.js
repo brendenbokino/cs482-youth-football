@@ -11,8 +11,6 @@ const gameChatSchema = new mongoose.Schema({
   message: { type: String, default: "" }, 
   author: { type: String, required: true },
   authorType: { type: Number, required: true },
-  photo: { type: String }, 
-  video: { type: String }, 
   edited: { type: Boolean, default: false },
   dateCreated: { type: Date, default: Date.now },
   dateEdited: { type: Date },
@@ -59,14 +57,6 @@ module.exports = {
       const msg = await gameChatModel.findById(id);
       if (!msg) return null;
       msg.replies.push({ ...reply, date: new Date() });
-      await msg.save();
-      return msg;
-  },
-
-  async addPhoto(id, photoUrl) {
-      const msg = await gameChatModel.findById(id);
-      if (!msg) return null;
-      msg.photo = photoUrl;
       await msg.save();
       return msg;
   },

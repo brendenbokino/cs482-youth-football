@@ -19,7 +19,7 @@ module.exports = {
   },
 
   async readAll() {
-      return await reviewModel.find().sort({ date: -1 }).lean();
+      return await reviewModel.find().sort({ dateCreated: -1 }).lean();
   },
 
   async findById(id) {
