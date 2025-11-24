@@ -464,7 +464,7 @@
                 try {
                     const response = await fetch('/comms/viewMessages', {
                         method: 'GET',
-                        credentials: 'include', 
+                        credentials: 'include',
                     });
 
                     console.log("Response status:", response.status); 
@@ -472,6 +472,8 @@
                     if (response.ok) {
                         const data = await response.json();
                         console.log("Fetched messages:", data); 
+                        //alert("Fetched " + data);
+
                         const messageList = document.getElementById('messageList');
                         messageList.innerHTML = '';
 
@@ -486,23 +488,28 @@
 
                             msgDiv.innerHTML = `
                                 <p><strong>${msg.author} (${authorType})${updatedAt}:</strong></p>
-                                <p>${msg.message}</p>
+                                <p>${msg.message || ''}</p>
                             `;
 
-                            if (msg.photo) {
+                            if (msg.photoUrl) {
                                 const img = document.createElement('img');
-                                img.src = `/image/${msg._id}`;
+                                img.src = msg.photoUrl; 
+                                img.alt = "Message Photo";
                                 img.style.maxWidth = "100%";
+                                img.style.marginTop = "10px";
                                 msgDiv.appendChild(img);
                             }
 
-                            if (msg.video) {
+                            if (msg.videoUrl) {
                                 const vid = document.createElement('video');
-                                vid.src = `/video/${msg._id}`;
+                                vid.src = msg.videoUrl; 
                                 vid.controls = true;
                                 vid.style.maxWidth = "100%";
                                 msgDiv.appendChild(vid);
                             }
+
+                            const buttonContainer = document.createElement('div');
+                            buttonContainer.style.marginTop = "10px";
 
                             if (user.name === msg.author) {
                                 const deleteBtn = document.createElement('button');
@@ -515,15 +522,17 @@
                                 updateBtn.innerHTML = `<i class="bi bi-pencil"></i>`;
                                 updateBtn.onclick = () => updateMessage(msg._id);
 
-                                msgDiv.appendChild(deleteBtn);
-                                msgDiv.appendChild(updateBtn);
+                                buttonContainer.appendChild(deleteBtn);
+                                buttonContainer.appendChild(updateBtn);
                             }
 
                             const replyBtn = document.createElement('button');
                             replyBtn.classList.add('reply-btn');
                             replyBtn.innerHTML = `<i class="bi bi-reply"></i>`;
                             replyBtn.onclick = () => replyToMessage(msg._id);
-                            msgDiv.appendChild(replyBtn);
+                            buttonContainer.appendChild(replyBtn);
+
+                            msgDiv.appendChild(buttonContainer);
 
                             if (msg.replies && msg.replies.length > 0) {
                                 const repliesDiv = document.createElement('div');

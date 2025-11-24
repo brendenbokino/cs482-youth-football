@@ -673,77 +673,7 @@
                 }
             }
 
-            /*async function uploadPhoto() {
-                const photoInput = document.getElementById('photoInput');
-                const messageBody = document.getElementById('messageBody').value;
-
-                if (!photoInput.files.length || !messageBody) {
-                    alert("Please select a photo.");
-                    return;
-                }
-
-                try {
-                    const formData = new FormData();
-                    formData.append('photo', photoInput.files[0]);
-                    formData.append('message', messageBody);
-
-                    const response = await fetch('/calendar/uploadPhoto', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                       body: formData,
-                        credentials: 'include', 
-                    });
-
-                    if (response.ok) {
-                        viewMessages();
-                    } else {
-                        const result = await response.json();
-                        console.error("Post failed:", result.error || "Unknown server error.");
-                        alert("Failed to post message: " + (result.error || "Unknown error."));
-                    }
-                } catch (error) {
-                    console.error('Network error during post:', error);
-                    alert("Network error. Please try again.");
-                }
-            }   
-
-            async function uploadVideo() {
-                const photoInput = document.getElementById('videoInput');
-                const messageBody = document.getElementById('messageBody').value;
-
-                if (!videoInput.files.length || !messageBody) {
-                    alert("Please select a video.");
-                    return;
-                }
-
-                try {
-                    const formData = new FormData();
-                    formData.append('video', videoInput.files[0]);
-                    formData.append('message', messageBody);
-
-                    const response = await fetch('/calendar/uploadVideo', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: formData,
-                        credentials: 'include', 
-                    });
-
-                    if (response.ok) {
-                        viewMessages();
-                    } else {
-                        const result = await response.json();
-                        console.error("Post failed:", result.error || "Unknown server error.");
-                        alert("Failed to post message: " + (result.error || "Unknown error."));
-                    }
-                } catch (error) {
-                    console.error('Network error during post:', error);
-                    alert("Network error. Please try again.");
-                }
-            }*/
+        
 
             async function viewMessages() {
                 if (!currentGameId) {

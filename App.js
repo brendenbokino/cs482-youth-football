@@ -371,28 +371,24 @@ app.post('/comms/addReply/:id', isAuthenticated, async (req, res) => {
     }
 });
 
+const upload = multer({ dest: 'uploads/' }); 
 
-app.post('/comms/uploadPhoto', isAuthenticated, FileStorage.uploadPhoto, async (req, res) => {
-  /*const { message } = req.body;
-  const user = req.session.user;*/
+app.use('/uploads', express.static('uploads'));
 
-//app.post('/comms/uploadPhoto', isAuthenticated, upload.single('photo'), async (req, res) => {
+app.post('/comms/uploadPhoto', isAuthenticated, upload.single('photo'), async (req, res) => {
     const user = req.session.user;
 
-
     try {
-        const message = req.body.message || "(no message)"; 
-        console.log("Received message:", message);
+        const message = req.body.message || "(no message)";
+        const photoUrl = `/uploads/${req.file.filename}`; 
 
         const newMessage = await MessageDao.create({
             message,
             author: user.name,
             authorType: user.permission,
-            photo: req.file.buffer,
-            photoMime: req.file.mimetype
+            photoUrl, 
         });
 
-        console.log("Photo message saved successfully:", newMessage);
         res.status(200).json({ success: true, newMessage });
     } catch (err) {
         console.error("Error saving photo message:", err);
@@ -400,25 +396,23 @@ app.post('/comms/uploadPhoto', isAuthenticated, FileStorage.uploadPhoto, async (
     }
 });
 
-
-app.post('/comms/uploadVideo', isAuthenticated, FileStorage.uploadVideo, async (req, res) => {
-  /*const { message } = req.body;
-  const user = req.session.user;*/
-
-//app.post('/comms/uploadVideo', isAuthenticated, upload.single('video'), async (req, res) => {
+app.post('/comms/uploadVideo', isAuthenticated, upload.single('video'), async (req, res) => {
     const user = req.session.user;
 
-
     try {
+        const message = req.body.message || "(no message)";
+        const videoUrl = `/uploads/${req.file.filename}`; 
+
         const newMessage = await MessageDao.create({
-            message: req.body.message || "",
+            message,
             author: user.name,
             authorType: user.permission,
-            video: req.file.buffer,
-            videoMime: req.file.mimetype
+            videoUrl,
         });
+
         res.status(200).json({ success: true, newMessage });
     } catch (err) {
+        console.error("Error saving video message:", err);
         res.status(500).json({ error: "Failed to upload video", details: err.message });
     }
 });
