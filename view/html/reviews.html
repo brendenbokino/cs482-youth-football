@@ -189,7 +189,7 @@
     <body>
         <div id="header"></div>
 
-        <div class="reviews-section">
+        <main>
             <h2>Reviews</h2>
             <!--onsubmit="event.preventDefault(); postReview();"-->
             <form id="reviewForm" action="/postReview" method="POST" enctype="application/json">
@@ -203,11 +203,20 @@
                 <p id="failToSendMessage" style="display: none; color: red;">Review failed to send</p>
                 <button type="submit" value="submit">Send Review</button>
             </form>
+            
+            <h4>Filter Reviews by Team</h4>
+            <div class="filter-input-group">
+                <input type="text" id="filteredTeam" placeholder="Enter coach name..." />
+                <button onclick="viewReviews()">Apply Filter</button>
+                <button class="clear-filter-btn" onclick="viewReviews()">Clear Filter</button>
+            </div>
+
+            <hr>
 
             <button class="refresh-btn" onclick="viewReviews()">View Reviews</button>
             <button class="hide-btn" onclick="toggleReviews()">Hide Reviews</button>
             <div id="reviewList"></div>
-        </div>
+        </main>
 
         <div id="footer"></div>
 
