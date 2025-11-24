@@ -14,9 +14,6 @@ const youthSchema = new mongoose.Schema({
     position: {
         type: String,
     },
-    stats: {
-        type: Array,
-    },
     dob: {
         type: Date,
     },
@@ -27,6 +24,11 @@ const youthSchema = new mongoose.Schema({
 });
 
 const youthModel = mongoose.model('users_youths', youthSchema);
+
+exports.read = async function(youthId){
+    let youth = await youthModel.findById(youthId);
+    return youth;
+}
 
 exports.findByUserId = async function(userId) {
     let youth = await youthModel.findOne({id_user: userId});
@@ -56,6 +58,11 @@ exports.create = async function(newYouth){
 
 exports.update = async function(id, updates){
     let youth = await youthModel.findByIdAndUpdate(id, updates, { new: true });
+    return youth;
+}
+
+exports.getYouthOnTeam = async function(teamId) {
+    let youth = await youthModel.find({id_team: teamId});
     return youth;
 }
 

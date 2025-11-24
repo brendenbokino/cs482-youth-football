@@ -17,6 +17,7 @@ Permission Levels:
 const readline = require('readline');
 const UserDao = require('../model/UserDao');
 const YouthDao = require('../model/YouthDao');
+const TeamInviteDao = require('../model/TeamInviteDao');
 const hash = require('../util/Hashing');
 
 class User {
@@ -522,4 +523,227 @@ exports.getYouths = async function(req, res) {
     }
 }
 
+exports.inviteYouthToTeam = async function(req, res) {
+    if (!req.session || !req.session.user) {
+        res.status(403);
+        res.send('Forbidden: Not logged in');
+        return;
+    }
+    let requester = await UserDao.read(req.session.user._id);
+    if (!requester) {
+        res.status(404);
+        res.send('Requesting user not found');
+        return;
+    }
+    if (requester.permission != 1) {
+        res.status(403);
+        res.send('Forbidden: Not a coach');
+        return;
+    }
 
+    let youthId = req.body.youthId;
+    let teamId = req.body.teamId;
+    let youth = await YouthDao.read(youthId);
+    if (!youth) {
+        res.status(404);
+        res.send('Youth not found');
+        return;
+    }
+    let newInvite = {
+        id_youth: youth._id,
+        id_team: teamId
+    };
+    let createdInvite = await TeamInviteDao.create(newInvite);
+    res.status(200);
+    res.json(createdInvite);
+}
+
+
+exports.addYouthToTeam = async function(req, res) {
+    if (!req.session || !req.session.user) {
+        res.status(403);
+        res.send('Forbidden: Not logged in');
+        return;
+    }
+    let requester = await UserDao.read(req.session.user._id);
+    if (!requester) {
+        res.status(404);
+        res.send('Requesting user not found');
+        return;
+    }
+    if (requester.permission != 0 && requester.permission != 2) {
+        res.status(403);
+        res.send('Forbidden: Not permitted to add youth to team');
+        return;
+    }
+
+    let youthId = req.body.youthId;
+    let teamId = req.body.teamId;
+    let youth = await YouthDao.read(youthId);
+    if (!youth) {
+        res.status(404);
+        res.send('Youth not found');
+        return;
+    }
+    
+    // Verify adult owns this youth (if adult)
+    if (requester.permission == 2 && youth.id_adult.toString() !== requester._id.toString()) {
+        res.status(403);
+        res.send('Forbidden: You can only approve invites for your own youths');
+        return;
+    }
+    
+    let updates = { id_team: teamId };
+    let updatedYouth = await YouthDao.update(youth._id, updates);
+    res.status(200);
+    res.json(updatedYouth);
+}
+
+
+exports.getAllCoaches = async function(req, res) {
+    try {
+        let allCoaches = await UserDao.findByPermission(1); // 1 is the permission level for coaches
+        res.status(200);
+        res.json(allCoaches);
+    } catch (error) {
+        console.error('Error in getAllCoaches:', error);
+        res.status(500);
+        res.json({ error: "Failed to fetch coaches" });
+    }
+}
+
+exports.getYouthByUserId = async function(req, res) {
+    try {
+        const userId = req.params.userId;
+        console.log('getYouthByUserId: Looking up youth for userId:', userId);
+        
+        const youth = await YouthDao.findByUserId(userId);
+        
+        if (!youth) {
+            console.log('getYouthByUserId: Youth not found for userId:', userId);
+            return res.status(404).json({ error: "Youth profile not found" });
+        }
+        
+        console.log('getYouthByUserId: Found youth:', youth);
+        res.status(200);
+        res.json(youth);
+    } catch (error) {
+        console.error('Error in getYouthByUserId:', error);
+        res.status(500);
+        res.json({ error: "Failed to fetch youth data" });
+    }
+}
+
+
+exports.getAdultYouthInvites = async function(req, res) {
+    if (!req.session || !req.session.user) {
+        res.status(403);
+        res.send('Forbidden: Not logged in');
+        return;
+    }
+    let requester = await UserDao.read(req.session.user._id);
+    if (!requester) {
+        res.status(404);
+        res.send('Requesting user not found');
+        return;
+    }
+    if (requester.permission != 2) {
+        res.status(403);
+        res.send('Forbidden: Not an adult');
+        return;
+    }
+    
+    try {
+        // Get all youths under this adult
+        let youths = await YouthDao.findByAdultId(requester._id);
+        
+        const TeamDao = require('../model/TeamDao');
+        
+        // Get invites for each youth with team and coach info
+        let allInvites = [];
+        for (let youth of youths) {
+            let invites = await TeamInviteDao.getInvitesByYouthId(youth._id);
+            for (let invite of invites) {
+                // Fetch team info
+                let team = await TeamDao.read(invite.id_team);
+                let teamInfo = null;
+                let coachInfo = null;
+                
+                if (team) {
+                    teamInfo = {
+                        _id: team._id,
+                        teamName: team.teamName,
+                        id_coach: team.id_coach
+                    };
+                    
+                    // Fetch coach info
+                    if (team.id_coach) {
+                        let coach = await UserDao.read(team.id_coach);
+                        if (coach) {
+                            coachInfo = {
+                                _id: coach._id,
+                                name: coach.name,
+                                username: coach.username
+                            };
+                        }
+                    }
+                }
+                
+                allInvites.push({
+                    _id: invite._id,
+                    id_youth: invite.id_youth,
+                    id_team: invite.id_team,
+                    createdAt: invite.createdAt,
+                    youth: youth,
+                    team: teamInfo,
+                    coach: coachInfo
+                });
+            }
+        }
+        
+        res.status(200);
+        res.json(allInvites);
+    } catch (error) {
+        console.error('Error in getAdultYouthInvites:', error);
+        res.status(500);
+        res.json({ error: 'Failed to fetch invites' });
+    }
+}
+
+exports.deleteInvite = async function(req, res) {
+    if (!req.session || !req.session.user) {
+        res.status(403);
+        res.send('Forbidden: Not logged in');
+        return;
+    }
+    
+    try {
+        let inviteId = req.params.id;
+        let invite = await TeamInviteDao.read(inviteId);
+        
+        if (!invite) {
+            res.status(404);
+            res.json({ error: 'Invite not found' });
+            return;
+        }
+        
+        // Verify adult owns the youth (if not admin)
+        let requester = await UserDao.read(req.session.user._id);
+        if (requester.permission == 2) {
+            let youth = await YouthDao.read(invite.id_youth);
+            if (!youth || youth.id_adult.toString() !== requester._id.toString()) {
+                res.status(403);
+                res.json({ error: 'Forbidden: You can only delete invites for your own youths' });
+                return;
+            }
+        }
+        
+        let deletedInvite = await TeamInviteDao.del(inviteId);
+        res.status(200);
+        res.json({ success: true, message: 'Invite deleted successfully' });
+    } catch (error) {
+        console.error('Error in deleteInvite:', error);
+        res.status(500);
+        res.json({ error: 'Failed to delete invite' });
+    }
+}

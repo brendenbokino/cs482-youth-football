@@ -92,8 +92,14 @@ app.post('/promotetoadult', UserController.promoteToAdult);
 
 app.post('/adult/createyouth', UserController.createYouthAccount);
 app.get('/adult/viewyouths', UserController.getYouths);
+app.get('/adult/viewinvites', UserController.getAdultYouthInvites);
+app.post('/adult/approveinvite', UserController.addYouthToTeam);
 app.get('/coach/viewyouths', UserController.getYouths);
+app.post('/coach/inviteyouth', UserController.inviteYouthToTeam);
+app.delete('/invites/:id', UserController.deleteInvite);
 app.post('/youth/addstat', isAuthenticated, UserController.addYouthStat);
+app.get('/youth/:userId', UserController.getYouthByUserId);
+app.get('/coaches', UserController.getAllCoaches);
 
 //Team Controller Functions
 const TeamController = require('./src/TeamController');
@@ -122,7 +128,9 @@ app.post('/teamregister', TeamController.register,(req, res) => {
 
 app.get('/teams', TeamController.getAll);
 
+app.get('/teams/coach/:id', TeamController.getByCoachId);
 app.get('/teams/:id', TeamController.getById);
+app.get('/teams/:id/players', TeamController.viewYouthOnTeam);
 app.post('/teamsupdate', TeamController.update);
 app.post('/teamsaddplayer', TeamController.addPlayer);
 app.post('/teamsupdaterecord', TeamController.updateRecord, (req, res) => {
@@ -134,7 +142,10 @@ app.post('/teamsupdaterecord', TeamController.updateRecord, (req, res) => {
 // game routes (Express-friendly wrappers)
 app.post('/gameCreate', async (req, res) => {
   try {
-    const { team1, team2, date, startTime, endTime, location, link } = req.body;
+    console.log('gameCreate - Request body:', req.body);
+    const { team1_id, team2_id, date, startTime, endTime, location, link } = req.body;
+    console.log('gameCreate - Extracted values:', { team1_id, team2_id, date, startTime, endTime, location, link });
+    
     const gameDate = new Date(date);
     const start = new Date(`${date}T${startTime}`);
     const end = new Date(`${date}T${endTime}`);
@@ -144,8 +155,8 @@ app.post('/gameCreate', async (req, res) => {
     }
 
     const newGame = {
-      team1,
-      team2,
+      id_team1: team1_id,
+      id_team2: team2_id,
       date: gameDate,
       startTime: start,
       endTime: end,
@@ -153,9 +164,13 @@ app.post('/gameCreate', async (req, res) => {
       link,
     };
 
+    console.log('gameCreate - Creating game with data:', newGame);
     const createdGame = await GameDao.create(newGame);
+    console.log('gameCreate - Game created successfully:', createdGame);
     res.status(201).json({ success: true, createdGame });
   } catch (err) {
+    console.error('gameCreate - Error creating game:', err);
+    console.error('gameCreate - Error stack:', err.stack);
     res.status(500).json({ error: "Failed to create game", details: err.message });
   }
 });

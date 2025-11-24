@@ -24,10 +24,10 @@
                 <div class="col ps-5">
                     <div class="container">
                         <div class="row">
-                            <div class="col-6">
+                            <div class="col">
                                 <h5>Name:</h5> <p class="user_name">Placeholder</p>
                             </div>
-                            <div class="col-6">
+                            <div class="col" data-restrictview="youth coach">
                                 <h5>Team:</h5> <p class="user_team">Placeholder</p>
                             </div>
                         </div>
@@ -36,7 +36,7 @@
                             <div class="col">
                                 <h5>Account Type:</h5> <p class="user_acctype">Placeholder</p>
                             </div>
-                            <div class="col" datagroup="youth">
+                            <div class="col" data-restrictview="youth">
                                 <h5>Position:</h5> <p class="user_position">Placeholder</p>
                             </div>
                         </div>
@@ -184,9 +184,37 @@
                                     </div>
                                 </div>
                              </div>
+
+                             <!-- Approve Youth Team Invites -->
+                            <div class="row">
+                                <div class="col">
+                                    <button class="btn-section-dropdown" type="button" data-bs-toggle="collapse" data-bs-target="#approveYouthInvitesSection">
+                                        <h5>Approve Youth Team Invites</h5>
+                                        <div class="toggle-icon">+</div>
+                                    </button>
+
+                                    <div class="collapse" id="approveYouthInvitesSection">
+                                    <div class="container py-4">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">Youth Name</th>
+                                                    <th scope="col">Team Name</th>
+                                                    <th scope="col">Coach Name</th>
+                                                    <th scope="col"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="adult-approveyouthinvites-tbody">
+                                                <!-- Youth invites will be populated here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-
+                    
                     <!-- Coach -->
                     <div class="card-body" id="profile-actions-coach" style="display: none;">
                         <div class="container">

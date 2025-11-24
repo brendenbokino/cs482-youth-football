@@ -68,3 +68,8 @@ exports.findLogin = async function(userOrEmail){
     return user;
 }
 
+exports.findByPermission = async function(permissionLevel){
+    let users = await userModel.find({permission: permissionLevel});
+    return users;
+}
+

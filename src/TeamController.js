@@ -1,4 +1,6 @@
+const { all } = require('micromatch');
 const TeamDao = require('../model/TeamDao.js');
+const YouthDao = require('../model/YouthDao.js');
 
 class TeamController {
     constructor (){
@@ -66,13 +68,16 @@ class TeamController {
     // Get all teams
     async getAllTeams (req, res) {
         try {
+            console.log('getAllTeams: Starting...');
             let allTeams = await TeamDao.readAll();
-            res.status = 200;
-            res.send = { success: true, teams: allTeams };
+            console.log('getAllTeams: Retrieved', allTeams?.length, 'teams');
+            console.log('getAllTeams: First team:', allTeams[0]);
+            return res.status(200).json(allTeams);
             
         } catch (error) {
-            res.status = 500;
-            res.send = { error: "Failed to fetch teams" };
+            console.error('Error in getAllTeams:', error);
+            console.error('Error stack:', error.stack);
+            return res.status(500).json({ error: "Failed to fetch teams" });
         }
     }
 
@@ -308,15 +313,9 @@ class TeamController {
                 return;
             }
 
-            // Set up initial team structure with unique ID
             const teamPayload = {
-                _id: this.generateId(),
-                coach: req.body.coach.trim(),
-                players: req.body.players || [],
-                games: req.body.games || [],  // FIX: Changed from req.body.games
+                id_coach: req.body.coach,
                 teamName: req.body.teamName.trim(),  // FIX: Changed from req.body.teamName
-                record: [0,0],
-                createdAt: new Date().toISOString()
             };
 
             let team = await TeamDao.create(teamPayload);
@@ -431,25 +430,23 @@ class TeamController {
     // Get team by ID
     async getTeamById (req, res) {
         try {
-            if (!req.params || !req.params._id) {
-                res.status = 400;
-                res.send = { error: "Team ID is required" };
-                return;
+            console.log('getTeamById: Request params:', req.params);
+            
+            if (!req.params || !req.params.id) {
+                return res.status(400).json({ error: "Team ID is required" });
             }
 
-            let team = await TeamDao.read(req.params._id);
+            let team = await TeamDao.read(req.params.id);
+            console.log('getTeamById: Found team:', team);
             
             if (!team) {
-                res.status = 404;
-                res.send = { error: "Team not found" };
-                return;
+                return res.status(404).json({ error: "Team not found" });
             }
 
-            res.status = 200;
-            res.send = { success: true, team: team };
+            return res.status(200).json({ team: team });
         } catch (error) {
-            res.status = 500;
-            res.send = { error: "Failed to fetch team" };
+            console.error('getTeamById: Error:', error);
+            return res.status(500).json({ error: "Failed to fetch team" });
         }
     }
 }
@@ -523,21 +520,41 @@ exports.updateRecord = async function (req, res) {
 
 exports.getAll = async function (req, res) {
     const controller = new TeamController();
-    const mockRes = { status: null, send: null };
-    await controller.getAllTeams({}, mockRes);
-    res.status(mockRes.status || 500).json(mockRes.send || { error: 'Unknown error' });
-    return;
+    return await controller.getAllTeams(req, res);
 }
 
 exports.getById = async function (req, res) {
     const team = new TeamController();
-    const mockRes = { status: null, send: null };
-    await team.getTeamById(req, mockRes);
-    
-    if (mockRes.status == 200) {
-        res.status(200).json(mockRes.send);
-    } else {
-        res.status(mockRes.status || 500).json(mockRes.send || { error: 'Unknown error' });
+    return await team.getTeamById(req, res);
+}
+
+exports.viewYouthOnTeam = async function (req, res) {
+    let id_team = req.params.id;
+    try {
+        let youths = await YouthDao.getYouthOnTeam(id_team);
+        res.status(200);
+        res.json({ youths: youths });
+    } catch (error) {
+        console.error('viewYouthOnTeam: Error:', error);
+        res.status(500);
+        res.json({ error: "Failed to fetch youths on team" });
+    }
+}
+
+exports.getByCoachId = async function (req, res) {
+    let coachId = req.params.id;
+    try {
+        let team = await TeamDao.findByCoachId(coachId);
+        if (!team) {
+            res.status(404);
+            return res.json({ error: "Team not found for the given coach ID" });
+        }
+        res.status(200);
+        res.json({ team: team });
+    } catch (error) {
+        console.error('getByCoachId: Error:', error);
+        res.status(500);
+        res.json({ error: "Failed to fetch team for coach" });
     }
 }
 

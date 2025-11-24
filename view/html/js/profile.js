@@ -15,7 +15,24 @@ async function fetchProfileUser() {
         return null;
     }
     let response = await fetch(`/user/${userId}`);
-    let user =  await response.json();   
+    let user =  await response.json();
+    
+    if (user.permission) {
+        if (user.permission == USER_PERMISSIONS.YOUTH) {
+            let youthInfo = await fetch(`/youth/${user._id}`);
+            let youthData = await youthInfo.json();
+            user.youthInfo = youthData;
+        } else if (user.permission == USER_PERMISSIONS.COACH) {
+            let teamResp = await fetch(`/teams/coach/${user._id}`);
+            if (teamResp.ok) {
+                let teamData = await teamResp.json();
+                user.coachInfo = {team: teamData.team || null};
+            } else {
+                user.coachInfo = {team: null};
+            }
+        }
+    }
+    
     return user;
 }
 
@@ -154,16 +171,51 @@ async function populateProfileInfo() {
         return;
     }
 
-    // TODO: Adapt to use datagroups
+    if (user.permission == USER_PERMISSIONS.YOUTH) {
+        if (user.youthInfo?.id_team) {
+            try {
+                let teamResp = await fetch(`/teams/${user.youthInfo.id_team}`);
+                if (teamResp.ok) {
+                    let teamData = await teamResp.json();
+                    let team = teamData.team || teamData;
+                    user.team = team.teamName || "No team assigned";
+                } else {
+                    user.team = "No team assigned";
+                }
+            } catch (error) {
+                user.team = "No team assigned";
+            }
+        } else {
+            user.team = "No team assigned";
+        }
+        user.position = user.youthInfo?.position || "N/A";
+    } else if (user.permission == USER_PERMISSIONS.COACH) {
+        user.team = user.coachInfo?.team?.teamName || "No team assigned";
+    }
+
+    $('[data-restrictview]').each(function() {
+        var elementPermission = $(this).attr('data-restrictview');
+        var userPermString = PERM_TO_STRING[user.permission].toLowerCase();
+        var permittedGroups = elementPermission.split(' ');
+        if (!permittedGroups.includes(userPermString)) {
+            $(this).css('display', 'none');
+        }
+    });
+
     $('.user_name').text(user.username);
     $('.user_team').text(user.team || "N/A");
     $('.user_acctype').text(PERM_TO_STRING[user.permission]);
     $('.user_position').text(user.position || "N/A");
 
-
+    if (user.permission == USER_PERMISSIONS.ADULT) {
+        await viewYouthsTab();
+        await approveYouthInvitesTab();
+    } else if (user.permission == USER_PERMISSIONS.COACH) {
+        await populateCoachYouthAccounts();
+    }
 }
 
-async function populateAdultYouthAccounts() {
+async function viewYouthsTab() {
     let user = await fetchProfileUser();
     if (user == null) {
         return;
@@ -217,6 +269,111 @@ async function populateAdultYouthAccounts() {
     }
 }
 
+async function approveYouthInvitesTab() {
+    let user = await fetchProfileUser();
+    if (user == null) {
+        return;
+    }
+    if (user.permission != USER_PERMISSIONS.ADULT) {
+        return;
+    }
+    
+    // Get invites for all youths under this adult
+    let invitesResp = await fetch(`/adult/viewinvites`);
+    if (!invitesResp.ok) {
+        console.error('Failed to fetch invites');
+        return;
+    }
+    let invites = await invitesResp.json();
+    if (invites == null || invites.length == 0) {
+        return;
+    }
+
+    let tbody = document.getElementById("adult-approveyouthinvites-tbody");
+    tbody.innerHTML = ''; // Clear existing rows
+    
+    // Populate table - one row per invite
+    for (let invite of invites) {    
+        let tr = document.createElement("tr");
+        
+        // Youth Name
+        let youth_user_resp = await fetch(`/user/${invite.youth.id_user}`);
+        if (!youth_user_resp.ok) continue;
+        let youth_user = await youth_user_resp.json();
+        let tdName = document.createElement("td");
+        tdName.innerText = youth_user.name || youth_user.username;
+        tr.appendChild(tdName);
+
+        // Team Name
+        let tdTeam = document.createElement("td");
+        tdTeam.innerText = invite.team.teamName || "Unknown Team";
+        tr.appendChild(tdTeam);
+
+        // Coach Name
+        let tdCoach = document.createElement("td");
+        if (invite.coach) {
+            tdCoach.innerText = invite.coach.name || invite.coach.username || "Unknown Coach";
+        } else {
+            tdCoach.innerText = "No Coach Assigned";
+        }
+        tr.appendChild(tdCoach);
+
+        // Approve Button
+        let tdApprove = document.createElement("td");
+        let approveButton = document.createElement("button");
+        approveButton.classList.add("btn", "btn-purple");
+        approveButton.innerText = "Approve";
+        approveButton.addEventListener("click", async () => {
+            // Add youth to team
+            let approveResp = await fetch('/adult/approveinvite', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    youthId: invite.youth._id,
+                    teamId: invite.id_team
+                })
+            });
+            if (approveResp.ok) {
+                // Delete the invite after successful approval
+                let deleteResp = await fetch(`/invites/${invite._id}`, { method: 'DELETE' });
+                if (deleteResp.ok) {
+                    alert("Youth added to team successfully!");
+                } else {
+                    alert("Youth added but failed to remove invite.");
+                }
+                await approveYouthInvitesTab();
+            } else {
+                let errorText = await approveResp.text();
+                alert(`Failed to approve invite: ${errorText}`);
+            }
+        });
+        tdApprove.appendChild(approveButton);
+        tr.appendChild(tdApprove);
+
+        // Deny Button
+        let tdDeny = document.createElement("td");
+        let denyButton = document.createElement("button");
+        denyButton.classList.add("btn", "btn-purple");
+        denyButton.innerText = "Deny";
+        denyButton.addEventListener("click", async () => {
+            // Just delete the invite without adding to team
+            let denyResp = await fetch(`/invites/${invite._id}`, { method: 'DELETE' });
+            if (denyResp.ok) {
+                alert("Invite denied.");
+                await approveYouthInvitesTab();
+            } else {
+                let errorText = await denyResp.text();
+                alert(`Failed to deny invite: ${errorText}`);
+            }
+        });
+        tdDeny.appendChild(denyButton);
+        tr.appendChild(tdDeny);
+
+        tbody.appendChild(tr);
+    }
+
+}
+
 async function populateCoachYouthAccounts() {
     let user = await fetchProfileUser();
     if (user == null) {
@@ -231,6 +388,8 @@ async function populateCoachYouthAccounts() {
     }
 
     let tbody = document.getElementById("coach-viewyouth-tbody");
+    // Clear existing rows
+    tbody.innerHTML = '';
     // Create composite youth user data
     let youth_user_data = [];
     for (let youth of youths) {
@@ -246,6 +405,7 @@ async function populateCoachYouthAccounts() {
         let adult_user = await adult_user_resp.json();
         //TODO: Handle cases where adult user or youth user might not exist
         let composite_data = {
+            id: youth._id,
             name: youth_user.name,
             adult_name: adult_user.name,
             adult_email: adult_user.email
@@ -256,22 +416,42 @@ async function populateCoachYouthAccounts() {
     for (let yud of youth_user_data) {
         let tr = document.createElement("tr");
         for (let attr of Object.keys(yud)) {
+            if (attr == "id") {
+                continue;
+            }
             let td = document.createElement("td");
             td.innerText = yud[attr];
             tr.appendChild(td);
         }
-        // Add to team button
+        // Invite to team button
         let buttonTd = document.createElement("td");
         let button = document.createElement("button");
         button.classList.add("btn", "btn-purple");
-        button.innerText = "Add to Team";
+        button.innerText = "Invite";
+        button.addEventListener("click", async () => {
+            let response = await fetch('/coach/inviteyouth', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    youthId: yud.id,
+                    teamId: user.coachInfo.team?._id
+                })
+            });
+            if (response.ok) {
+                alert("Invitation sent successfully!");
+            } else {
+                let errorText = await response.text();
+                alert(`Failed to send invitation: ${errorText}`);
+            }
+        });
         buttonTd.appendChild(button);
         tr.appendChild(buttonTd);
         tbody.appendChild(tr);
     }
 }
 
+
 setupProfileTabs();
 populateProfileInfo();
-populateAdultYouthAccounts();
-populateCoachYouthAccounts();

@@ -2,27 +2,33 @@ const mongoose = require('mongoose');
 
 // a game should have 2 teams, a date for when it will occur, a location for where it will occur & then some meta data 
 const gameSchema = new mongoose.Schema({
-    team1: String,
-    team2: String,
+    id_team1: {
+            type: mongoose.Schema.Types.ObjectId,
+            required: true
+    },
+    id_team2: {
+            type: mongoose.Schema.Types.ObjectId,
+            required: true
+    },
     date: Date, /// date type to make sorting easier 
     location: String,
     link: String,
     startTime: Date,
     endTime: Date,
     
-    team1Score: {
-        type: Number,
-        default: 0
-    },
-    team2Score: {
-        type: Number,
-        default: 0
-    },
-    playerStats: {
-        type: Array,
-        default: [] // Array of { playerId, statType, value, timestamp }
-    },
-    _id: String
+    // team1Score: {
+    //     type: Number,
+    //     default: 0
+    // },
+    // team2Score: {
+    //     type: Number,
+    //     default: 0
+    // },
+    // playerStats: {
+    //     type: Array,
+    //     default: [] // Array of { playerId, statType, value, timestamp }
+    // },
+    // _id: String
 
     
 });

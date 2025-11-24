@@ -20,7 +20,7 @@ class GameController {
         if (req != null) {
             // check request quality 
             // neither should be null a game doesn't have 1 team thats not a game
-            if (req.team1 != null && req.team2 != null) {
+            if (req.team1_id != null && req.team2_id != null) {
                 // if this is true then construct a new game object
                 
                 let game = await gameDao.create(req);
@@ -224,14 +224,13 @@ exports.create = async function(req, res) {
     const controller = new GameController();
     // Map form body to expected shape
     const mockReq = req && req.body ? {
-        team1: req.body.team1,
-        team2: req.body.team2,
+        team1: req.body.team1_id,
+        team2: req.body.team2_id,
         date: req.body.date,
         location: req.body.location,
         link: req.body.link,
         startTime: req.body.startTime,
         endTime: req.body.endTime,
-        _id: req.body._id
     } : null;
     const mockRes = { status: null, send: null };
     await controller.createNewGame(mockReq, mockRes);
@@ -250,11 +249,47 @@ exports.create = async function(req, res) {
 }
 
 exports.getAll = async function(req, res) {
-    const controller = new GameController();
-    const mockRes = { status: null, send: null };
-    await controller.getAllGames({}, mockRes);
-    res.status(mockRes.status || 500).json(mockRes.send || { error: 'Unknown error' });
-    return;
+    try {
+        const gameDao = require('../model/GameDao.js');
+        const TeamDao = require('../model/TeamDao.js');
+        
+        let allGames = await gameDao.readAll();
+        
+        // Populate team names
+        let gamesWithTeamNames = [];
+        for (let game of allGames) {
+            let team1Name = 'Unknown Team';
+            let team2Name = 'Unknown Team';
+            
+            if (game.id_team1) {
+                const team1 = await TeamDao.read(game.id_team1);
+                if (team1) team1Name = team1.teamName;
+            }
+            
+            if (game.id_team2) {
+                const team2 = await TeamDao.read(game.id_team2);
+                if (team2) team2Name = team2.teamName;
+            }
+            
+            gamesWithTeamNames.push({
+                _id: game._id,
+                team1: team1Name,
+                team2: team2Name,
+                id_team1: game.id_team1,
+                id_team2: game.id_team2,
+                date: game.date,
+                location: game.location,
+                startTime: game.startTime,
+                endTime: game.endTime,
+                link: game.link
+            });
+        }
+        
+        res.status(200).json({ games: gamesWithTeamNames });
+    } catch (error) {
+        console.error('getAll games error:', error);
+        res.status(500).json({ error: 'Failed to fetch games' });
+    }
 }
 
 exports.update = async function(req, res) {
