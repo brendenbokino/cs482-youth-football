@@ -19,9 +19,8 @@ afterAll(async function(){ // Executed once after all tests have ran
 beforeEach(async function(){ // Executed before each test
     await dao.deleteAll();
 });
-afterEach(function(){
-    //No need
- 
+afterEach(async function(){
+    await dao.deleteAll();
 });
 
 test('Create new user test',async function(){
@@ -121,5 +120,20 @@ test('Update user', async function() {
     let updated = await dao.update(created._id, updates);
   
     expect(updated.name).toBe('Updated Test');
+});
+
+test('Find user by permission level', async function() {
+    let newdata = {
+        name: 'Test',
+        email: 'test@test.com',
+        username: 'tester',
+        phone: '1234567890',
+        password: '123456',
+        permission: 1
+    };
+
+    let created = await dao.create(newdata);
+    let foundUsers = await dao.findByPermission(1); 
+    expect(foundUsers.length).toBe(1);
 });
   
