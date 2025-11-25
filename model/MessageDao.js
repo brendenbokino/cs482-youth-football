@@ -48,13 +48,17 @@ module.exports = {
   async addPhoto(id, photoUrl) {
       const msg = await messageModel.findById(id);
       if (!msg) return null;
-      msg.photo = photoUrl;
+      msg.photoUrl = photoUrl;
       await msg.save();
       return msg;
   },
 
   async delete(id) {
       return await messageModel.findByIdAndDelete(id);
+  },
+
+  async deleteAll() {
+      return await messageModel.deleteMany();
   },
 
   async isAuthor(messageId, userName) {

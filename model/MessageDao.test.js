@@ -1,11 +1,12 @@
 const dbcon = require('./DbConnect');
 const dao = require('./MessageDao');
+const mongoose = require('mongoose');
 
 beforeAll(async function(){ 
     await dbcon.connect('test');
 });
 afterAll(async function(){ 
-    await dao.delete();
+    await dao.deleteAll();
     dbcon.disconnect();
 });
 beforeEach(async function(){ 
@@ -81,7 +82,7 @@ test('Add reply to message', async () => {
 
 test('Add reply to non-existent message', async () => {
   const reply = { email: 'responder@test.com', message: 'Reply here' };
-  const updated = await dao.addReply('nonexistentId', reply);
+  const updated = await dao.addReply(new mongoose.Types.ObjectId(), reply);
 
   expect(updated).toBeNull();
 });
@@ -98,7 +99,7 @@ test('Delete message', async () => {
 
 test('Update non-existent message', async () => {
   const updates = { message: 'Updated text' };
-  const updated = await dao.update('nonexistentId', updates);
+  const updated = await dao.update(new mongoose.Types.ObjectId(), updates);
 
   expect(updated).toBeNull();
 });
@@ -109,11 +110,11 @@ test('Add photo to message', async () => {
 
   const updated = await dao.addPhoto(created._id, 'http://photo.url');
 
-  expect(updated.photo).toBe('http://photo.url');
+  expect(updated.photoUrl).toBe('http://photo.url');
 });
 
 test('Add photo to non-existent message', async () => {
-  const updated = await dao.addPhoto('nonexistentId', 'http://photo.url');
+  const updated = await dao.addPhoto(new mongoose.Types.ObjectId(), 'http://photo.url');
 
   expect(updated).toBeNull();
 });
