@@ -148,6 +148,11 @@ test('Update non-existent message', async () => {
   expect(updated).toBeNull();
 });
 
+test('update handles errors', async () => {
+  // Force an error by passing invalid ID
+  await expect(dao.update('invalidId', { message: 'Test' })).rejects.toThrow();
+});
+
 
 
 test('Check author', async () => {
