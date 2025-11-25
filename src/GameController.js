@@ -1,6 +1,8 @@
 // this will define the logic for our Game model 
 const gameDao = require('../model/GameDao.js');
-
+const TeamDao = require('../model/TeamDao');
+const YouthGameRecordDao = require('../model/YouthGameRecordDao');
+const YouthDao = require('../model/YouthDao');
 
 // must add ids for game and teams that was causing the errors 
 
@@ -58,16 +60,15 @@ class GameController {
     // update a single game by id
     async updateGame(req, res) {
         if (req != null && req.id != null) {
-            if (req.team1 != null && req.team2 != null) {
+            if (req.id_team1 != null && req.id_team2 != null) {
                 const updateData = {
-                    team1: req.team1,
-                    team2: req.team2,
+                    id_team1: req.id_team1,
+                    id_team2: req.id_team2,
                     date: req.date,
                     location: req.location,
                     link: req.link,
                     startTime: req.startTime,
-                    endTime: req.endTime,
-                    _id: req.id
+                    endTime: req.endTime
                 };
                 let game = await gameDao.update(req.id, updateData);
                 if (game) {
@@ -117,11 +118,11 @@ class GameController {
                 console.log('GameController.getGameById: Game found successfully');
                 console.log('GameController.getGameById: Game data:', {
                     _id: game._id,
-                    team1: game.team1,
-                    team2: game.team2,
-                    team1Score: game.team1Score,
-                    team2Score: game.team2Score,
-                    playerStatsCount: game.playerStats ? game.playerStats.length : 0
+                    id_team1: game.id_team1,
+                    id_team2: game.id_team2,
+                    date: game.date,
+                    location: game.location,
+                    link: game.link
                 });
                 res.status = 200;
                 res.send = { success: true, game: game };
@@ -138,77 +139,50 @@ class GameController {
         }
     }
 
-    // Update game score (admin only)
-    async updateScore(req, res) {
+    async getGameStats(req, res) {
         if (req != null && req.id != null) {
-            const updateData = {};
-            if (req.team1Score !== undefined) {
-                updateData.team1Score = parseInt(req.team1Score) || 0;
-            }
-            if (req.team2Score !== undefined) {
-                updateData.team2Score = parseInt(req.team2Score) || 0;
-            }
-            
-            let game = await gameDao.update(req.id, updateData);
-            if (game) {
-                res.status = 200;
-                res.send = { success: true, game: game };
-            } else {
-                res.status = 404;
-                res.send = { error: "Game not found" };
-            }
+            let gameRecords = await YouthGameRecordDao.getGameRecords(req.id);
+            res.status = 200;
+            res.send = { success: true, stats: gameRecords };
         } else {
             res.status = 400;
             res.send = { error: "Request is empty or missing game ID" };
         }
     }
 
-    // Add player stat to game (admin only)
-    async addPlayerStat(req, res) {
+    async getGameScore(req, res) {
         if (req != null && req.id != null) {
-            if (!req.playerId || !req.statType || req.value === undefined) {
-                res.status = 400;
-                res.send = { error: "playerId, statType, and value are required" };
-                return;
+            let gameRecords = await YouthGameRecordDao.getGameRecords(req.id);
+            let gameScore = {
+                            team1Score: {
+                                id_team: null, score: 0
+                                },
+                            team2Score: {
+                                id_team: null, score: 0
+                            }};
+            for (let record of gameRecords) {
+                let youth = await YouthDao.read(record.id_youth);
+                let teamId = youth.id_team; 
+                let totalPoints = (record.rushing_tds + record.receiving_tds) * 6; // Passing TDs and Receiving TDs count as one collective td, just that 2 players get credit
+                if (gameScore.team1Score.id_team == null) {
+                    gameScore.team1Score.id_team = teamId;
+                } else if (gameScore.team2Score.id_team == null && teamId !== gameScore.team1Score.id_team) {
+                    gameScore.team2Score.id_team = teamId;
+                }
+
+                if (teamId === gameScore.team1Score.id_team) {
+                    gameScore.team1Score.score += totalPoints;
+                } else if (teamId === gameScore.team2Score.id_team) {
+                    gameScore.team2Score.score += totalPoints;
+                }
             }
-
-            // Get current game
-            let game = await gameDao.read(req.id);
-            if (!game) {
-                res.status = 404;
-                res.send = { error: "Game not found" };
-                return;
-            }
-
-            // Add new stat
-            const newStat = {
-                playerId: req.playerId,
-                statType: req.statType, // e.g., "points", "assists", "rebounds", "goals", etc.
-                value: req.value,
-                timestamp: new Date().toISOString()
-            };
-
-            // Get current playerStats array or initialize it
-            const playerStats = game.playerStats || [];
-            playerStats.push(newStat);
-
-            // Update game with new stats
-            const updateData = { playerStats: playerStats };
-            let updatedGame = await gameDao.update(req.id, updateData);
-            
-            if (updatedGame) {
-                res.status = 200;
-                res.send = { success: true, game: updatedGame };
-            } else {
-                res.status = 500;
-                res.send = { error: "Failed to update game stats" };
-            }
+            res.status = 200;
+            res.send = gameScore;
         } else {
             res.status = 400;
             res.send = { error: "Request is empty or missing game ID" };
         }
     }
-
 }
 
 
@@ -217,8 +191,8 @@ exports.create = async function(req, res) {
     const controller = new GameController();
     // Map form body to expected shape
     const mockReq = req && req.body ? {
-        team1: req.body.team1_id,
-        team2: req.body.team2_id,
+        id_team1: req.body.team1_id,
+        id_team2: req.body.team2_id,
         date: req.body.date,
         location: req.body.location,
         link: req.body.link,
@@ -289,8 +263,8 @@ exports.update = async function(req, res) {
     const controller = new GameController();
     const mockReq = req && req.body ? {
         id: req.params.id || req.body.id,
-        team1: req.body.team1,
-        team2: req.body.team2,
+        id_team1: req.body.id_team1,
+        id_team2: req.body.id_team2,
         date: req.body.date,
         location: req.body.location,
         startTime: req.body.startTime,
@@ -342,39 +316,24 @@ exports.getById = async function(req, res) {
     return;
 }
 
-exports.updateScore = async function(req, res) {
-    // Check if user is admin (permission 0)
-    if (!req.session || !req.session.user || req.session.user.permission !== 0) {
-        return res.status(403).json({ error: "Unauthorized. Admin access required." });
-    }
-
+exports.getGameScore = async function(req, res) {
     const controller = new GameController();
-    const mockReq = req && req.body ? {
-        id: req.params.id || req.body.id,
-        team1Score: req.body.team1Score,
-        team2Score: req.body.team2Score
+    const mockReq = req ? {
+        id: req.params.id || req.body.id
     } : null;
     const mockRes = { status: null, send: null };
-    await controller.updateScore(mockReq, mockRes);
+    await controller.getGameScore(mockReq, mockRes);
     res.status(mockRes.status || 500).json(mockRes.send || { error: 'Unknown error' });
     return;
 }
 
-exports.addPlayerStat = async function(req, res) {
-    // Check if user is admin (permission 0)
-    if (!req.session || !req.session.user || req.session.user.permission !== 0) {
-        return res.status(403).json({ error: "Unauthorized. Admin access required." });
-    }
-
+exports.getGameStats = async function(req, res) {
     const controller = new GameController();
-    const mockReq = req && req.body ? {
-        id: req.params.id || req.body.id,
-        playerId: req.body.playerId,
-        statType: req.body.statType,
-        value: req.body.value
+    const mockReq = req ? {
+        id: req.params.id || req.body.id
     } : null;
     const mockRes = { status: null, send: null };
-    await controller.addPlayerStat(mockReq, mockRes);
+    await controller.getGameStats(mockReq, mockRes);
     res.status(mockRes.status || 500).json(mockRes.send || { error: 'Unknown error' });
     return;
 }

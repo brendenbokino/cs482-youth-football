@@ -87,6 +87,7 @@ app.get('/logoutuser', UserController.logout);
 app.get('/loggeduser', UserController.loggedUser);
 
 app.get('/user/:id', UserController.getUserById);
+app.get('/user/name/:id', UserController.getUserName)
 
 app.post('/promotetoadult', UserController.promoteToAdult);
 
@@ -210,10 +211,9 @@ app.put('/games/:id', GameController.update);
 });*/
 
 app.delete('/games/:id', GameController.delete);
+app.get('/games/:id/score', GameController.getGameScore);
+app.get('/games/:id/stats', GameController.getGameStats);
 
-// Game score and stats routes (admin only)
-app.put('/games/:id/score', isAuthenticated, GameController.updateScore);
-app.post('/games/:id/stats', isAuthenticated, GameController.addPlayerStat);
 
 
 //FILE STORAGE

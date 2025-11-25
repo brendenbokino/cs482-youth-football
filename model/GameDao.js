@@ -15,22 +15,6 @@ const gameSchema = new mongoose.Schema({
     link: String,
     startTime: Date,
     endTime: Date,
-    
-    // team1Score: {
-    //     type: Number,
-    //     default: 0
-    // },
-    // team2Score: {
-    //     type: Number,
-    //     default: 0
-    // },
-    // playerStats: {
-    //     type: Array,
-    //     default: [] // Array of { playerId, statType, value, timestamp }
-    // },
-    // _id: String
-
-    
 });
 
 const gameModel = mongoose.model('game', gameSchema);

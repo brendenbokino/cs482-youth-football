@@ -347,20 +347,16 @@
                             <div class="score-value" id="team2Score">0</div>
                         </div>
                     </div>
-                    <div class="score-controls admin-only" id="scoreControls">
-                        <h3>Update Score (Admin Only)</h3>
-                        <div class="score-input-group">
-                            <label for="team1ScoreInput"><strong id="team1Label"></strong> Score:</label>
-                            <input type="number" id="team1ScoreInput" min="0" value="0">
-                        </div>
-                        <div class="score-input-group">
-                            <label for="team2ScoreInput"><strong id="team2Label"></strong> Score:</label>
-                            <input type="number" id="team2ScoreInput" min="0" value="0">
-                        </div>
-                        <button class="btn btn-success" onclick="updateScore()">Update Score</button>
-                    </div>
-                </div>
 
+                </div>
+                
+                <button class="btn btn-primary admin-only" id="toggleStatsBtn" onclick="toggleAdminPanel()" style="position: fixed; top: 100px; right: 20px; z-index: 1000; padding: 10px 15px;">
+                    <span id="adminPanelToggle">+</span> Admin Controls
+                </button>
+                
+                <div class="container"> <div class="row">
+                <div id="mainContentCol" class="col-12">
+                
                 <!-- Video Section -->
                 <div class="video-section">
                     <h2>Live Video</h2>
@@ -381,10 +377,14 @@
                         <ul class="players-list" id="team2Players"></ul>
                     </div>
                 </div>
-
-                <!-- Add Stat to Youth Section (Admin Only) -->
-                <div class="add-youth-stat-section admin-only" id="addYouthStatSection">
-                    <h2>Add Player Stat to Youth Profile</h2>
+                
+                </div>
+                
+                <div class="col-4 admin-only" id="adminStatsCol" style="display: none;">
+                
+                    <!-- Add Stat to Youth Section (Admin Only) -->
+                <div class="add-youth-stat-section" id="addYouthStatSection">
+                    <h2>Record Player Statistic</h2>
                     <p>Add stats that will be saved to the player's youth profile</p>
                     <div class="form-section" style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                         <div class="form-group">
@@ -396,22 +396,21 @@
                         <div class="form-group">
                             <label for="youthStatType">Stat Type:</label>
                             <select id="youthStatType" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
-                                <option value="touchdown">Touchdown</option>
-                                <option value="tackle">Tackle</option>
-                                <option value="interception">Interception</option>
-                                <option value="fumble">Fumble</option>
-                                <option value="fumble_recovery">Fumble Recovery</option>
-                                <option value="passing_yard">Passing Yard</option>
-                                <option value="rushing_yard">Rushing Yard</option>
-                                <option value="receiving_yard">Receiving Yard</option>
-                                <option value="field_goal">Field Goal</option>
-                                <option value="extra_point">Extra Point</option>
-                                <option value="sack">Sack</option>
-                                <option value="safety">Safety</option>
-                                <option value="kick_return_yard">Kick Return Yard</option>
-                                <option value="punt_return_yard">Punt Return Yard</option>
-                                <option value="assist">Assist</option>
-                                <option value="penalty">Penalty</option>
+                                <option value="rushing_attempts">Rushing Attempts</option>
+                                <option value="rushing_yards">Rushing Yards</option>
+                                <option value="rushing_tds">Rushing Touchdown</option>
+                                <option value="passing_attempts">Passing Attempts</option>
+                                <option value="passing_completions">Passing Completions</option>
+                                <option value="passing_yards">Passing Yards</option>
+                                <option value="passing_tds">Passing Touchdown</option>
+                                <option value="receptions">Receptions</option>
+                                <option value="receiving_yards">Receiving Yards</option>
+                                <option value="receiving_tds">Receiving Touchdown</option>
+                                <option value="tackles">Tackles</option>
+                                <option value="sacks">Sacks</option>
+                                <option value="interceptions">Interceptions</option>
+                                <option value="fumbles_forced">Fumbles Forced</option>
+                                <option value="fumbles_recovered">Fumbles Recovered</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -425,6 +424,12 @@
                         <button class="btn btn-success" onclick="addYouthStat()" style="width: 100%; margin-top: 10px;">Add Stat to Player Profile</button>
                     </div>
                 </div>
+                
+                </div>
+                
+                </div></div>
+
+
             </div>
         </div>
     </main>

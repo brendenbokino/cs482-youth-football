@@ -354,6 +354,29 @@ exports.getUserById = async function(req, res) {
     res.json(user);
 };
 
+exports.getUserName = async function(req, res) {
+    let userId = req.params.id;
+    let user = await UserDao.read(userId);
+    if (!user) {
+        res.status(404);
+        res.send('User not found');
+        return;
+    }
+
+    // Guests can only have their name fetched by admins or themselves
+    if (user.permission === 4) {
+        if (!req.session || !req.session.user || (req.session.user.permission !== 0 && req.session.user._id.toString() !== userId.toString())) {
+            res.status(403);
+            res.send('Forbidden: Not authorized to view this user');
+            return;
+        }
+    }
+
+    res.status(200);
+    res.json({ name: user.name || user.username });
+};
+
+
 exports.promoteToAdult = async function(req, res) {
     let adultId = req.body.promote_adult_id;
     if (!req.session || !req.session.user) {
@@ -438,50 +461,59 @@ exports.addYouthStat = async function(req, res) {
     }
 
     try {
-        const { userId, statType, value, gameId } = req.body;
+        const YouthGameRecordDao = require('../model/YouthGameRecordDao');
+        const { youthId, statType, value, gameId } = req.body;
 
         console.log('UserController.addYouthStat: Request received');
-        console.log('UserController.addYouthStat: Data:', { userId, statType, value, gameId });
+        console.log('UserController.addYouthStat: Data:', { youthId, statType, value, gameId });
 
-        if (!userId || !statType || value === undefined || !gameId) {
+        if (!youthId || !statType || value === undefined || !gameId) {
             console.log('UserController.addYouthStat: Missing required fields');
-            return res.status(400).json({ error: "userId, statType, value, and gameId are required" });
+            return res.status(400).json({ error: "youthId, statType, value, and gameId are required" });
         }
 
         // Find youth by user ID
-        console.log('UserController.addYouthStat: Looking up youth for userId:', userId);
-        let youth = await YouthDao.findByUserId(userId);
+        console.log('UserController.addYouthStat: Looking up youth for userId:', youthId);
+        let youth = await YouthDao.read(youthId);
         if (!youth) {
-            console.log('UserController.addYouthStat: Youth not found for userId:', userId);
+            console.log('UserController.addYouthStat: Youth not found for userId:', youthId);
             return res.status(404).json({ error: "Youth not found for this user" });
         }
 
         console.log('UserController.addYouthStat: Found youth:', youth._id);
 
-        // Create new stat object
-        const newStat = {
-            type: statType,
-            value: parseInt(value) || 0,
-            game: gameId
-        };
-
-        console.log('UserController.addYouthStat: New stat object:', newStat);
-
-        // Get current stats array or initialize it
-        const stats = youth.stats || [];
-        stats.push(newStat);
-
-        // Update youth with new stats
-        const updates = { stats: stats };
-        console.log('UserController.addYouthStat: Updating youth with stats:', stats.length, 'total stats');
-        let updatedYouth = await YouthDao.update(youth._id, updates);
+        // Check if a game record already exists for this youth and game
+        let existingRecord = await YouthGameRecordDao.getYouthRecordForGame(youth._id, gameId);
         
-        if (updatedYouth) {
-            console.log('UserController.addYouthStat: Youth updated successfully');
-            return res.status(200).json({ success: true, youth: updatedYouth });
+        let gameRecord;
+        if (existingRecord) {
+            // Update existing record by adding to the stat
+            console.log('UserController.addYouthStat: Updating existing game record:', existingRecord._id);
+            
+            let updates = {};
+            let currentValue = existingRecord[statType] || 0;
+            updates[statType] = currentValue + parseInt(value);
+            
+            gameRecord = await YouthGameRecordDao.update(existingRecord._id, updates);
         } else {
-            console.log('UserController.addYouthStat: Failed to update youth');
-            return res.status(500).json({ error: "Failed to update youth stats" });
+            // Create new game record
+            console.log('UserController.addYouthStat: Creating new game record');
+            
+            let newRecord = {
+                id_game: gameId,
+                id_youth: youth._id
+            };
+            newRecord[statType] = parseInt(value);
+            
+            gameRecord = await YouthGameRecordDao.create(newRecord);
+        }
+        
+        if (gameRecord) {
+            console.log('UserController.addYouthStat: Game record saved successfully');
+            return res.status(200).json({ success: true, record: gameRecord });
+        } else {
+            console.log('UserController.addYouthStat: Failed to save game record');
+            return res.status(500).json({ error: "Failed to save stat" });
         }
     } catch (error) {
         console.error('UserController.addYouthStat: Error:', error);

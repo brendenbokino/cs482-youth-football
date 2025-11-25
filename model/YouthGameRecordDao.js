@@ -67,9 +67,9 @@ exports.getYouthRecords = async function(youthId){
     return records;
 }
 
-exports.getYouthRecordsInGame = async function(youthId, gameId) {
-    let records = await ygrModel.find({ id_youth: youthId, id_game: gameId});
-    return records;
+exports.getYouthRecordForGame = async function(youthId, gameId) {
+    let record = await ygrModel.findOne({ id_youth: youthId, id_game: gameId});
+    return record;
 }
 
 exports.update = async function(id, updateData){

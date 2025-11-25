@@ -3,6 +3,7 @@ let currentUser = { permission: null };
 let team1Data = null;
 let team2Data = null;
 let gameId = null;
+let gameStats = [];
 
 // Get game ID from URL
 function getGameIdFromUrl() {
@@ -22,8 +23,14 @@ async function fetchLoggedUser() {
                 
                 // Enable admin controls if user is admin (permission 0)
                 if (currentUser.permission === 0) {
-                    document.getElementById('scoreControls').classList.add('enabled');
-                    document.getElementById('addYouthStatSection').classList.add('enabled');
+                    const toggleBtn = document.getElementById('toggleStatsBtn');
+                    const adminCol = document.getElementById('adminStatsCol');
+                    const addYouthSection = document.getElementById('addYouthStatSection');
+                    
+                    if (toggleBtn) toggleBtn.classList.add('enabled');
+                    if (adminCol) adminCol.classList.add('enabled');
+                    if (addYouthSection) addYouthSection.classList.add('enabled');
+                    
                     document.querySelectorAll('.add-stat-form').forEach(form => {
                         form.classList.add('enabled');
                     });
@@ -39,6 +46,24 @@ async function fetchLoggedUser() {
     } catch (error) {
         console.error('Error fetching logged user:', error);
         currentUser.permission = null;
+    }
+}
+
+async function loadGameScore() {
+    try {
+    // Update currentGame with scores from server
+        console.log('Frontend: Current game data:', currentGame);
+        const scoreResponse = await fetch(`/games/${gameId}/score`);
+        if (scoreResponse.ok) {
+            const scoreData = await scoreResponse.json();
+            console.log('Frontend: Game score data:', scoreData);
+            currentGame.team1Score = scoreData.team1Score.score || 0;
+            currentGame.team2Score = scoreData.team2Score.score || 0;
+        } else {
+            console.error('Frontend: Failed to fetch game score');
+        }
+    } catch (error) {
+        console.error('Frontend: Error loading game score:', error);
     }
 }
 
@@ -66,7 +91,7 @@ async function loadGameDetails() {
         if (result.success && result.game) {
             console.log('Frontend: Game found successfully');
             currentGame = result.game;
-            
+            await loadGameScore();
             // Fetch team names from team IDs
             await loadTeamNames();
             
@@ -138,18 +163,18 @@ async function loadTeams() {
                 for (let youth of youths) {
                     console.log('Processing youth:', youth);
                     if (youth.id_user) {
-                        console.log('Fetching user data for:', youth.id_user);
-                        const userResponse = await fetch(`/user/${youth.id_user}`);
+                        console.log('Fetching user name for:', youth.id_user);
+                        const userResponse = await fetch(`/user/name/${youth.id_user}`);
                         if (userResponse.ok) {
-                            const userData = await userResponse.json();
-                            console.log('User data:', userData);
+                            const nameData = await userResponse.json();
+                            console.log('User name data:', nameData);
                             players.push({
                                 _id: youth.id_user,
                                 youthId: youth._id,
-                                name: userData.name || userData.username || 'Unknown Player'
+                                name: nameData.name || 'Unknown Player'
                             });
                         } else {
-                            console.error('Failed to fetch user:', userResponse.status);
+                            console.error('Failed to fetch user name:', userResponse.status);
                         }
                     } else {
                         console.warn('Youth has no id_user:', youth);
@@ -180,18 +205,18 @@ async function loadTeams() {
                 for (let youth of youths) {
                     console.log('Processing youth:', youth);
                     if (youth.id_user) {
-                        console.log('Fetching user data for:', youth.id_user);
-                        const userResponse = await fetch(`/user/${youth.id_user}`);
+                        console.log('Fetching user name for:', youth.id_user);
+                        const userResponse = await fetch(`/user/name/${youth.id_user}`);
                         if (userResponse.ok) {
-                            const userData = await userResponse.json();
-                            console.log('User data:', userData);
+                            const nameData = await userResponse.json();
+                            console.log('User name data:', nameData);
                             players.push({
                                 _id: youth.id_user,
                                 youthId: youth._id,
-                                name: userData.name || userData.username || 'Unknown Player'
+                                name: nameData.name || 'Unknown Player'
                             });
                         } else {
-                            console.error('Failed to fetch user:', userResponse.status);
+                            console.error('Failed to fetch user name:', userResponse.status);
                         }
                     } else {
                         console.warn('Youth has no id_user:', youth);
@@ -207,12 +232,37 @@ async function loadTeams() {
         
         console.log('Final team1Data:', team1Data);
         console.log('Final team2Data:', team2Data);
+        
+        // Load game stats
+        await loadGameStats();
+        
         displayPlayers();
     } catch (error) {
         console.error('Error loading teams:', error);
         team1Data = { players: [] };
         team2Data = { players: [] };
         displayPlayers();
+    }
+}
+
+// Load game stats from backend
+async function loadGameStats() {
+    try {
+        console.log('Loading game stats for game:', gameId);
+        const response = await fetch(`/games/${gameId}/stats`);
+        
+        if (response.ok) {
+            const result = await response.json();
+            console.log('Game stats result:', result);
+            gameStats = result.stats || [];
+            console.log('Loaded game stats:', gameStats);
+        } else {
+            console.error('Failed to fetch game stats:', response.status);
+            gameStats = [];
+        }
+    } catch (error) {
+        console.error('Error loading game stats:', error);
+        gameStats = [];
     }
 }
 
@@ -229,16 +279,12 @@ function displayGameDetails() {
     // Set team names
     document.getElementById('team1Name').textContent = currentGame.team1;
     document.getElementById('team2Name').textContent = currentGame.team2;
-    document.getElementById('team1Label').textContent = currentGame.team1;
-    document.getElementById('team2Label').textContent = currentGame.team2;
     document.getElementById('team1PanelTitle').textContent = currentGame.team1 + ' Players';
     document.getElementById('team2PanelTitle').textContent = currentGame.team2 + ' Players';
 
     // Set scores
     document.getElementById('team1Score').textContent = currentGame.team1Score || 0;
     document.getElementById('team2Score').textContent = currentGame.team2Score || 0;
-    document.getElementById('team1ScoreInput').value = currentGame.team1Score || 0;
-    document.getElementById('team2ScoreInput').value = currentGame.team2Score || 0;
 
     // Set game ID in youth stat form
     document.getElementById('youthStatGameId').value = gameId;
@@ -286,27 +332,23 @@ function populateYouthStatPlayerDropdown() {
     dropdown.innerHTML = '<option value="">Select a player...</option>';
 
     // Add players from team 1
-    if (team1Data && team1Data.players) {
-        team1Data.players.forEach(player => {
-            const playerId = typeof player === 'object' ? (player._id || player) : player;
-            const playerName = typeof player === 'object' ? (player.name || player._id) : player;
+    if (team1Data && team1Data.players && team1Data.players.length > 0) {
+        for (let player of team1Data.players) {
             const option = document.createElement('option');
-            option.value = playerId;
-            option.textContent = `${playerName} (${currentGame.team1})`;
+            option.value = player.youthId;
+            option.textContent = `${player.name} (${currentGame.team1})`;
             dropdown.appendChild(option);
-        });
+        }
     }
 
     // Add players from team 2
-    if (team2Data && team2Data.players) {
-        team2Data.players.forEach(player => {
-            const playerId = typeof player === 'object' ? (player._id || player) : player;
-            const playerName = typeof player === 'object' ? (player.name || player._id) : player;
+    if (team2Data && team2Data.players && team2Data.players.length > 0) {
+        for (let player of team2Data.players) {
             const option = document.createElement('option');
-            option.value = playerId;
-            option.textContent = `${playerName} (${currentGame.team2})`;
+            option.value = player.youthId;
+            option.textContent = `${player.name} (${currentGame.team2})`;
             dropdown.appendChild(option);
-        });
+        }
     }
 }
 
@@ -322,47 +364,54 @@ function displayTeamPlayers(teamPrefix, teamData) {
     teamData.players.forEach(player => {
         const playerId = typeof player === 'object' ? (player._id || player) : player;
         const playerName = typeof player === 'object' ? (player.name || player._id) : player;
+        const youthId = typeof player === 'object' ? player.youthId : null;
 
-        // Get stats for this player from the game
-        const playerStats = (currentGame.playerStats || []).filter(stat => stat.playerId === playerId);
+        // Get stats for this player from YouthGameRecordDao
+        const playerRecord = gameStats.find(stat => stat.id_youth && stat.id_youth.toString() === youthId);
+        
+        let statsHtml = '';
+        if (playerRecord) {
+            const statTypes = [
+                { key: 'rushing_attempts', label: 'Rush Att' },
+                { key: 'rushing_yards', label: 'Rush Yds' },
+                { key: 'rushing_tds', label: 'Rush TDs' },
+                { key: 'passing_attempts', label: 'Pass Att' },
+                { key: 'passing_completions', label: 'Pass Comp' },
+                { key: 'passing_yards', label: 'Pass Yds' },
+                { key: 'passing_tds', label: 'Pass TDs' },
+                { key: 'receptions', label: 'Rec' },
+                { key: 'receiving_yards', label: 'Rec Yds' },
+                { key: 'receiving_tds', label: 'Rec TDs' },
+                { key: 'tackles', label: 'Tackles' },
+                { key: 'sacks', label: 'Sacks' },
+                { key: 'interceptions', label: 'INT' },
+                { key: 'fumbles_forced', label: 'FF' },
+                { key: 'fumbles_recovered', label: 'FR' }
+            ];
+            
+            const nonZeroStats = statTypes.filter(st => playerRecord[st.key] > 0);
+            
+            if (nonZeroStats.length > 0) {
+                statsHtml = nonZeroStats.map(st => `
+                    <div class="stat-item">
+                        <span>${escapeHtml(st.label)}:</span>
+                        <strong>${playerRecord[st.key]}</strong>
+                    </div>
+                `).join('');
+            } else {
+                statsHtml = '<div style="color: #999; font-style: italic;">No stats yet</div>';
+            }
+        } else {
+            statsHtml = '<div style="color: #999; font-style: italic;">No stats yet</div>';
+        }
 
         const li = document.createElement('li');
         li.className = 'player-item';
         li.innerHTML = `
             <div class="player-name">${escapeHtml(playerName)}</div>
             <div class="player-stats">
-                ${playerStats.length > 0 
-                    ? playerStats.map(stat => `
-                        <div class="stat-item">
-                            <span>${escapeHtml(stat.statType)}:</span>
-                            <strong>${stat.value}</strong>
-                        </div>
-                    `).join('')
-                    : '<div style="color: #999; font-style: italic;">No stats yet</div>'
-                }
+                ${statsHtml}
             </div>
-            ${currentUser.permission === 0 ? `
-                <button class="btn btn-primary" onclick="showAddStatForm('${teamPrefix}', '${playerId}')" style="margin-top: 10px;">Add Stat</button>
-                <div class="add-stat-form admin-only" id="statForm-${teamPrefix}-${playerId}" style="display: none;">
-                    <div class="form-group">
-                        <label>Stat Type:</label>
-                        <select id="statType-${teamPrefix}-${playerId}">
-                            <option value="points">Points</option>
-                            <option value="goals">Goals</option>
-                            <option value="assists">Assists</option>
-                            <option value="rebounds">Rebounds</option>
-                            <option value="steals">Steals</option>
-                            <option value="blocks">Blocks</option>
-                            <option value="fouls">Fouls</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Value:</label>
-                        <input type="number" id="statValue-${teamPrefix}-${playerId}" min="0" value="1">
-                    </div>
-                    <button class="btn btn-success" onclick="addPlayerStat('${teamPrefix}', '${playerId}')">Add Stat</button>
-                </div>
-            ` : ''}
         `;
         playersList.appendChild(li);
     });
@@ -377,85 +426,6 @@ function showAddStatForm(teamPrefix, playerId) {
     const form = document.getElementById(`statForm-${teamPrefix}-${playerId}`);
     if (form) {
         form.style.display = form.style.display === 'block' ? 'none' : 'block';
-    }
-}
-
-// Update score
-async function updateScore() {
-    if (currentUser.permission !== 0) {
-        alert('Only admins can update scores');
-        return;
-    }
-
-    const team1Score = parseInt(document.getElementById('team1ScoreInput').value) || 0;
-    const team2Score = parseInt(document.getElementById('team2ScoreInput').value) || 0;
-
-    try {
-        const response = await fetch(`/games/${gameId}/score`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                team1Score: team1Score,
-                team2Score: team2Score
-            })
-        });
-
-        const result = await response.json();
-
-        if (response.ok && result.success) {
-            showSuccess('Score updated successfully!');
-            currentGame.team1Score = team1Score;
-            currentGame.team2Score = team2Score;
-            document.getElementById('team1Score').textContent = team1Score;
-            document.getElementById('team2Score').textContent = team2Score;
-        } else {
-            alert('Error updating score: ' + (result.error || 'Unknown error'));
-        }
-    } catch (error) {
-        console.error('Error updating score:', error);
-        alert('Failed to update score');
-    }
-}
-
-// Add player stat
-async function addPlayerStat(teamPrefix, playerId) {
-    if (currentUser.permission !== 0) {
-        alert('Only admins can add stats');
-        return;
-    }
-
-    const statType = document.getElementById(`statType-${teamPrefix}-${playerId}`).value;
-    const value = parseInt(document.getElementById(`statValue-${teamPrefix}-${playerId}`).value) || 0;
-
-    try {
-        const response = await fetch(`/games/${gameId}/stats`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                playerId: playerId,
-                statType: statType,
-                value: value
-            })
-        });
-
-        const result = await response.json();
-
-        if (response.ok && result.success) {
-            showSuccess('Stat added successfully!');
-            currentGame = result.game;
-            displayPlayers();
-            const form = document.getElementById(`statForm-${teamPrefix}-${playerId}`);
-            if (form) form.style.display = 'none';
-        } else {
-            alert('Error adding stat: ' + (result.error || 'Unknown error'));
-        }
-    } catch (error) {
-        console.error('Error adding stat:', error);
-        alert('Failed to add stat');
     }
 }
 
@@ -512,7 +482,7 @@ async function addYouthStat() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                userId: playerId,
+                youthId: playerId,
                 statType: statType,
                 value: value,
                 gameId: gameIdValue
@@ -524,6 +494,16 @@ async function addYouthStat() {
 
         if (response.ok && result.success) {
             showSuccess('Stat added to player profile successfully!');
+            // Reload stats to show the update
+            await loadGameStats();
+            displayPlayers();
+
+            // Update score if touchdown stat updated
+            if (statType === 'rushing_tds' || statType === 'passing_tds' || statType === 'receiving_tds') {
+                await loadGameScore();
+                document.getElementById('team1Score').textContent = currentGame.team1Score || 0;
+                document.getElementById('team2Score').textContent = currentGame.team2Score || 0;
+            }
             // Clear form
             document.getElementById('youthStatPlayer').value = '';
             document.getElementById('youthStatValue').value = 1;
@@ -542,6 +522,25 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Toggle admin panel visibility
+function toggleAdminPanel() {
+    const adminCol = document.getElementById('adminStatsCol');
+    const mainCol = document.getElementById('mainContentCol');
+    const toggle = document.getElementById('adminPanelToggle');
+    
+    if (adminCol.style.display === 'none') {
+        adminCol.style.display = 'block';
+        mainCol.classList.remove('col-12');
+        mainCol.classList.add('col-8');
+        toggle.textContent = '−';
+    } else {
+        adminCol.style.display = 'none';
+        mainCol.classList.remove('col-8');
+        mainCol.classList.add('col-12');
+        toggle.textContent = '+';
+    }
 }
 
 // Initialize

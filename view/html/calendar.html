@@ -141,32 +141,34 @@
                 <div id="calendar"></div>
 
                 <hr style="margin: 24px 0;">
+                
+                <div id="admin-addgame">
+                    <h3>Add New Game</h3>
+                    <form id="createGameForm" style="margin-bottom: 20px;">
+                        <label for="team1">Team 1</label><br>
+                        <select id="team1" name="team1" required style="width: 100%; padding: 8px; margin: 6px 0;"></select><br>
 
-                <h3>Add New Game</h3>
-                <form id="createGameForm" style="margin-bottom: 20px;">
-                    <label for="team1">Team 1</label><br>
-                    <select id="team1" name="team1" required style="width: 100%; padding: 8px; margin: 6px 0;"></select><br>
+                        <label for="team2">Team 2</label><br>
+                        <select id="team2" name="team2" required style="width: 100%; padding: 8px; margin: 6px 0;"></select><br>
 
-                    <label for="team2">Team 2</label><br>
-                    <select id="team2" name="team2" required style="width: 100%; padding: 8px; margin: 6px 0;"></select><br>
+                        <label for="date">Date</label><br>
+                        <input type="date" id="date" name="date" required style="width: 100%; padding: 8px; margin: 6px 0;"><br>
 
-                    <label for="date">Date</label><br>
-                    <input type="date" id="date" name="date" required style="width: 100%; padding: 8px; margin: 6px 0;"><br>
+                        <label for="startTime">Start Time</label><br>
+                        <input type="time" id="startTime" name="startTime" required style="width: 100%; padding: 8px; margin: 6px 0;"><br>
 
-                    <label for="startTime">Start Time</label><br>
-                    <input type="time" id="startTime" name="startTime" required style="width: 100%; padding: 8px; margin: 6px 0;"><br>
+                        <label for="endTime">End Time</label><br>
+                        <input type="time" id="endTime" name="endTime" required style="width: 100%; padding: 8px; margin: 6px 0;"><br>
 
-                    <label for="endTime">End Time</label><br>
-                    <input type="time" id="endTime" name="endTime" required style="width: 100%; padding: 8px; margin: 6px 0;"><br>
+                        <label for="location">Location</label><br>
+                        <input type="text" id="location" name="location" required style="width: 100%; padding: 8px; margin: 6px 0;"><br>
 
-                    <label for="location">Location</label><br>
-                    <input type="text" id="location" name="location" required style="width: 100%; padding: 8px; margin: 6px 0;"><br>
+                        <label for="link">Live Link (optional)</label><br>
+                        <input type="text" id="link" name="link" placeholder="https://..." style="width: 100%; padding: 8px; margin: 6px 0;"><br>
 
-                    <label for="link">Live Link (optional)</label><br>
-                    <input type="text" id="link" name="link" placeholder="https://..." style="width: 100%; padding: 8px; margin: 6px 0;"><br>
-
-                    <button type="submit" style="padding: 10px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Create Game</button>
-                </form>
+                        <button type="submit" style="padding: 10px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Create Game</button>
+                    </form>
+                </div>
             </div>
         </main>
 
