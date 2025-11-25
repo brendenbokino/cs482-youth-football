@@ -2,14 +2,14 @@ const mongoose = require('mongoose');
 const dbcon = require('./DbConnect'); 
 const GameDao = require('./GameDao');
 
-const gameId = 'game789';
+const team1Id = new mongoose.Types.ObjectId();
+const team2Id = new mongoose.Types.ObjectId();
 const gameData = {
-    team1: 'Bears',
-    team2: 'Lions',
+    id_team1: team1Id,
+    id_team2: team2Id,
     date: new Date('2026-10-20T19:00:00Z'),
     location: 'MetLife Stadium',
     link: 'http://example.com/game/789',
-    _id: gameId
 };
 
 const updatedGameData = {
@@ -37,19 +37,21 @@ describe('GameDao Integration Tests', () => {
         const found = await GameDao.read(created._id);
 
         expect(created._id).not.toBeNull();
-        expect(created.team1).toBe(found.team1);
+        expect(created.id_team1.toString()).toBe(found.id_team1.toString());
         expect(created.location).toBe(found.location);
     });
 
     test('Read all games', async () => {
         await GameDao.create(gameData);
-        await GameDao.create({ team1: 'Giants', team2: 'Eagles', date: new Date('2026-10-27T19:00:00Z'), location: 'Philly Arena', _id: 'game101' });
+        const team3Id = new mongoose.Types.ObjectId();
+        const team4Id = new mongoose.Types.ObjectId();
+        await GameDao.create({ id_team1: team3Id, id_team2: team4Id, date: new Date('2026-10-27T19:00:00Z'), location: 'Philly Arena'});
 
         const allGames = await GameDao.readAll();
 
         expect(allGames.length).toBe(2);
-        expect(allGames[0].team1).toBe('Bears');
-        expect(allGames[1].team1).toBe('Giants');
+        expect(allGames[0].id_team1.toString()).toBe(team1Id.toString());
+        expect(allGames[1].id_team1.toString()).toBe(team3Id.toString());
     });
 
     test('Read all games when no games exist', async () => {
@@ -58,11 +60,11 @@ describe('GameDao Integration Tests', () => {
     });
 
     test('Read a single game by ID', async () => {
-        await GameDao.create(gameData);
-        const game = await GameDao.read(gameId);
+        const created = await GameDao.create(gameData);
+        const game = await GameDao.read(created._id);
 
-        expect(game._id).toBe(gameId);
-        expect(game.team1).toBe('Bears');
+        expect(game._id.toString()).toBe(created._id.toString());
+        expect(game.id_team1.toString()).toBe(team1Id.toString());
     });
 
     test('Read a single game with invalid ID', async () => {
@@ -77,28 +79,30 @@ describe('GameDao Integration Tests', () => {
     });
 
     test('Update an existing game', async () => {
-        await GameDao.create(gameData);
+        const created = await GameDao.create(gameData);
 
         const updateObj = { location: 'New Stadium', date: new Date('2026-10-21T19:00:00Z') };
-        const updatedGame = await GameDao.update(gameId, updateObj);
+        const updatedGame = await GameDao.update(created._id, updateObj);
 
         expect(updatedGame.location).toBe('New Stadium');
         expect(new Date(updatedGame.date)).toEqual(updateObj.date);
     });
 
     test('Delete a single game by ID', async () => {
-        await GameDao.create(gameData);
+        const created = await GameDao.create(gameData);
 
-        const deleted = await GameDao.del(gameId);
-        const found = await GameDao.read(gameId);
+        const deleted = await GameDao.del(created._id);
+        const found = await GameDao.read(created._id);
 
         expect(found).toBeNull();
-        expect(deleted._id).toBe(gameId);
+        expect(deleted._id.toString()).toBe(created._id.toString());
     });
 
     test('Delete all games', async () => {
         await GameDao.create(gameData);
-        await GameDao.create({ team1: 'Giants', team2: 'Eagles', date: new Date('2026-10-27T19:00:00Z'), location: 'Philly Arena', _id: 'game101' });
+        const team3Id = new mongoose.Types.ObjectId();
+        const team4Id = new mongoose.Types.ObjectId();
+        await GameDao.create({ id_team1: team3Id, id_team2: team4Id, date: new Date('2026-10-27T19:00:00Z'), location: 'Philly Arena' });
 
         await GameDao.deleteAll();
         const allGames = await GameDao.readAll();
@@ -106,50 +110,12 @@ describe('GameDao Integration Tests', () => {
         expect(allGames.length).toBe(0);
     });
 
-    test("Read all logs game read function", async () => {
-        console.log = jest.fn();
-        await GameDao.create(gameData);
-        await GameDao.read(gameId);
-    
-        const allLogs = console.log.mock.calls.flat();
-
-        let idLogFound = false;
-        let teamsLogFound = false;
-    
-        for (const log of allLogs) {
-            if (log.includes("GameDao.read: Game _id:")) {
-                idLogFound = true;
-                expect(log).toContain(gameId);
-            }
-            if (log.includes("GameDao.read: Game teams:")) {
-                teamsLogFound = true;
-                expect(log).toContain("Bears vs Lions");
-            }
-        }
-    
-        expect(idLogFound).toBe(true);
-        expect(teamsLogFound).toBe(true);
-    });
-
-    test("update() should update a game and return the new one", async () => {
-        const updatedGame = {
-            _id: "123",
-            teams: "Sharks vs Dolphins",
-            score: "20-10"
-        };
-    
-        GameDao.findByIdAndUpdate.mockResolvedValueOnce(updatedGame);
-        const result = await GameDao.update("123", { score: "20-10" });
-    
-        expect(GameDao.findByIdAndUpdate).toHaveBeenCalledWith("123", { score: "20-10" }, { new: true });
-        expect(result).toEqual(updatedGame);
-    });
-    
-
     test("update() should update a game in MongoDB", async () => {
+        const testTeam1 = new mongoose.Types.ObjectId();
+        const testTeam2 = new mongoose.Types.ObjectId();
         const game = await GameDao.create({
-            team1: "Bears",
-            team2: "Lions",
+            id_team1: testTeam1,
+            id_team2: testTeam2,
             date: new Date(),
             location: "Old Stadium"
         });
@@ -171,9 +137,11 @@ describe('GameDao Integration Tests', () => {
 
     
     test("del() should delete a game and return it", async () => {
+        const testTeam1 = new mongoose.Types.ObjectId();
+        const testTeam2 = new mongoose.Types.ObjectId();
         const game = await GameDao.create({
-            team1: "ravens",
-            team2: "steelers",
+            id_team1: testTeam1,
+            id_team2: testTeam2,
             date: new Date(),
             location: "home"
         });
@@ -185,6 +153,16 @@ describe('GameDao Integration Tests', () => {
 
         const check = await GameDao.read(game._id);
         expect(check).toBeNull();
+    });
+
+    test("create() should throw error when validation fails", async () => {
+        // Missing required fields id_team1 and id_team2
+        const invalidGame = {
+            date: new Date(),
+            location: "Stadium"
+        };
+
+        await expect(GameDao.create(invalidGame)).rejects.toThrow();
     });
     
 });
