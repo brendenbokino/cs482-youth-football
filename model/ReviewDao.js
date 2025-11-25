@@ -39,5 +39,9 @@ module.exports = {
       updates.edited = true;
       updates.dateEdited = new Date();
       return await reviewModel.findByIdAndUpdate(id, updates, { new: true });
+  },
+
+  async deleteAll(){
+    return await reviewModel.deleteMany();
   }
 };
