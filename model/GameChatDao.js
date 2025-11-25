@@ -65,6 +65,10 @@ module.exports = {
       return await gameChatModel.findByIdAndDelete(id);
   },
 
+  async deleteAll() {
+      return await gameChatModel.deleteMany();
+  },
+
   async isAuthor(messageId, userName) {
       const message = await gameChatModel.findById(messageId);
       return message && message.author === userName;

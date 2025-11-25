@@ -1,12 +1,13 @@
 const { describe } = require('yargs');
 const dbcon = require('./DbConnect');
 const dao = require('./GameChatDao');
+const mongoose = require('mongoose');
 
 beforeAll(async function(){ 
     await dbcon.connect('test');
 });
 afterAll(async function(){ 
-    await dao.delete();
+    await dao.deleteAll();
     dbcon.disconnect();
 });
 beforeEach(async function(){ 
@@ -125,7 +126,7 @@ test('Add reply to message', async () => {
 
 test('Add reply to non-existent message', async () => {
   const reply = { gameId: '0', email: 'responder@test.com', message: 'Reply here' };
-  const updated = await dao.addReply('nonexistentId', reply);
+  const updated = await dao.addReply(new mongoose.Types.ObjectId(), reply);
 
   expect(updated).toBeNull();
 });
@@ -142,7 +143,7 @@ test('Delete message', async () => {
 
 test('Update non-existent message', async () => {
   const updates = { message: 'Updated text' };
-  const updated = await dao.update('nonexistentId', updates);
+  const updated = await dao.update(new mongoose.Types.ObjectId(), updates);
 
   expect(updated).toBeNull();
 });
