@@ -175,12 +175,15 @@
                 async function setSeeding(){
                     const response = await fetch('/teams');
                     const json = await response.json();
-                    const teams = json.teams;
+                    const teams = json;
                     seeding = seedTeams(teams, 8);      
                     let i=1;
                     for (let team of seeding){
-                        label = document.getElementById(`${i}seed`)
-                        label.innerHTML += `${team.teamName}`
+                        if (team == null){
+                            continue;
+                        }
+                        label = document.getElementById(`${i}seed`);
+                        label.innerHTML += `${team.teamName}`;
                         i++;
                     } 
                 }
