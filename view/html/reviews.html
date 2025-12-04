@@ -115,8 +115,7 @@
               background-color: #8b5cf6;
             }
         
-            .refresh-btn,
-            .hide-btn {
+            .toggle-btn {
               margin-right: 8px;
             }
         
@@ -213,8 +212,8 @@
 
             <hr>
 
-            <button class="refresh-btn" onclick="viewReviews(false)">View Reviews</button>
-            <button class="hide-btn" onclick="toggleReviews(false)">Hide Reviews</button>
+            <button class="toggle-btn" onclick="viewReviews(false)">View Reviews</button>
+            <!--<button class="hide-btn" onclick="viewReviews(false)">View Reviews</button>-->
             <div id="reviewList"></div>
         </main>
 
@@ -361,6 +360,7 @@ function getAuthorType(permission) {
                     console.log("Response status:", response.status); 
 
                     if (response.ok) {
+                        toggleReviews();
                         const data = await response.json();
                         //window.alert(data);
                         console.log("Fetched reviews:", data); 
@@ -427,14 +427,14 @@ function getAuthorType(permission) {
 
             function toggleReviews() {
                 const reviewList = document.getElementById('reviewList');
-                const hideBtn = document.querySelector('.hide-btn');
+                const toggleBtn = document.querySelector('.toggle-btn');
 
-                if (reviewList.style.display === 'none' ){ 
+                if (toggleBtn.textContent === 'View Reviews' ){ 
                     reviewList.style.display = 'block';
-                    hideBtn.textContent = 'Hide Reviews';
+                    toggleBtn.textContent = 'Hide Reviews';
                 } else {
                     reviewList.style.display = 'none';
-                    hideBtn.textContent = 'View Reviews';
+                    toggleBtn.textContent = 'View Reviews';
                 }
             }
        </script>

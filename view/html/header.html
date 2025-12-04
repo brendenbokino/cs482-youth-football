@@ -25,15 +25,18 @@
 
           <!-- Nav links -->
           <ul class="navbar-nav ms-auto">
-            <!-- Spikes Dropdown -->
-            <!--<li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown">Spikes</a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="calendarSPIKE.html">Calendar</a></li>
-                    <li><a class="dropdown-item" href="livelinkSPIKE.html">Live Link</a></li>
-                    <li><a class="dropdown-item" href="photos.html">Upload Photos</a></li>
-                </ul>
-            </li>-->
+
+            <!-- Admin Dropdown (Hidden if not logged in)-->
+            <li id="admin-page" style="display:none" class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown">Admin</a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                  <li><a class="dropdown-item" href="calendarSPIKE.html">Calendar (spike)</a></li>
+                  <li><a class="dropdown-item" href="livelinkSPIKE.html">Live Link (spike)</a></li>
+                  <li><a class="dropdown-item" href="photos.html">Image Carousel Upload</a></li>
+                  <li><a class="dropdown-item" href="team.html">Admin Team Page</a></li>
+                  <li><a class="dropdown-item" href="coach.html">Coach</a></li>
+              </ul>
+          </li>
 
             <!-- Calendar -->
             <li class="nav-item" >
@@ -45,27 +48,14 @@
               <a href="bracket.html" class="nav-link text-white">Bracket</a>
             </li>
 
-            <!-- Admin (Hidden if not logged in) -->
-            <!--<li id="admin-page" style="display:none" class="nav-item" >
-              <a href="coach.html" class="nav-link text-white">Admin</a>
-            </li>-->
-
-            <!-- Admin Dropdown (Hidden if not logged in)-->
-            <li id="admin-page" style="display:none" class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown">Admin</a>
+            <!-- Teams Dropdown -->
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown">Teams</a>
               <ul class="dropdown-menu dropdown-menu-end">
-                  <li><a class="dropdown-item" href="calendarSPIKE.html">Calendar (spike)</a></li>
-                  <li><a class="dropdown-item" href="livelinkSPIKE.html">Live Link (spike)</a></li>
-                  <li><a class="dropdown-item" href="photos.html">Image Carousel Upload</a></li>
-                  <li><a class="dropdown-item" href="team.html">Admin Team Page</a></li>
+                  <li><a class="dropdown-item" href="teams.html">Teams List</a></li>
+                  <li><a class="dropdown-item" href="reviews.html">Team Reviews</a></li>
               </ul>
-          </li>
-
-            <!-- Team (Hidden if not logged in) -->
-            <li id="team-page" style="display:none" class="nav-item" >
-              <a href="team.html" class="nav-link text-white">Team</a>
-            </li>
-            
+          </li>         
             
             <!-- Communication -->
             <li class="nav-item" >
