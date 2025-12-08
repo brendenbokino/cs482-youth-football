@@ -11,14 +11,19 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">        
         <link href="./css/main.css" rel="stylesheet" type="text/css">
         <style>
+            h1, p, form {
+                text-align: center;
+            }
             img {
                 max-width: 100%; /* Image will not exceed 100% of its container's width */
                 height: auto; /* Height adjusts proportionally to maintain aspect ratio */
                 display: block; /* Removes extra space below the image */
+                margin: auto;                
             }
 
             .imageList {
-                text-align: center
+                margin: auto;
+                margin-top: 20px;                         
             }
         </style>
         
@@ -32,7 +37,7 @@
                 <div>
                     <h1>Carousel Image Upload</h1>
                     <p>Submit images to populate them in the Image Carousel on the home page and delete to remove them.</p>
-                    <p>Note that the order they are on this page will reflect the order they show up in on the Carousel</p>
+                    <p>Note that the order they appear on this page will reflect the order they show up in the Carousel</p>
                     <form action="/upload" method="POST" enctype="multipart/form-data">
                         <div class="custom-file mb-3">
                             <input type="file" name="file" id="file">
