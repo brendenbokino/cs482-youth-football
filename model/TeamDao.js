@@ -13,6 +13,11 @@ const teamSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now
+    },
+
+    record: {
+        type: Array,
+        default: [0,0]
     }
 });
 
