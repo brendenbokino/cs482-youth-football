@@ -68,10 +68,10 @@ class TeamController {
     // Get all teams
     async getAllTeams (req, res) {
         try {
-            console.log('getAllTeams: Starting...');
+            //console.log('getAllTeams: Starting...');
             let allTeams = await TeamDao.readAll();
-            console.log('getAllTeams: Retrieved', allTeams?.length, 'teams');
-            console.log('getAllTeams: First team:', allTeams[0]);
+            //console.log('getAllTeams: Retrieved', allTeams?.length, 'teams');
+            //console.log('getAllTeams: First team:', allTeams[0]);
             return res.status(200).json(allTeams);
             
         } catch (error) {
@@ -496,7 +496,7 @@ exports.addPlayer = async function (req, res) {
 exports.update = async function (req, res) {
     // Handle JSON data - map updateTeamId from body to params
     req.params = req.params || {};
-    req.params._id = req.body.updateTeamId;
+    req.params._id = req.body.updateTeamRecordID;
     
     // Keep the body data intact for updateTeam to use
     // The body should have: coach, players, games, etc.

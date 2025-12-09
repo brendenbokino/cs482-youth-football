@@ -31,7 +31,43 @@ async function populateCoachOptions() {
     }
 }
 
+async function populateTeamOptions() {
+    try {
+        let teamResp = await fetch('/teams');
+        
+        if (!teamResp.ok) {
+            console.error('populateCoachOptions: Failed to fetch coaches:', teamResp.status, teamResp.statusText);
+            return;
+        }
+        
+        let teams = await teamResp.json();
+        
+        if (teams.error) {  
+            console.error('Error fetching coaches:', teams.error);
+            return;
+        }
+
+        let teamSelect = document.getElementById('updateTeamRecordID');
+        
+
+        // Clear and add default option
+        teamSelect.innerHTML = '<option value="">Select a Team</option>';
+        //window.alert(teamSelect.textContent);
+
+        for (let team of teams) {
+            let option = document.createElement('option');
+            option.value = team._id;
+            option.textContent = team.teamName;
+            teamSelect.appendChild(option);
+        }
+    
+    } catch (error) {
+        console.error('populateTeamOptions Error:', error);
+    }
+}
+
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', async function() {
     await populateCoachOptions();
+    await populateTeamOptions();
 });
