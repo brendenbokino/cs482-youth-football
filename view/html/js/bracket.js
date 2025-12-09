@@ -1,5 +1,5 @@
 //had to move Bracket.js functions in the html file for them to work
-exports.pickWinner = function(clickedTeam, nextMatchId) {
+function pickWinner(clickedTeam, nextMatchId) {
     const matchup = clickedTeam.closest('.matchup');
     // Remove 'winner' class from any other team in the same matchup
     const teamsInMatchup = matchup.querySelectorAll('.team');
@@ -36,7 +36,7 @@ exports.pickWinner = function(clickedTeam, nextMatchId) {
 //return team with more wins
 //if teams have the same number of wins, team1 is default return
 //could include a tie breaker once stats are implemented
-exports.higherSeed = function(team1, team2) {
+function higherSeed(team1, team2) {
     if (team2.record[0] > team1.record[0]) {
         return team2;
     }
@@ -47,7 +47,7 @@ exports.higherSeed = function(team1, team2) {
 //param teams: array of all teams in league
 //param numSeeds: number of playoff teams
 
-exports.seedTeams = function(teams, numSeeds) {
+function seedTeams(teams, numSeeds) {
     let seeding = new Array(numSeeds);
     //copy teams to a temp array to not mess with the original data
     let temp = teams;
@@ -71,7 +71,7 @@ exports.seedTeams = function(teams, numSeeds) {
     return seeding;
 }
 
-exports.setSeeding = async function(){
+async function setSeeding(){
     const response = await fetch('/teams');
     const json = await response.json();
     const teams = json;
@@ -87,4 +87,10 @@ exports.setSeeding = async function(){
     } 
 }
 
-setSeeding();
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', async function() {
+    await setSeeding();
+});
+
+exports.higherSeed = higherSeed;
+exports.setSeeding = setSeeding;
