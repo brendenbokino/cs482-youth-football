@@ -263,196 +263,20 @@ app.get('/loggedUser', (req, res) => {
   }
 });
 
-// changed to handle sessions
-app.post('/comms/postMessage', isAuthenticated, async (req, res) => {
-  const { message } = req.body;
-  const user = req.session.user;
 
-  try {
-    const newMessage = await MessageDao.create({
-      message,
-      author: user.name,
-      authorType: user.permission,
-    });
-    res.status(200).json({ success: true, newMessage });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to post message", details: err.message });
-  }
-});
-
-app.get('/comms/viewMessages', isAuthenticated, async (req, res) => {
-  //const { gameId } = req.query;
-  //console.log(`Received gameId in query: ${gameId}`); 
-
-  try {
-    const messages = await MessageDao.readAll();
-    res.json({ messages });
-  } catch (err) {
-    console.error("Error fetching messages:", err); 
-    res.status(500).json({ error: "Failed to fetch messages", details: err.message });
-  }
-});
-
-app.delete('/comms/deleteMessage/:id', isAuthenticated, async (req, res) => {
-  const { id } = req.params;
-  const user = req.session.user;
-
-  try {
-    const isAuthor = await MessageDao.isAuthor(id, user.name);
-    if (!isAuthor) {
-      return res.status(403).json({ error: "You are not authorized to delete this message." });
-    }
-    await MessageDao.delete(id);
-    res.status(200).json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to delete message", details: err.message });
-  }
-});
-
-app.put('/comms/updateMessage/:id', isAuthenticated, async (req, res) => {
-  const { id } = req.params;
-  const { message } = req.body;
-  const user = req.session.user;
-
-  try {
-    const isAuthor = await MessageDao.isAuthor(id, user.name);
-    if (!isAuthor) {
-      return res.status(403).json({ error: "You are not authorized to update this message." });
-    }
-    const updatedMessage = await MessageDao.update(id, { message });
-    res.status(200).json({ success: true, updatedMessage });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to update message", details: err.message });
-  }
-});
-
-app.post('/comms/addReply/:id', isAuthenticated, async (req, res) => {
-    const { id } = req.params;
-    const { message } = req.body;
-    const user = req.session.user;
-
-    try {
-        const reply = {
-            email: user.email,
-            message,
-        };
-        const updatedMessage = await MessageDao.addReply(id, reply);
-        if (updatedMessage) {
-            res.status(200).json({ success: true, updatedMessage });
-        } else {
-            res.status(404).json({ error: "Message not found." });
-        }
-    } catch (err) {
-        res.status(500).json({ error: "Failed to add reply", details: err.message });
-    }
-});
-
+const CommsController = require('./src/CommsController');
 const upload = multer({ dest: 'uploads/' }); 
 
-app.use('/uploads', express.static('uploads'));
+app.post('/comms/postMessage', isAuthenticated, CommsController.postMessage);
+app.get('/comms/viewMessages', isAuthenticated, CommsController.viewMessages);
+app.delete('/comms/deleteMessage/:id', isAuthenticated, CommsController.deleteMessage);
+app.put('/comms/updateMessage/:id', isAuthenticated, CommsController.updateMessage);
+app.post('/comms/addReply/:id', isAuthenticated, CommsController.addReply);
+app.use('/uploads', express.static('uploads')); 
+app.post('/comms/uploadPhoto', isAuthenticated, upload.single('photo'), CommsController.uploadPhoto);
+app.post('/comms/uploadVideo', isAuthenticated, upload.single('video'), CommsController.uploadVideo);
 
-app.post('/comms/uploadPhoto', isAuthenticated, upload.single('photo'), async (req, res) => {
-    const user = req.session.user;
 
-    try {
-        const message = req.body.message || "(no message)";
-        const photoUrl = `/uploads/${req.file.filename}`; 
-
-        const newMessage = await MessageDao.create({
-            message,
-            author: user.name,
-            authorType: user.permission,
-            photoUrl, 
-        });
-
-        res.status(200).json({ success: true, newMessage });
-    } catch (err) {
-        console.error("Error saving photo message:", err);
-        res.status(500).json({ error: "Failed to upload photo", details: err.message });
-    }
-});
-
-app.post('/comms/uploadVideo', isAuthenticated, upload.single('video'), async (req, res) => {
-    const user = req.session.user;
-
-    try {
-        const message = req.body.message || "(no message)";
-        const videoUrl = `/uploads/${req.file.filename}`; 
-
-        const newMessage = await MessageDao.create({
-            message,
-            author: user.name,
-            authorType: user.permission,
-            videoUrl,
-        });
-
-        res.status(200).json({ success: true, newMessage });
-    } catch (err) {
-        console.error("Error saving video message:", err);
-        res.status(500).json({ error: "Failed to upload video", details: err.message });
-    }
-});
-
-app.get('/image/:id', async (req, res) => {
-    const msg = await MessageDao.findById(req.params.id);
-    if (!msg || !msg.photo) return res.status(404).send("Not found");
-
-    res.contentType(msg.photoMime);
-    res.send(msg.photo);
-});
-
-app.get('/video/:id', async (req, res) => {
-    const msg = await MessageDao.findById(req.params.id);
-    if (!msg || !msg.video) return res.status(404).send("Not found");
-
-    res.contentType(msg.videoMime);
-    res.send(msg.video);
-});
-
-/*
-app.post('/gameChat/:gameId', isAuthenticated, async (req, res) => {
-  const { gameId } = req.params;
-  const { message } = req.body;
-  const user = req.session.user;
-
-  try {
-    const game = await GameDao.findById(gameId);
-    if (!game) {
-      return res.status(404).json({ error: "Game not found." });
-    }
-
-    const now = new Date();
-    const gameStart = new Date(game.date);
-    const gameEnd = new Date(game.date);
-    gameEnd.setHours(gameEnd.getHours() + 2); // keeping the games at 2 hours, no OT
-
-    if (now < gameStart || now > gameEnd) {
-      return res.status(403).json({ error: "Chat is only allowed during the game." });
-    }
-
-    const newChat = await GameChatDao.create({
-      gameId,
-      message,
-      author: user.name,
-      authorType: user.permission,
-    });
-
-    res.status(200).json({ success: true, newChat });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to post chat message", details: err.message });
-  }
-});
-
-app.get('/gameChat/:gameId', isAuthenticated, async (req, res) => {
-  const { gameId } = req.params;
-
-  try {
-    const chats = await GameChatDao.readByGameId(gameId);
-    res.json({ chats });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch game chats", details: err.message });
-  }
-});*/
 
 const ReviewDao = require('./model/ReviewDao')
 
