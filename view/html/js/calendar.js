@@ -355,25 +355,22 @@ async function postMessage() {
             credentials: 'include', 
         });
 
-        alert("Message posted successfully.");
+        if (response.ok) {
+            viewMessages();
 
-        
-        //if (response.ok){ //&& now >= new Date(startTime) && now <= new Date(endTime)) {
-        if (response.ok && now >= new Date(startTime) && now <= new Date(endTime)) {
+            console.log("Post successful:", result);
             document.getElementById("confirmationMessage").style.display = "block";
             setTimeout(() => {
                 document.getElementById("confirmationMessage").style.display = "none";
             }, 3000);
             document.getElementById("messageForm").reset();
-            viewMessages();
         } else {
             const result = await response.json();
             console.error("Post failed:", result.error || "Unknown server error.");
             alert("Failed to post message: " + (result.error || "Unknown error."));
         }
     } catch (error) {
-        console.error('Network error during post:', error);
-        
+        console.error('Error during postMessage execution:', error);
     }
 }
 
@@ -539,6 +536,7 @@ async function viewMessages() {
         console.log(`Response status: ${response.status}`); 
 
         if (response.ok) {
+            // alert("Messages retrieved successfully. calendar.jss");
             const data = await response.json();
             console.log("Fetched messages:", data); 
             const messageList = document.getElementById('messageList');
@@ -605,7 +603,7 @@ async function viewMessages() {
         }
     } catch (error) {
         console.error('Network error during message retrieval:', error); 
-        alert("View Messages. Network error. Please try again.");
+        alert("View Messages. Network error. Please try again. View");
     }
 }
 
