@@ -275,6 +275,44 @@
         </div>
 
         <script src="js/calendar.js"></script>
+        <script>
+            async function postMessage() {
+    const messageBody = document.getElementById('messageBody').value;
+    if (!messageBody) {
+        alert("Message cannot be empty.");
+        return;
+    }
+
+    try {
+        const response = await fetch('/calendar/postMessage', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message: messageBody, gameId: currentGameId, date: new Date() }),
+            credentials: 'include', 
+        });
+
+        
+        //if (response.ok){ //&& now >= new Date(startTime) && now <= new Date(endTime)) {
+        if (response.ok && now >= new Date(startTime) && now <= new Date(endTime)) {
+            document.getElementById("confirmationMessage").style.display = "block";
+            setTimeout(() => {
+                document.getElementById("confirmationMessage").style.display = "none";
+            }, 3000);
+            document.getElementById("messageForm").reset();
+            viewMessages();
+        } else {
+            const result = await response.json();
+            console.error("Post failed:", result.error || "Unknown server error.");
+            alert("Failed to post message: " + (result.error || "Unknown error."));
+        }
+    } catch (error) {
+        console.error('Network error during post:', error);
+        
+    }
+}
+        </script>
     
 
     <div id="footer"></div>

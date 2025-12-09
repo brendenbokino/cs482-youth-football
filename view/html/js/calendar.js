@@ -355,8 +355,11 @@ async function postMessage() {
             credentials: 'include', 
         });
 
+        alert("Message posted successfully.");
+
         
-        if (response.ok){ //&& now >= new Date(startTime) && now <= new Date(endTime)) {
+        //if (response.ok){ //&& now >= new Date(startTime) && now <= new Date(endTime)) {
+        if (response.ok && now >= new Date(startTime) && now <= new Date(endTime)) {
             document.getElementById("confirmationMessage").style.display = "block";
             setTimeout(() => {
                 document.getElementById("confirmationMessage").style.display = "none";

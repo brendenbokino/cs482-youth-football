@@ -109,7 +109,7 @@ const TeamController = require('./src/TeamController');
 const GameController = require('./src/GameController');
 
 app.get('/profile', (req, res) => {
-  if (req.session && req.session.user) {
+  if (req.session && req.session.user && req.session.user._id) {
     res.redirect(`/profile.html?id=${req.session.user._id.toString()}`);
   } else {
     res.redirect('/login.html');
@@ -242,50 +242,15 @@ app.post('/files/:filename', FileStorage.deleteFile);
 
 
 // coach account routes
-app.post('/coach/createaccount', async (req, res) => {
-    const coach = new Coach();
-    coach.userInput = {
-        name: req.body.name,
-        email: req.body.email,
-        phone: req.body.phone,
-        password: req.body.password,
-        username: req.body.username,
-        permission: parseInt(req.body.permission, 10)
-    };
-    await UserDao.create(coach.userInput);
-    res.send("Coach account created.");
-});
+const CoachController = require('./src/CoachController');
 
-app.post('/viewaccount', async (req, res) => {
-    const { email } = req.body;
-    const user = await UserDao.findLogin(email);
-    if (user) {
-        res.json({ message: "Account Info", user });
-    } else {
-        res.status(404).json({ message: "Account not found" });
-    }
-});
+app.post('/coach/createaccount', CoachController.createAccount);
 
-app.post('/updateaccount', async (req, res) => {
-    const { email, field, value } = req.body;
-    const user = await UserDao.findLogin(email);
-    if (!user) {
-        return res.status(404).json({ message: "Account not found" });
-    }
-    const updates = { [field]: value };
-    const updatedUser = await UserDao.update(user._id, updates);
-    res.json({ message: "Account updated", updatedUser });
-});
+app.post('/viewaccount', CoachController.viewAccount);
 
-app.post('/deleteaccount', async (req, res) => {
-    const { email } = req.body;
-    const user = await UserDao.findLogin(email);
-    if (!user) {
-        return res.status(404).json({ message: "Account not found" });
-    }
-    await UserDao.del(user._id);
-    res.json({ message: "Account deleted" });
-});
+app.post('/updateaccount', CoachController.updateAccount);
+
+app.post('/deleteaccount', CoachController.deleteAccount);
 
 // Communications
 const comms = new Comms();
