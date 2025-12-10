@@ -170,6 +170,8 @@
             <button onclick="showCreateAccount()">Create Account</button>
             <button onclick="showAccountOptions()">Already Have an Account</button>
 
+            <div style="margin-top: 20px;"></div>
+
             <form id="createAccountForm" method="post" action="/coach/createaccount" style="display: none;">
                 <label for="name">Name:</label><br>
                 <input type="text" id="name" name="name" required><br>
@@ -193,11 +195,18 @@
             </div>
 
             <div id="viewAccount" class="account-section" style="display: none;">
-                <form method="post" action="/viewaccount">
+                <form method="post" action="/viewaccount" onsubmit="handleViewAccount(event)">
                     <label for="viewEmail">Email:</label>
                     <input type="email" id="viewEmail" name="email" required>
                     <button type="submit">View</button>
                 </form>
+                <div id="accountDetails" style="margin-top: 20px; display: none;">
+                    <h3>Account Details</h3>
+                    <p><strong>Name:</strong> <span id="accountName"></span></p>
+                    <p><strong>Email:</strong> <span id="accountEmail"></span></p>
+                    <p><strong>Phone:</strong> <span id="accountPhone"></span></p>
+                    <p><strong>Username:</strong> <span id="accountUsername"></span></p>
+                </div>
             </div>
 
             <div id="updateAccount" class="account-section" style="display: none;">
@@ -275,6 +284,36 @@
                     resultBox.textContent = JSON.stringify(json, null, 2);
                 } catch (err) {
                 resultBox.textContent = 'Error: ' + err.message;
+                }
+            }
+
+            async function handleViewAccount(event) {
+                event.preventDefault();
+                const form = event.target;
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+                const accountDetails = document.getElementById('accountDetails');
+                accountDetails.style.display = 'none';
+
+                try {
+                    const res = await fetch('/viewaccount', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    const json = await res.json();
+
+                    if (res.ok) {
+                        document.getElementById('accountName').textContent = json.user.name;
+                        document.getElementById('accountEmail').textContent = json.user.email;
+                        document.getElementById('accountPhone').textContent = json.user.phone;
+                        document.getElementById('accountUsername').textContent = json.user.username;
+                        accountDetails.style.display = 'block';
+                    } else {
+                        alert(json.message || 'Failed to fetch account details');
+                    }
+                } catch (err) {
+                    alert('Error: ' + err.message);
                 }
             }
         </script>
