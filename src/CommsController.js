@@ -4,11 +4,19 @@ const postMessage = async (req, res) => {
   const { message } = req.body;
   const user = req.session.user;
 
+  const permissionMap = {
+    Admin: 1,
+    Coach: 2,
+    Parent: 3,
+    Youth: 4,
+    Guest: 5,
+  };
+
   try {
     const newMessage = await MessageDao.create({
       message,
       author: user.name,
-      authorType: user.permission,
+      authorType: permissionMap[user.permission] || 5, // Default to "Guest" if invalid
     });
     res.status(200).json({ success: true, newMessage });
   } catch (err) {

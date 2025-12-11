@@ -4,14 +4,23 @@ const UserDao = require('../model/UserDao');
 const CoachController = {
   async createAccount(req, res) {
     try {
+      const permissionMap = {
+        Admin: 1,
+        Coach: 2,
+        Parent: 3,
+        Youth: 4,
+        Guest: 5,
+      };
+
       const coach = new Coach();
       coach.userInput = {
         name: req.body.name,
         email: req.body.email,
         phone: req.body.phone,
-        password: req.body.password,
         username: req.body.username,
-        permission: parseInt(req.body.permission, 10),
+        password: req.body.password,
+        confirmPassword: req.body.confirmPassword,
+        permission: parseInt(permissionMap[req.body.permission], 10) || 5, // Default to "Guest" if invalid
       };
       await UserDao.create(coach.userInput);
       res.status(201).json({ message: "Coach account created.", coach: coach.userInput });
