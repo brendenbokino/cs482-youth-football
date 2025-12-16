@@ -212,12 +212,14 @@ async function displayTeams(teams) {
                     // Build players list
                     for (let youth of youths) {
                         console.log('Fetching user for youth:', youth);
-                        let youth_user_resp = await fetch(`/user/${youth.id_user}`);
-                        if (youth_user_resp.ok) {
-                            let youth_user = await youth_user_resp.json();
-                            console.log('Youth user:', youth_user);
-                            const playerName = youth_user.name || youth_user.username || 'Unknown Player';
+                        const userResponse = await fetch(`/user/name/${youth.id_user}`);
+                        if (userResponse.ok) {
+                            const nameData = await userResponse.json();
+                            console.log('User name data:', nameData);
+                            const playerName = nameData.name || nameData.username || 'Unknown Player';
                             playersHTML += `<li class="player-item">${escapeHtml(playerName)}</li>`;
+                        } else {
+                            console.error('Failed to fetch user name:', userResponse.status);
                         }
                     }
                 }
