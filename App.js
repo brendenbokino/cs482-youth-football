@@ -96,6 +96,7 @@ app.get('/adult/viewyouths', UserController.getYouths);
 app.get('/adult/viewinvites', UserController.getAdultYouthInvites);
 app.post('/adult/approveinvite', UserController.addYouthToTeam);
 app.get('/coach/viewyouths', UserController.getYouths);
+app.get('/coach/viewinvites/:youthId', UserController.getYouthInvites);
 app.post('/coach/inviteyouth', UserController.inviteYouthToTeam);
 app.delete('/invites/:id', UserController.deleteInvite);
 app.post('/youth/addstat', isAuthenticated, UserController.addYouthStat);

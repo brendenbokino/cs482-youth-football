@@ -679,7 +679,7 @@ exports.getAdultYouthInvites = async function(req, res) {
         res.send('Requesting user not found');
         return;
     }
-    if (requester.permission != 2) {
+    if (requester.permission != 2) { // Adult
         res.status(403);
         res.send('Forbidden: Not an adult');
         return;
@@ -737,6 +737,40 @@ exports.getAdultYouthInvites = async function(req, res) {
         res.json(allInvites);
     } catch (error) {
         console.error('Error in getAdultYouthInvites:', error);
+        res.status(500);
+        res.json({ error: 'Failed to fetch invites' });
+    }
+}
+
+// Untested
+exports.getYouthInvites = async function(req, res) {
+    if (!req.session || !req.session.user) {
+        res.status(403);
+        res.send('Forbidden: Not logged in');
+        return;
+    }
+
+    let requester = await UserDao.read(req.session.user._id);
+    if (!requester) {
+        res.status(404);
+        res.send('Requesting user not found');
+        return;
+    }
+
+    if (requester.permission != 3 && requester.permission != 1) { // Not Coach or Admin
+        res.status(403);
+        res.send('Forbidden: Not a coach or admin');
+        return;
+    }
+
+    try {
+        requestedYouthId = req.params.youthId;
+        let invites = await TeamInviteDao.getInvitesByYouthId(requestedYouthId);
+        res.status(200);
+        res.json(invites);
+    }
+    catch (error) {
+        console.error('Error in getYouthInvites:', error);
         res.status(500);
         res.json({ error: 'Failed to fetch invites' });
     }

@@ -414,6 +414,17 @@ async function populateCoachYouthAccounts() {
     }
     // Populate table
     for (let yud of youth_user_data) {
+        // Check if the youth has already been invited to the coach's team
+        let inviteResp = await fetch(`/coach/viewinvites/${yud.id}`);
+        let invites = await inviteResp.json();
+        let alreadyInvited = null;
+        for (let inv of invites) {
+            if (inv.id_team === user.coachInfo.team?._id) {
+                alreadyInvited = inv._id;
+                break;
+            }
+        }
+
         let tr = document.createElement("tr");
         for (let attr of Object.keys(yud)) {
             if (attr == "id") {
@@ -426,26 +437,44 @@ async function populateCoachYouthAccounts() {
         // Invite to team button
         let buttonTd = document.createElement("td");
         let button = document.createElement("button");
-        button.classList.add("btn", "btn-purple");
-        button.innerText = "Invite";
-        button.addEventListener("click", async () => {
-            let response = await fetch('/coach/inviteyouth', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    youthId: yud.id,
-                    teamId: user.coachInfo.team?._id
-                })
+        
+        if (alreadyInvited) {
+            button.classList.add("btn", "btn-danger");
+            button.innerText = "Retract";
+            button.addEventListener("click", async () => {
+                // Find the invite to retract
+                let retractResp = await fetch(`/invites/${alreadyInvited}`, { method: 'DELETE' });
+                if (retractResp.ok) {
+                    alert("Invitation retracted successfully!");
+                    await populateCoachYouthAccounts();
+                } else {
+                    let errorText = await retractResp.text();
+                    alert(`Failed to retract invitation: ${errorText}`);
+                }
             });
-            if (response.ok) {
-                alert("Invitation sent successfully!");
-            } else {
-                let errorText = await response.text();
-                alert(`Failed to send invitation: ${errorText}`);
-            }
-        });
+        } else {
+            button.classList.add("btn", "btn-purple");
+            button.innerText = "Invite";
+            button.addEventListener("click", async () => {
+                let response = await fetch('/coach/inviteyouth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        youthId: yud.id,
+                        teamId: user.coachInfo.team?._id
+                    })
+                });
+                if (response.ok) {
+                    alert("Invitation sent successfully!");
+                    await populateCoachYouthAccounts();
+                } else {
+                    let errorText = await response.text();
+                    alert(`Failed to send invitation: ${errorText}`);
+                }
+            });
+        }
         buttonTd.appendChild(button);
         tr.appendChild(buttonTd);
         tbody.appendChild(tr);
