@@ -454,7 +454,7 @@ async function populateCoachYouthAccounts() {
             });
         } else {
             button.classList.add("btn", "btn-purple");
-            button.innerText = "Invite";
+            button.innerText = "Send";
             button.addEventListener("click", async () => {
                 let response = await fetch('/coach/inviteyouth', {
                     method: 'POST',
